@@ -442,6 +442,72 @@ EDITIONS: dict[str, EditionSpec] = {
         azhar_seat_prior=True,
         seat_prior_editions=('الأزهر',),
     ),
+    'المدينة ١٤٢٧': EditionSpec(
+        id='madinah_1427',
+        mushaf_version='المدينة ١٤٢٧',
+        layout_db=QPC_V1_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        # Print: archive.org arabic-568335686835685363568q3an1 «مصحف المدينه أزرق كبير» (King Fahd Complex, the
+        # 1420 edition - approval 5/1420 - printed 1427). Its PDF holds 750 px pages, so the 3123 px page images
+        # (page/n{page+2}.jpg) are fetched and shrunk to the 1024 working width into data/refs (gitignored).
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'madinah_1427' / 'cache'),
+        text_top=0.1054,
+        text_bottom=0.87,
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        # Test print: Madinah must not vouch for its own marks, Azhar alone defines the allowed seats.
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
+    ),
+    # Prints with no column of their own yet: read against «المدينة القديم» (their line breaks are the 1405
+    # layout's), so book-audit lists where they differ. Pages: python -m pipeline.cv_waqf.fetch_scans <id>.
+    'آل البيت': EditionSpec(
+        id='aalalbayt',
+        # Line breaks follow old Madinah 1405 (layout_db). The waqf signs are the Jordanian review committee's
+        # (1424-1429 AH, printed 2008, colophon), and match the Madinah 1427 print: of 125 real differences from
+        # «المدينة القديم» found by eye, 112 are 1427's sign; where 1427 and the new Madinah differ, the print
+        # shows 1427's sign 91 times and the new one twice (2026-11-04).
+        mushaf_version='المدينة ١٤٢٧',
+        layout_db=QPC_V1_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        # Jordan, Ministry of Awqaf; tafsir.app m-aalalbayt (620 px, upscaled to 1024)
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'aalalbayt' / 'cache'),
+        # calibrate-geometry on 19 pages (80-604:28), 2026-11-04
+        text_top=0.1049,
+        text_bottom=0.8695,
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
+    ),
+    'التجويد دار المعرفة': EditionSpec(
+        id='tajweed_maarifa',
+        mushaf_version='المدينة القديم',
+        layout_db=QPC_V1_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        # Damascus, Dar al-Maarifa colour tajweed mushaf (Uthman Taha); tafsir.app m-tajweed-orig, cropped to
+        # the ornamental frame (the word-meaning margin column alternates sides)
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'tajweed_maarifa' / 'cache'),
+        # calibrate-geometry on 19 pages (80-604:28), 2026-11-04
+        text_top=0.0453,
+        text_bottom=0.8711,
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
+    ),
     'الأزهر': EditionSpec(
         id='azhar',
         mushaf_version='الأزهر',

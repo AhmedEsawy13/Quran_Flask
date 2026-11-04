@@ -1,0 +1,3959 @@
+[
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:138:7",
+  "text": "صِبْغَةࣰۖ",
+  "cv": "ج",
+  "conf": 0.9989,
+  "db": "ص",
+  "box": [
+   244,
+   704,
+   268,
+   728
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p021_2-138-7.jpg",
+  "raw": {
+   "raw_key": "2:138:7",
+   "raw_text": "صِبْغَةࣰۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 21,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "2:174:12",
+  "text": "قَلِيلًا",
+  "cv": "ج",
+  "conf": 0.756,
+  "db": null,
+  "box": [
+   438,
+   838,
+   462,
+   862
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "المدينة القديم": "لا",
+   "قطر": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p026_2-174-12.jpg",
+  "raw": {
+   "raw_key": "2:174:12",
+   "raw_text": "قَلِيلًا"
+  },
+  "page": 26,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:176:6",
+  "text": "بِٱلْحَقِّۗ",
+  "cv": "ج",
+  "conf": 0.9206,
+  "db": "ق",
+  "box": [
+   848,
+   1206,
+   872,
+   1230
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p026_2-176-6.jpg",
+  "raw": {
+   "raw_key": "2:176:6",
+   "raw_text": "بِٱلْحَقِّۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 26,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:187:23",
+  "text": "عَنكُمْۖ",
+  "cv": "ع",
+  "conf": 0.9883,
+  "db": "ص",
+  "box": [
+   234,
+   348,
+   258,
+   372
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p029_2-187-23.jpg",
+  "raw": {
+   "raw_key": "2:187:23",
+   "raw_text": "عَنكُمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.043
+  },
+  "page": 29,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "3:31:11",
+  "text": "ذُنُوبَكُمْۚ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   431,
+   400,
+   455,
+   424
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "crop": "p054_3-31-11.jpg",
+  "raw": {
+   "raw_key": "3:31:11",
+   "raw_text": "ذُنُوبَكُمْۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 54,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "3:36:17",
+  "text": "مَرْيَمَ",
+  "cv": "ص",
+  "conf": 0.9173,
+  "db": null,
+  "box": [
+   396,
+   922,
+   420,
+   946
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p054_3-36-17.jpg",
+  "raw": {
+   "raw_key": "3:36:17",
+   "raw_text": "مَرْيَمَ"
+  },
+  "page": 54,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "3:145:8",
+  "text": "ٱللَّهِ",
+  "cv": "ج",
+  "conf": 0.9893,
+  "db": null,
+  "box": [
+   458,
+   703,
+   482,
+   727
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p068_3-145-8.jpg",
+  "raw": {
+   "raw_key": "3:145:8",
+   "raw_text": "ٱللَّهِ"
+  },
+  "page": 68,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "3:153:21",
+  "text": "أَصَٰبَكُمْۗ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   612,
+   1213,
+   636,
+   1237
+  ],
+  "others": {},
+  "crop": "p069_3-153-21.jpg",
+  "raw": {
+   "raw_key": "3:153:21",
+   "raw_text": "أَصَٰبَكُمْۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 69,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "3:160:14",
+  "text": "بَعْدِهِۦۗ",
+  "cv": "ج",
+  "conf": 0.9521,
+  "db": "ق",
+  "box": [
+   679,
+   551,
+   703,
+   575
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "crop": "p071_3-160-14.jpg",
+  "raw": {
+   "raw_key": "3:160:14",
+   "raw_text": "بَعْدِهِۦۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 71,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "4:7:6",
+  "text": "وَٱلْأَقْرَبُونَ",
+  "cv": "ج",
+  "conf": 0.9274,
+  "db": null,
+  "box": [
+   433,
+   192,
+   457,
+   216
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p078_4-7-6.jpg",
+  "raw": {
+   "raw_key": "4:7:6",
+   "raw_text": "وَٱلْأَقْرَبُونَ"
+  },
+  "page": 78,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "4:9:10",
+  "text": "عَلَيْهِمْ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": null,
+  "box": [
+   731,
+   547,
+   755,
+   571
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p078_4-9-10.jpg",
+  "raw": {
+   "raw_key": "4:9:10",
+   "raw_text": "عَلَيْهِمْ"
+  },
+  "page": 78,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ص"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "5:22:12",
+  "text": "مِنْهَا",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": null,
+  "box": [
+   384,
+   987,
+   408,
+   1011
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p111_5-22-12.jpg",
+  "raw": {
+   "raw_key": "5:22:12",
+   "raw_text": "مِنْهَا"
+  },
+  "page": 111,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ص"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "5:26:6",
+  "text": "سَنَةࣰۛ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ع",
+  "box": [
+   213,
+   403,
+   237,
+   427
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ع",
+   "المدينة القديم": "ع",
+   "قطر": "ع",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "crop": "p112_5-26-6.jpg",
+  "raw": {
+   "raw_key": "5:26:6",
+   "raw_text": "سَنَةࣰۛ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 112,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "6:60:14",
+  "text": "مُّسَمࣰّىۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   392,
+   265,
+   416,
+   289
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p135_6-60-14.jpg",
+  "raw": {
+   "raw_key": "6:60:14",
+   "raw_text": "مُّسَمࣰّىۖ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    378,
+    255,
+    398,
+    273
+   ],
+   "seat_d": 1.5,
+   "crop": "p135_6-60-14_confirm.jpg"
+  },
+  "page": 135,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "6:165:14",
+  "text": "ءَاتَىٰكُمْۗ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   774,
+   1212,
+   798,
+   1236
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p150_6-165-14.jpg",
+  "raw": {
+   "raw_key": "6:165:14",
+   "raw_text": "ءَاتَىٰكُمْۗ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    758,
+    1208,
+    776,
+    1228
+   ],
+   "seat_d": 30.1,
+   "crop": "p150_6-165-14_confirm.jpg"
+  },
+  "page": 150,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "7:59:14",
+  "text": "غَيْرُهُۥٓ",
+  "cv": "ص",
+  "conf": 0.9868,
+  "db": null,
+  "box": [
+   687,
+   404,
+   711,
+   428
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p158_7-59-14.jpg",
+  "raw": {
+   "raw_key": "7:59:14",
+   "raw_text": "غَيْرُهُۥٓ"
+  },
+  "page": 158,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "7:73:23",
+  "text": "ءَايَةࣰۖ",
+  "cv": "ج",
+  "conf": 0.9945,
+  "db": "ص",
+  "box": [
+   330,
+   1137,
+   354,
+   1161
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p159_7-73-23.jpg",
+  "raw": {
+   "raw_key": "7:73:23",
+   "raw_text": "ءَايَةࣰۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.005
+  },
+  "page": 159,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "8:52:3",
+  "text": "فِرْعَوْنَ",
+  "cv": "ج",
+  "conf": 0.6793,
+  "db": null,
+  "box": [
+   524,
+   1136,
+   548,
+   1160
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "المدينة القديم": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p183_8-52-3.jpg",
+  "raw": {
+   "raw_key": "8:52:3",
+   "raw_text": "فِرْعَوْنَ"
+  },
+  "page": 183,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "8:53:14",
+  "text": "بِأَنفُسِهِمْ",
+  "cv": "ج",
+  "conf": 0.8364,
+  "db": null,
+  "box": [
+   720,
+   254,
+   744,
+   278
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "المدينة القديم": "لا",
+   "قطر": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p184_8-53-14.jpg",
+  "raw": {
+   "raw_key": "8:53:14",
+   "raw_text": "بِأَنفُسِهِمْ"
+  },
+  "page": 184,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "9:4:18",
+  "text": "مُدَّتِهِمْۚ",
+  "cv": "ص",
+  "conf": 0.8,
+  "db": "ج",
+  "box": [
+   777,
+   843,
+   801,
+   867
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p187_9-4-18.jpg",
+  "raw": {
+   "raw_key": "9:4:18",
+   "raw_text": "مُدَّتِهِمْۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.081
+  },
+  "page": 187,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "9:19:15",
+  "text": "ٱللَّهِۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   557,
+   1064,
+   581,
+   1088
+  ],
+  "others": {},
+  "crop": "p189_9-19-15.jpg",
+  "raw": {
+   "raw_key": "9:19:15",
+   "raw_text": "ٱللَّهِۚ"
+  },
+  "verify": {
+   "found": true,
+   "p": 0.996,
+   "box": [
+    578,
+    1080,
+    593,
+    1088
+   ],
+   "seat_d": 35.6,
+   "crop": "p189_9-19-15_confirm.jpg"
+  },
+  "page": 189,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ق"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "9:60:16",
+  "text": "ٱلسَّبِيلِۖ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   217,
+   917,
+   241,
+   941
+  ],
+  "others": {},
+  "crop": "p196_9-60-16.jpg",
+  "raw": {
+   "raw_key": "9:60:16",
+   "raw_text": "ٱلسَّبِيلِۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 196,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ق"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "10:4:3",
+  "text": "جَمِيعࣰاۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   382,
+   699,
+   406,
+   723
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p208_10-4-3.jpg",
+  "raw": {
+   "raw_key": "10:4:3",
+   "raw_text": "جَمِيعࣰاۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.006
+  },
+  "page": 208,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "10:22:34",
+  "text": "ٱلدِّينَ",
+  "cv": "ص",
+  "conf": 0.8862,
+  "db": null,
+  "box": [
+   570,
+   556,
+   594,
+   580
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p211_10-22-34.jpg",
+  "raw": {
+   "raw_key": "10:22:34",
+   "raw_text": "ٱلدِّينَ"
+  },
+  "page": 211,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "10:23:9",
+  "text": "ٱلْحَقِّۗ",
+  "cv": "ص",
+  "conf": 0.8174,
+  "db": "ق",
+  "box": [
+   714,
+   700,
+   738,
+   724
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p211_10-23-9.jpg",
+  "raw": {
+   "raw_key": "10:23:9",
+   "raw_text": "ٱلْحَقِّۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 211,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "10:30:11",
+  "text": "ٱلْحَقِّۖ",
+  "cv": "ج",
+  "conf": 0.7018,
+  "db": "ص",
+  "box": [
+   718,
+   850,
+   742,
+   874
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p212_10-30-11.jpg",
+  "raw": {
+   "raw_key": "10:30:11",
+   "raw_text": "ٱلْحَقِّۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.009
+  },
+  "page": 212,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "10:35:27",
+  "text": "لَكُمْ",
+  "cv": "ص",
+  "conf": 0.6199,
+  "db": null,
+  "box": [
+   270,
+   402,
+   294,
+   426
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p213_10-35-27.jpg",
+  "raw": {
+   "raw_key": "10:35:27",
+   "raw_text": "لَكُمْ"
+  },
+  "page": 213,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "11:42:6",
+  "text": "كَٱلْجِبَالِ",
+  "cv": "ج",
+  "conf": 0.9166,
+  "db": null,
+  "box": [
+   538,
+   699,
+   562,
+   723
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p226_11-42-6.jpg",
+  "raw": {
+   "raw_key": "11:42:6",
+   "raw_text": "كَٱلْجِبَالِ"
+  },
+  "page": 226,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "11:123:8",
+  "text": "كُلُّهُۥ",
+  "cv": "ج",
+  "conf": 0.9943,
+  "db": null,
+  "box": [
+   147,
+   626,
+   171,
+   650
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p235_11-123-8.jpg",
+  "raw": {
+   "raw_key": "11:123:8",
+   "raw_text": "كُلُّهُۥ"
+  },
+  "page": 235,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "12:24:3",
+  "text": "بِهِۦۖ",
+  "cv": "ج",
+  "conf": 0.9998,
+  "db": "ص",
+  "box": [
+   378,
+   328,
+   402,
+   352
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ق",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p238_12-24-3.jpg",
+  "raw": {
+   "raw_key": "12:24:3",
+   "raw_text": "بِهِۦۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 238,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "14:22:33",
+  "text": "بِمُصْرِخِيَّ",
+  "cv": "ص",
+  "conf": 0.6951,
+  "db": null,
+  "box": [
+   438,
+   848,
+   462,
+   872
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p258_14-22-33.jpg",
+  "raw": {
+   "raw_key": "14:22:33",
+   "raw_text": "بِمُصْرِخِيَّ"
+  },
+  "page": 258,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "18:48:4",
+  "text": "صَفࣰّا",
+  "cv": "ج",
+  "conf": 0.779,
+  "db": null,
+  "box": [
+   658,
+   408,
+   682,
+   432
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p299_18-48-4.jpg",
+  "raw": {
+   "raw_key": "18:48:4",
+   "raw_text": "صَفࣰّا"
+  },
+  "page": 299,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "20:96:12",
+  "text": "فَنَبَذْتُهَا",
+  "cv": "ج",
+  "conf": 0.7015,
+  "db": null,
+  "box": [
+   730,
+   915,
+   754,
+   939
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ص"
+  },
+  "crop": "p318_20-96-12.jpg",
+  "raw": {
+   "raw_key": "20:96:12",
+   "raw_text": "فَنَبَذْتُهَا"
+  },
+  "page": 318,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "22:73:18",
+  "text": "لَهُۥۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   146,
+   248,
+   170,
+   272
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p341_22-73-18.jpg",
+  "raw": {
+   "raw_key": "22:73:18",
+   "raw_text": "لَهُۥۖ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    130,
+    241,
+    154,
+    259
+   ],
+   "seat_d": 4.2,
+   "crop": "p341_22-73-18_confirm.jpg"
+  },
+  "page": 341,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "24:26:4",
+  "text": "لِلْخَبِيثَٰتِۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   208,
+   916,
+   232,
+   940
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p352_24-26-4.jpg",
+  "raw": {
+   "raw_key": "24:26:4",
+   "raw_text": "لِلْخَبِيثَٰتِۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 352,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "25:53:10",
+  "text": "أُجَاجࣱ",
+  "cv": "ج",
+  "conf": 0.9308,
+  "db": null,
+  "box": [
+   437,
+   961,
+   472,
+   978
+  ],
+  "others": {},
+  "crop": "p364_25-53-10.jpg",
+  "raw": {
+   "raw_key": "25:53:10",
+   "raw_text": "أُجَاجࣱ"
+  },
+  "page": 364,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "26:154:5",
+  "text": "مِّثْلُنَا",
+  "cv": "ج",
+  "conf": 0.9653,
+  "db": null,
+  "box": [
+   620,
+   914,
+   644,
+   938
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p373_26-154-5.jpg",
+  "raw": {
+   "raw_key": "26:154:5",
+   "raw_text": "مِّثْلُنَا"
+  },
+  "page": 373,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "28:31:3",
+  "text": "عَصَاكَۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   456,
+   544,
+   480,
+   568
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ص",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p389_28-31-3.jpg",
+  "raw": {
+   "raw_key": "28:31:3",
+   "raw_text": "عَصَاكَۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 389,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ص"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "29:6:5",
+  "text": "لِنَفْسِهِۦٓۚ",
+  "cv": "ق",
+  "conf": 0.997,
+  "db": "ج",
+  "box": [
+   552,
+   1210,
+   576,
+   1234
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p396_29-6-5.jpg",
+  "raw": {
+   "raw_key": "29:6:5",
+   "raw_text": "لِنَفْسِهِۦٓۚ"
+  },
+  "verify": {
+   "found": true,
+   "p": 0.998,
+   "box": [
+    607,
+    1216,
+    619,
+    1231
+   ],
+   "seat_d": 49.0,
+   "crop": "p396_29-6-5_confirm.jpg"
+  },
+  "page": 396,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "32:24:7",
+  "text": "صَبَرُوا۟ۖ",
+  "cv": "ج",
+  "conf": 0.9158,
+  "db": "ص",
+  "box": [
+   582,
+   544,
+   606,
+   568
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p417_32-24-7.jpg",
+  "raw": {
+   "raw_key": "32:24:7",
+   "raw_text": "صَبَرُوا۟ۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.071
+  },
+  "page": 417,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "34:8:7",
+  "text": "جِنَّةُۢۗ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   450,
+   191,
+   474,
+   215
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p429_34-8-7.jpg",
+  "raw": {
+   "raw_key": "34:8:7",
+   "raw_text": "جِنَّةُۢۗ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    452,
+    171,
+    470,
+    188
+   ],
+   "seat_d": 14.2,
+   "crop": "p429_34-8-7_confirm.jpg"
+  },
+  "page": 429,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "35:25:7",
+  "text": "قَبْلِهِمْ",
+  "cv": "ص",
+  "conf": 0.9894,
+  "db": null,
+  "box": [
+   628,
+   520,
+   664,
+   545
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p437_35-25-7.jpg",
+  "raw": {
+   "raw_key": "35:25:7",
+   "raw_text": "قَبْلِهِمْ"
+  },
+  "page": 437,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "35:26:4",
+  "text": "كَفَرُوا۟ۖ",
+  "cv": "ج",
+  "conf": 0.9809,
+  "db": "ص",
+  "box": [
+   452,
+   624,
+   476,
+   648
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p437_35-26-4.jpg",
+  "raw": {
+   "raw_key": "35:26:4",
+   "raw_text": "كَفَرُوا۟ۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.017
+  },
+  "page": 437,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "38:22:14",
+  "text": "بَعْضࣲ",
+  "cv": "ج",
+  "conf": 0.8977,
+  "db": null,
+  "box": [
+   523,
+   552,
+   547,
+   576
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p454_38-22-14.jpg",
+  "raw": {
+   "raw_key": "38:22:14",
+   "raw_text": "بَعْضࣲ"
+  },
+  "page": 454,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "38:22:19",
+  "text": "تُشْطِطْ",
+  "cv": "ص",
+  "conf": 0.7175,
+  "db": null,
+  "box": [
+   219,
+   552,
+   243,
+   576
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p454_38-22-19.jpg",
+  "raw": {
+   "raw_key": "38:22:19",
+   "raw_text": "تُشْطِطْ"
+  },
+  "page": 454,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "38:44:12",
+  "text": "ٱلْعَبْدُ",
+  "cv": "ج",
+  "conf": 0.8563,
+  "db": "ص",
+  "box": [
+   768,
+   329,
+   792,
+   353
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p456_38-44-12.jpg",
+  "raw": {
+   "raw_key": "38:44:12",
+   "raw_text": "ٱلْعَبْدُ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.132
+  },
+  "page": 456,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "38:56:2",
+  "text": "يَصْلَوْنَهَا",
+  "cv": "ص",
+  "conf": 0.749,
+  "db": null,
+  "box": [
+   424,
+   932,
+   448,
+   956
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ص"
+  },
+  "crop": "p456_38-56-2.jpg",
+  "raw": {
+   "raw_key": "38:56:2",
+   "raw_text": "يَصْلَوْنَهَا"
+  },
+  "page": 456,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "39:19:5",
+  "text": "ٱلْعَذَابِ",
+  "cv": "ق",
+  "conf": 0.9889,
+  "db": null,
+  "box": [
+   539,
+   842,
+   563,
+   866
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p460_39-19-5.jpg",
+  "raw": {
+   "raw_key": "39:19:5",
+   "raw_text": "ٱلْعَذَابِ"
+  },
+  "page": 460,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "40:15:4",
+  "text": "ٱلْعَرْشِ",
+  "cv": "ع",
+  "conf": 0.9624,
+  "db": null,
+  "box": [
+   601,
+   1076,
+   625,
+   1100
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج"
+  },
+  "crop": "p468_40-15-4.jpg",
+  "raw": {
+   "raw_key": "40:15:4",
+   "raw_text": "ٱلْعَرْشِ"
+  },
+  "page": 468,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:28:31",
+  "text": "يَعِدُكُمْۖ",
+  "cv": "ق",
+  "conf": 0.6796,
+  "db": "ص",
+  "box": [
+   866,
+   694,
+   890,
+   718
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p470_40-28-31.jpg",
+  "raw": {
+   "raw_key": "40:28:31",
+   "raw_text": "يَعِدُكُمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 470,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:44:8",
+  "text": "ٱللَّهِۚ",
+  "cv": "ص",
+  "conf": 0.6564,
+  "db": "ج",
+  "box": [
+   866,
+   624,
+   890,
+   648
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p472_40-44-8.jpg",
+  "raw": {
+   "raw_key": "40:44:8",
+   "raw_text": "ٱللَّهِۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.193
+  },
+  "page": 472,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:50:6",
+  "text": "بِٱلْبَيِّنَٰتِۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   131,
+   186,
+   155,
+   210
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p473_40-50-6.jpg",
+  "raw": {
+   "raw_key": "40:50:6",
+   "raw_text": "بِٱلْبَيِّنَٰتِۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 473,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:50:8",
+  "text": "بَلَىٰۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   642,
+   246,
+   666,
+   270
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p473_40-50-8.jpg",
+  "raw": {
+   "raw_key": "40:50:8",
+   "raw_text": "بَلَىٰۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 473,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:70:7",
+  "text": "رُسُلَنَاۖ",
+  "cv": "ج",
+  "conf": 0.9631,
+  "db": "ص",
+  "box": [
+   386,
+   624,
+   410,
+   648
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p475_40-70-7.jpg",
+  "raw": {
+   "raw_key": "40:70:7",
+   "raw_text": "رُسُلَنَاۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.95
+  },
+  "page": 475,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:85:7",
+  "text": "بَأْسَنَاۖ",
+  "cv": "لا",
+  "conf": 0.8898,
+  "db": "ص",
+  "box": [
+   301,
+   1138,
+   325,
+   1162
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p476_40-85-7.jpg",
+  "raw": {
+   "raw_key": "40:85:7",
+   "raw_text": "بَأْسَنَاۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.051
+  },
+  "page": 476,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "47:2:13",
+  "text": "رَّبِّهِمْ",
+  "cv": "ج",
+  "conf": 0.8796,
+  "db": null,
+  "box": [
+   724,
+   394,
+   748,
+   418
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "المدينة القديم": "لا",
+   "قطر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p507_47-2-13.jpg",
+  "raw": {
+   "raw_key": "47:2:13",
+   "raw_text": "رَّبِّهِمْ"
+  },
+  "page": 507,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "47:15:22",
+  "text": "لِّلشَّٰرِبِينَ",
+  "cv": "ص",
+  "conf": 0.8055,
+  "db": null,
+  "box": [
+   416,
+   609,
+   440,
+   633
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p508_47-15-22.jpg",
+  "raw": {
+   "raw_key": "47:15:22",
+   "raw_text": "لِّلشَّٰرِبِينَ"
+  },
+  "page": 508,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "52:37:4",
+  "text": "رَبِّكَ",
+  "cv": "ص",
+  "conf": 0.6828,
+  "db": null,
+  "box": [
+   757,
+   474,
+   781,
+   498
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p525_52-37-4.jpg",
+  "raw": {
+   "raw_key": "52:37:4",
+   "raw_text": "رَبِّكَ"
+  },
+  "page": 525,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "54:22:4",
+  "text": "لِلذِّكْرِ",
+  "cv": "ج",
+  "conf": 0.6399,
+  "db": null,
+  "box": [
+   704,
+   998,
+   728,
+   1022
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p529_54-22-4.jpg",
+  "raw": {
+   "raw_key": "54:22:4",
+   "raw_text": "لِلذِّكْرِ"
+  },
+  "page": 529,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "57:6:8",
+  "text": "ٱلَّيْلِۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   380,
+   513,
+   392,
+   516
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p538_57-6-8.jpg",
+  "raw": {
+   "raw_key": "57:6:8",
+   "raw_text": "ٱلَّيْلِۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.018
+  },
+  "page": 538,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "57:15:9",
+  "text": "كَفَرُوا۟ۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   516,
+   763,
+   540,
+   787
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p539_57-15-9.jpg",
+  "raw": {
+   "raw_key": "57:15:9",
+   "raw_text": "كَفَرُوا۟ۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.015
+  },
+  "page": 539,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ص"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "59:7:33",
+  "text": "ٱللَّهَۖ",
+  "cv": "ق",
+  "conf": 0.7919,
+  "db": "ص",
+  "box": [
+   528,
+   770,
+   552,
+   794
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p546_59-7-33.jpg",
+  "raw": {
+   "raw_key": "59:7:33",
+   "raw_text": "ٱللَّهَۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.006
+  },
+  "page": 546,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "59:18:10",
+  "text": "لِغَدࣲۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   626,
+   324,
+   650,
+   348
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p548_59-18-10.jpg",
+  "raw": {
+   "raw_key": "59:18:10",
+   "raw_text": "لِغَدࣲۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 548,
+  "verdict": "real",
+  "note": "the print differs from the reference (checked against the scan)",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "61:14:28",
+  "text": "طَّآئِفَةࣱۖ",
+  "cv": "ق",
+  "conf": 0.7859,
+  "db": "ص",
+  "box": [
+   746,
+   1214,
+   770,
+   1238
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p552_61-14-28.jpg",
+  "raw": {
+   "raw_key": "61:14:28",
+   "raw_text": "طَّآئِفَةࣱۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.007
+  },
+  "page": 552,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "64:13:5",
+  "text": "هُوَۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   699,
+   505,
+   715,
+   528
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p557_64-13-5.jpg",
+  "raw": {
+   "raw_key": "64:13:5",
+   "raw_text": "هُوَۚ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    741,
+    539,
+    747,
+    554
+   ],
+   "seat_d": 58.9,
+   "crop": "p557_64-13-5_confirm.jpg"
+  },
+  "page": 557,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "65:1:7",
+  "text": "لِعِدَّتِهِنَّ",
+  "cv": "ص",
+  "conf": 0.7378,
+  "db": null,
+  "box": [
+   252,
+   257,
+   276,
+   281
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p558_65-1-7.jpg",
+  "raw": {
+   "raw_key": "65:1:7",
+   "raw_text": "لِعِدَّتِهِنَّ"
+  },
+  "page": 558,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "66:8:40",
+  "text": "لَنَآۖ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   500,
+   465,
+   524,
+   489
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p561_66-8-40.jpg",
+  "raw": {
+   "raw_key": "66:8:40",
+   "raw_text": "لَنَآۖ"
+  },
+  "verify": {
+   "found": true,
+   "p": 0.999,
+   "box": [
+    499,
+    479,
+    502,
+    485
+   ],
+   "seat_d": 59.6,
+   "crop": "p561_66-8-40_confirm.jpg"
+  },
+  "page": 561,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "72:14:5",
+  "text": "ٱلْقَٰسِطُونَۖ",
+  "cv": "ج",
+  "conf": 0.8018,
+  "db": "ص",
+  "box": [
+   552,
+   182,
+   576,
+   206
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p573_72-14-5.jpg",
+  "raw": {
+   "raw_key": "72:14:5",
+   "raw_text": "ٱلْقَٰسِطُونَۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.516
+  },
+  "page": 573,
+  "verdict": "false",
+  "note": "no waqf sign there: the model fired on a vowel, ornament or verse ring"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "73:20:30",
+  "text": "ٱلْقُرْءَانِۚ",
+  "cv": "ص",
+  "conf": 0.7839,
+  "db": "ج",
+  "box": [
+   457,
+   341,
+   481,
+   365
+  ],
+  "others": {},
+  "crop": "p575_73-20-30.jpg",
+  "raw": {
+   "raw_key": "73:20:30",
+   "raw_text": "ٱلْقُرْءَانِۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.009
+  },
+  "page": 575,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "74:31:6",
+  "text": "مَلَٰٓئِكَةࣰۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   379,
+   472,
+   403,
+   496
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "لا",
+   "قطر": "ص",
+   "الكويت": "لا",
+   "البحرين": "ص"
+  },
+  "crop": "p576_74-31-6.jpg",
+  "raw": {
+   "raw_key": "74:31:6",
+   "raw_text": "مَلَٰٓئِكَةࣰۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 576,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "74:31:27",
+  "text": "وَٱلْمُؤْمِنُونَ",
+  "cv": "ج",
+  "conf": 0.9595,
+  "db": null,
+  "box": [
+   378,
+   631,
+   402,
+   655
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "المدينة القديم": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p576_74-31-27.jpg",
+  "raw": {
+   "raw_key": "74:31:27",
+   "raw_text": "وَٱلْمُؤْمِنُونَ"
+  },
+  "page": 576,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "74:56:6",
+  "text": "ٱللَّهُۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   490,
+   468,
+   514,
+   492
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p577_74-56-6.jpg",
+  "raw": {
+   "raw_key": "74:56:6",
+   "raw_text": "ٱللَّهُۚ"
+  },
+  "verify": {
+   "found": true,
+   "p": 0.993,
+   "box": [
+    509,
+    487,
+    524,
+    497
+   ],
+   "seat_d": 48.8,
+   "crop": "p577_74-56-6_confirm.jpg"
+  },
+  "page": 577,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "76:31:5",
+  "text": "رَحْمَتِهِۦۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   509,
+   540,
+   533,
+   564
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p580_76-31-5.jpg",
+  "raw": {
+   "raw_key": "76:31:5",
+   "raw_text": "رَحْمَتِهِۦۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.031
+  },
+  "page": 580,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "79:27:5",
+  "text": "ٱلسَّمَآءُۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   222,
+   461,
+   246,
+   485
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p584_79-27-5.jpg",
+  "raw": {
+   "raw_key": "79:27:5",
+   "raw_text": "ٱلسَّمَآءُۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.071
+  },
+  "page": 584,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "87:7:4",
+  "text": "ٱللَّهُۚ",
+  "cv": "ص",
+  "conf": 0.833,
+  "db": "ج",
+  "box": [
+   587,
+   986,
+   611,
+   1010
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p591_87-7-4.jpg",
+  "raw": {
+   "raw_key": "87:7:4",
+   "raw_text": "ٱللَّهُۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.034
+  },
+  "page": 591,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:2:5",
+  "text": "فِيهِۛ",
+  "cv": null,
+  "conf": null,
+  "db": "ع",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ع",
+   "المدينة القديم": "ع",
+   "قطر": "ع",
+   "الكويت": "ع",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "word_box": [
+   343,
+   470,
+   380,
+   595
+  ],
+  "crop": "p002_2-2-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 2,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:131:5",
+  "text": "أَسْلِمْۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   215,
+   668,
+   296,
+   742
+  ],
+  "crop": "p020_2-131-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 20,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:173:12",
+  "text": "ٱللَّهِۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   781,
+   666,
+   832,
+   740
+  ],
+  "crop": "p026_2-173-12_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.75
+  },
+  "page": 26,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:180:13",
+  "text": "بِٱلْمَعْرُوفِۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   554,
+   1110,
+   608,
+   1184
+  ],
+  "crop": "p027_2-180-13_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 27,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:184:29",
+  "text": "لَّكُمْ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "م",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "م",
+   "الشمرلي": "م"
+  },
+  "word_box": [
+   552,
+   593,
+   586,
+   667
+  ],
+  "crop": "p028_2-184-29_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.937
+  },
+  "page": 28,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:199:8",
+  "text": "ٱللَّهَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   475,
+   742,
+   545,
+   816
+  ],
+  "crop": "p031_2-199-8_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 31,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "4:17:16",
+  "text": "عَلَيْهِمْۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   331,
+   598,
+   378,
+   672
+  ],
+  "crop": "p080_4-17-16_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 80,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "4:171:38",
+  "text": "وَٰحِدࣱۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   742,
+   445,
+   810,
+   518
+  ],
+  "crop": "p105_4-171-38_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.006
+  },
+  "page": 105,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "5:18:28",
+  "text": "بَيْنَهُمَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   673,
+   375,
+   769,
+   449
+  ],
+  "crop": "p111_5-18-28_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 111,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "5:41:31",
+  "text": "مَوَاضِعِهِۦۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {},
+  "word_box": [
+   216,
+   895,
+   298,
+   969
+  ],
+  "crop": "p114_5-41-31_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 114,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "5:64:10",
+  "text": "قَالُوا۟ۘ",
+  "cv": null,
+  "conf": null,
+  "db": "م",
+  "others": {
+   "الأزهر": "م",
+   "المدينة الجديد": "م",
+   "المدينة القديم": "م",
+   "قطر": "م",
+   "الكويت": "م",
+   "البحرين": "م",
+   "الشمرلي": "م"
+  },
+  "word_box": [
+   802,
+   968,
+   853,
+   1041
+  ],
+  "crop": "p118_5-64-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.085
+  },
+  "page": 118,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:103:6",
+  "text": "ٱلْأَبْصَٰرَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   418,
+   300,
+   496,
+   374
+  ],
+  "crop": "p141_6-103-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.01
+  },
+  "page": 141,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:144:34",
+  "text": "عِلْمٍۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   775,
+   669,
+   813,
+   743
+  ],
+  "crop": "p147_6-144-34_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 147,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:146:26",
+  "text": "بِبَغْيِهِمْۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   346,
+   1186,
+   432,
+   1260
+  ],
+  "crop": "p147_6-146-26_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 147,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:146:23",
+  "text": "بِعَظْمࣲۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   646,
+   1186,
+   711,
+   1260
+  ],
+  "crop": "p147_6-146-23_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 147,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:151:37",
+  "text": "بِٱلْحَقِّۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {},
+  "word_box": [
+   650,
+   1186,
+   724,
+   1260
+  ],
+  "crop": "p148_6-151-37_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.008
+  },
+  "page": 148,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:152:30",
+  "text": "أَوْفُوا۟ۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   660,
+   376,
+   744,
+   450
+  ],
+  "crop": "p149_6-152-30_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.008
+  },
+  "page": 149,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:152:27",
+  "text": "قُرْبَىٰۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   172,
+   302,
+   272,
+   376
+  ],
+  "crop": "p149_6-152-27_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.05
+  },
+  "page": 149,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:155:6",
+  "text": "لِّمِيقَٰتِنَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   388,
+   961,
+   491,
+   1034
+  ],
+  "crop": "p169_7-155-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.067
+  },
+  "page": 169,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "9:31:20",
+  "text": "هُوَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   528,
+   1187,
+   618,
+   1261
+  ],
+  "crop": "p191_9-31-20_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.081
+  },
+  "page": 191,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "10:109:8",
+  "text": "ٱللَّهُۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   375,
+   519,
+   463,
+   593
+  ],
+  "crop": "p221_10-109-8_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.004
+  },
+  "page": 221,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "11:90:5",
+  "text": "إِلَيْهِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   322,
+   299,
+   412,
+   373
+  ],
+  "crop": "p232_11-90-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 232,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "12:76:10",
+  "text": "أَخِيهِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   746,
+   734,
+   847,
+   808
+  ],
+  "crop": "p244_12-76-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.028
+  },
+  "page": 244,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "12:76:24",
+  "text": "ٱللَّهُۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   466,
+   808,
+   543,
+   882
+  ],
+  "crop": "p244_12-76-24_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 244,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "13:28:6",
+  "text": "ٱللَّهِۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   624,
+   1184,
+   700,
+   1258
+  ],
+  "crop": "p252_13-28-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 252,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "16:87:5",
+  "text": "ٱلسَّلَمَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   606,
+   1184,
+   716,
+   1258
+  ],
+  "crop": "p276_16-87-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 276,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "16:101:13",
+  "text": "مُفْتَرِۭۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   496,
+   1040,
+   534,
+   1114
+  ],
+  "crop": "p278_16-101-13_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.034
+  },
+  "page": 278,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "16:116:14",
+  "text": "ٱلْكَذِبَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   216,
+   967,
+   283,
+   1040
+  ],
+  "crop": "p280_16-116-14_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 280,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "17:15:15",
+  "text": "أُخْرَىٰۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   422,
+   964,
+   507,
+   1037
+  ],
+  "crop": "p283_17-15-15_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 283,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "17:53:6",
+  "text": "أَحْسَنُۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   778,
+   520,
+   811,
+   594
+  ],
+  "crop": "p287_17-53-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 287,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "22:37:18",
+  "text": "هَدَىٰكُمْۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   602,
+   1108,
+   694,
+   1182
+  ],
+  "crop": "p336_22-37-18_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 336,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "34:23:19",
+  "text": "ٱلْحَقَّۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   324,
+   224,
+   388,
+   298
+  ],
+  "crop": "p431_34-23-19_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    386,
+    244,
+    397,
+    261
+   ],
+   "seat_d": 57.2,
+   "crop": "p431_34-23-19_confirm.jpg"
+  },
+  "page": 431,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "37:102:15",
+  "text": "تَرَىٰۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   178,
+   1110,
+   232,
+   1184
+  ],
+  "crop": "p449_37-102-15_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.006
+  },
+  "page": 449,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "40:50:10",
+  "text": "فَٱدْعُوا۟ۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   552,
+   230,
+   634,
+   304
+  ],
+  "crop": "p473_40-50-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 473,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "41:28:9",
+  "text": "ٱلْخُلْدِ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   455,
+   1040,
+   509,
+   1114
+  ],
+  "crop": "p479_41-28-9_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    507,
+    1064,
+    527,
+    1083
+   ],
+   "seat_d": 51.1,
+   "crop": "p479_41-28-9_confirm.jpg"
+  },
+  "page": 479,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "42:22:8",
+  "text": "بِهِمْۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "المدينة القديم": "ق",
+   "قطر": "ق",
+   "الكويت": "ج",
+   "البحرين": "ق",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   228,
+   1037,
+   326,
+   1111
+  ],
+  "crop": "p485_42-22-8_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 485,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "43:58:10",
+  "text": "جَدَلَۢاۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   373,
+   1039,
+   466,
+   1113
+  ],
+  "crop": "p493_43-58-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 493,
+  "verdict": "unsure",
+  "note": "cannot tell from the 620 px scan (upscaled to 1024)"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "46:25:10",
+  "text": "مَسَٰكِنُهُمْۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   264,
+   669,
+   363,
+   743
+  ],
+  "crop": "p505_46-25-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 505,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "57:4:27",
+  "text": "فِيهَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   662,
+   296,
+   722,
+   370
+  ],
+  "crop": "p538_57-4-27_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 538,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "60:5:9",
+  "text": "رَبَّنَآۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   401,
+   1186,
+   444,
+   1260
+  ],
+  "crop": "p549_60-5-9_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.912
+  },
+  "page": 549,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "60:7:12",
+  "text": "قَدِيرࣱۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {},
+  "word_box": [
+   366,
+   302,
+   478,
+   376
+  ],
+  "crop": "p550_60-7-12_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    425,
+    328,
+    438,
+    343
+   ],
+   "seat_d": 54.6,
+   "crop": "p550_60-7-12_confirm.jpg"
+  },
+  "page": 550,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "65:2:24",
+  "text": "ٱلْـَٔاخِرِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   650,
+   740,
+   750,
+   814
+  ],
+  "crop": "p558_65-2-24_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 558,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "71:4:15",
+  "text": "يُؤَخَّرُۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "م",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ص",
+   "قطر": "ج",
+   "الكويت": "م",
+   "البحرين": "ق",
+   "الشمرلي": "م"
+  },
+  "word_box": [
+   412,
+   818,
+   475,
+   892
+  ],
+  "crop": "p570_71-4-15_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 570,
+  "verdict": "reader",
+  "note": "the sign is printed as the reference has it; the model missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "72:11:6",
+  "text": "ذَٰلِكَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   654,
+   1038,
+   678,
+   1112
+  ],
+  "crop": "p572_72-11-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 572,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "73:20:74",
+  "text": "ٱللَّهَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {},
+  "word_box": [
+   431,
+   598,
+   477,
+   672
+  ],
+  "crop": "p575_73-20-74_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.124
+  },
+  "page": 575,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "74:31:46",
+  "text": "يَشَآءُۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   611,
+   741,
+   643,
+   815
+  ],
+  "crop": "p576_74-31-46_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 576,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "85:9:5",
+  "text": "وَٱلْأَرْضِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   608,
+   592,
+   738,
+   666
+  ],
+  "crop": "p590_85-9-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 590,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "89:17:1",
+  "text": "كَلَّاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "المدينة القديم": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص"
+  },
+  "word_box": [
+   860,
+   888,
+   901,
+   962
+  ],
+  "crop": "p593_89-17-1_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 593,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "98:5:13",
+  "text": "ٱلزَّكَوٰةَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   244,
+   968,
+   348,
+   1041
+  ],
+  "crop": "p598_98-5-13_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 598,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "98:6:12",
+  "text": "فِيهَآۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "المدينة القديم": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   420,
+   1115,
+   540,
+   1189
+  ],
+  "crop": "p598_98-6-12_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 598,
+  "verdict": "position",
+  "note": "the sign is printed as the reference has it, on another word (or the word box is on the wrong line); the audit attached it to the wrong key"
+ }
+]
