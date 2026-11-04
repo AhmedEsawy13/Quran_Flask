@@ -35,7 +35,10 @@ BOOKS = {
     # scan N = printed page + 4 (tafsir.app serves 1779x2274 JPGs)
     'wathiq': dict(pages=ROOT / 'artifacts' / 'tafsir-app' / 'alwathiq', trace=ROOT / 'artifacts' / 'wathiq-trace',
                    url=lambda p: f'https://tafsir.app/scans/m-alwathiq/{p + 4}.jpg',
-                   split=[HERE / 'wathiq_batch.py'], waqf=HERE / 'wathiq_waqf.py'),
+                   split=[HERE / 'wathiq_batch.py'], waqf=HERE / 'wathiq_waqf.py',
+                   # the sakta's small س is printed red (like the other small letters), not blue: the
+                   # blue-sign reader cannot see it (checked by eye: 18:1, 69:28, 75:27, 83:14)
+                   red_sakta=True),
     # archive.org leaf n{page-1} at full size (4967x7017); the split works at 1779 px
     'maktoom': dict(pages=ROOT / 'artifacts' / 'maktoom' / 'pages', trace=ROOT / 'artifacts' / 'maktoom-trace',
                     url=lambda p: f'https://archive.org/download/356835683586MAKTOOM/page/n{p - 1}.jpg',
@@ -164,12 +167,16 @@ def compare(book, args):
                 continue
             got = s['sign'] if s else ''
             kind = 'same' if got == col else 'missed' if not got else 'print_only' if not col else 'other_symbol'
+            if b.get('red_sakta') and 'س' in col.split(','):
+                rest = ','.join(c for c in col.split(',') if c != 'س')
+                if got == rest:
+                    kind = 'sakta_red'   # the rest matches; the sakta itself is red ink the reader skips
             # the reader fires on vowels and hamzas too: a sign no print has at this word is noise unless
             # it is very sure; only those and signs another print shares are worth a look
             if kind == 'print_only' and not (elsewhere or s['conf'] >= 0.999):
                 kind = 'print_only_noise'
             stats[kind] += 1
-            if kind not in ('same', 'print_only_noise'):
+            if kind not in ('same', 'print_only_noise', 'sakta_red'):
                 rows.append({'page': p, 'key': k, 'text': s['text'] if s else '', 'old_madinah': col,
                              'read': got, 'conf': s['conf'] if s else None, 'kind': kind})
     errs = json.loads((b['trace'] / 'split-errors.json').read_text()) if (b['trace'] / 'split-errors.json').exists() else {}
