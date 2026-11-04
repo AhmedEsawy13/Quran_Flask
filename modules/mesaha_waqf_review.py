@@ -50,6 +50,26 @@ def set_edition(data: dict) -> str:
     return str(data.get('decision_edition') or DECISION_EDITION)
 
 
+def card_edition(data: dict, card: dict) -> str:
+    """A set can hold cards of several prints («decision_edition_by_print»): each saves under «<print> · فحص»."""
+    if data.get('decision_edition_by_print') and card.get('print'):
+        return f"{card['print']} · فحص"
+    return set_edition(data)
+
+
+def set_decisions(data: dict) -> dict[str, dict]:
+    """{card id: decision row} for every decided card of the set."""
+    out, cache = {}, {}
+    for c in data['cards']:
+        ed = card_edition(data, c)
+        if ed not in cache:
+            cache[ed] = load_decisions(ed)
+        row = cache[ed].get((int(c['page']), int(c['word_index'])))
+        if row:
+            out[c['id']] = row
+    return out
+
+
 def _load_set(name: str) -> dict | None:
     if not _SET_NAME.match(name or ''):
         return None
@@ -147,12 +167,12 @@ def mesaha_waqf_cards():
         return jsonify({'error': 'no_set', 'sets': sets,
                         'message': 'لا توجد بطاقات المساحة على هذا الخادم — تُبنى على الجهاز الذي فيه صور الصفحات.'}), 404
     try:
-        decisions = load_decisions(set_edition(data))
+        decisions = set_decisions(data)
     except sb.SupabaseEditorError as exc:
         logger.error('mesaha waqf decisions read failed: %s', exc)
         return jsonify({'error': 'cloud unavailable'}), 503
     for c in data['cards']:
-        c['decision'] = _decision_view(decisions.get((int(c['page']), int(c['word_index']))))
+        c['decision'] = _decision_view(decisions.get(c['id']))
     return jsonify({'set': name, 'sets': sets, 'store': 'cloud' if _cloud() else 'local',
                     'pages': data.get('pages', []), 'a_sample': data.get('a_sample', []), 'cards': data['cards'],
                     'note': data.get('note') or ''})
@@ -179,12 +199,12 @@ def mesaha_waqf_decision():
         return jsonify({'error': 'unknown card'}), 404
     try:
         if request.method == 'DELETE':
-            delete_decision(card, set_edition(data))
+            delete_decision(card, card_edition(data, card))
             return jsonify({'ok': True, 'decision': None})
         mark = str(body.get('mark') or '').strip()
         if mark and mark not in SIGNS:
             return jsonify({'error': 'invalid mark'}), 400
-        save_decisions([_row(card, mark, set_edition(data))])
+        save_decisions([_row(card, mark, card_edition(data, card))])
     except sb.SupabaseEditorError as exc:
         logger.error('mesaha waqf decision failed: %s', exc)
         return jsonify({'error': 'cloud write failed'}), 503
@@ -202,9 +222,9 @@ def mesaha_waqf_accept():
     if group not in GROUPS:
         return jsonify({'error': 'invalid group'}), 400
     try:
-        decided = load_decisions(set_edition(data))
-        rows = [_row(c, c.get('model') or '', set_edition(data)) for c in data['cards']
-                if _in_group(data, c, group) and (int(c['page']), int(c['word_index'])) not in decided]
+        decided = set_decisions(data)
+        rows = [_row(c, c.get('model') or '', card_edition(data, c)) for c in data['cards']
+                if _in_group(data, c, group) and c['id'] not in decided]
         save_decisions(rows)
     except sb.SupabaseEditorError as exc:
         logger.error('mesaha waqf accept failed: %s', exc)
