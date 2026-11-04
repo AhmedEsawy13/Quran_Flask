@@ -24,3 +24,18 @@ def workdir(name: str) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     os.chdir(path)
     return path
+
+
+_DK_WORDS = None
+
+
+def dk_page(pg: int) -> dict:
+    """The app's /api/digital-khatt/page/<pg> words (word_index, text, surah, ayah per line), read from
+    data/refs/madinah_dk_words.json.gz so a run needs no Flask server (exported from :5001, 2026-11-04)."""
+    global _DK_WORDS
+    if _DK_WORDS is None:
+        import gzip
+        import json
+        with gzip.open(ROOT / 'data' / 'refs' / 'madinah_dk_words.json.gz', 'rt', encoding='utf-8') as f:
+            _DK_WORDS = json.load(f)
+    return _DK_WORDS[str(pg)]

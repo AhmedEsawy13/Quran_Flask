@@ -9,7 +9,7 @@ alignment works on; blue pieces are the waqf signs and go to the word they sit o
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
-from pipeline.paw_split._common import ROOT, workdir  # noqa: E402
+from pipeline.paw_split._common import ROOT, dk_page, workdir  # noqa: E402
 import os
 workdir(os.environ.get('PAW_WORK', 'wathiq-trace'))
 
@@ -17,7 +17,6 @@ import json
 import re
 import sqlite3
 import sys
-import urllib.request
 
 import cv2
 import numpy as np
@@ -61,8 +60,7 @@ GREEN &= inside; BLUE &= inside; RED &= inside
 def _api_page(pg):
     cache = f'layout-{pg:03d}.json'
     if not os.path.exists(cache):
-        json.dump(json.load(urllib.request.urlopen(f'http://127.0.0.1:5001/api/digital-khatt/page/{pg}')),
-                  open(cache, 'w'), ensure_ascii=False)
+        json.dump(dk_page(pg), open(cache, 'w'), ensure_ascii=False)
     return json.load(open(cache))
 # Word text by global layout id (verse rings have ids too) from the app's 15-line page and its neighbours.
 _TEXT = {}
