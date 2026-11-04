@@ -1,0 +1,140 @@
+[
+ {
+  "print": "قطر",
+  "key": "10:22:29",
+  "page": 211,
+  "word": "بِهِمۡ",
+  "column": "",
+  "others": {
+   "لا": 7
+  },
+  "note": "box too narrow"
+ },
+ {
+  "print": "قطر",
+  "key": "37:149:1",
+  "page": 451,
+  "word": "فَٱسْتَفْتِهِمْ",
+  "column": "ص",
+  "others": {},
+  "note": "no sign in box; maybe wrong word"
+ },
+ {
+  "print": "الكويت",
+  "key": "33:32:8",
+  "page": 422,
+  "word": "ٱتَّقَيۡتُنَّۚ",
+  "column": "",
+  "others": {
+   "ج": 5,
+   "ع": 2
+  },
+  "note": ""
+ },
+ {
+  "print": "الكويت",
+  "key": "43:80:7",
+  "page": 495,
+  "word": "وَنَجۡوَىٰهُمۚ",
+  "column": "ص",
+  "others": {
+   "ج": 9
+  },
+  "note": "ج on this word; صلى on next word 43:80:8 بلى",
+  "proposed": "ج"
+ },
+ {
+  "print": "الكويت",
+  "key": "46:35:22",
+  "page": 506,
+  "word": "بَلَٰغٞۚ",
+  "column": "ص",
+  "others": {
+   "ج": 6
+  },
+  "note": "both ج and صلى near; which word?"
+ },
+ {
+  "print": "البحرين",
+  "key": "2:2:4",
+  "page": 2,
+  "word": "رَيۡبَۛ",
+  "column": "",
+  "others": {
+   "ع": 8
+  },
+  "note": "page 2 ornament"
+ },
+ {
+  "print": "البحرين",
+  "key": "2:184:29",
+  "page": 28,
+  "word": "لَّكُمۡ",
+  "column": "",
+  "others": {
+   "ص": 5,
+   "م": 3
+  },
+  "note": "narrow box, a small mark near"
+ },
+ {
+  "print": "البحرين",
+  "key": "3:118:27",
+  "page": 65,
+  "word": "ٱلۡأٓيَٰتِۖ",
+  "column": "ق",
+  "others": {
+   "ص": 7,
+   "م": 2
+  },
+  "note": "no قلى visible in box"
+ },
+ {
+  "print": "البحرين",
+  "key": "5:24:9",
+  "page": 112,
+  "word": "فِيهَا",
+  "column": "",
+  "others": {
+   "ص": 7
+  },
+  "note": "tiny mark near"
+ },
+ {
+  "print": "البحرين",
+  "key": "6:3:6",
+  "page": 128,
+  "word": "ٱلۡأَرۡضِ",
+  "column": "",
+  "others": {
+   "ص": 6,
+   "ج": 1
+  },
+  "note": "ص near word start"
+ },
+ {
+  "print": "البحرين",
+  "key": "19:38:5",
+  "page": 307,
+  "word": "يَأۡتُونَنَا",
+  "column": "",
+  "others": {
+   "ص": 7
+  },
+  "note": "صلى printed, column has none",
+  "proposed": "ص"
+ },
+ {
+  "print": "البحرين",
+  "key": "39:20:16",
+  "page": 460,
+  "word": "ٱللَّهِ",
+  "column": "",
+  "others": {
+   "ص": 7,
+   "ج": 1
+  },
+  "note": "صلى printed above الله, column has none",
+  "proposed": "ص"
+ }
+]
