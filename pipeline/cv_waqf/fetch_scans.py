@@ -20,8 +20,9 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 
 SOURCES = {
-    # مصحف آل البيت (Jordan, Ministry of Awqaf): scan N = printed page + 2, 620x877
-    'aalalbayt': dict(url='https://tafsir.app/scans/m-aalalbayt/{n}.jpg', offset=2, crop=False,
+    # مصحف آل البيت (Jordan, Ministry of Awqaf): scan N = printed page + 2, 620x877; a stray copy of page 598
+    # sits at scan 573, so from page 571 on scan N = page + 3
+    'aalalbayt': dict(url='https://tafsir.app/scans/m-aalalbayt/{n}.jpg', offset=2, shift={571: 3}, crop=False,
                       cache=ROOT / 'data' / 'refs' / 'aalalbayt' / 'cache'),
     # مصحف التجويد, Dar al-Maarifa (Damascus, Uthman Taha): scan N = printed page - 1, 1298x1870
     'tajweed_maarifa': dict(url='https://tafsir.app/scans/m-tajweed-orig/{n}.jpg', offset=-1, crop=True,
@@ -45,7 +46,11 @@ def fetch(name: str, first: int = 1, last: int = 604) -> list[tuple[int, str]]:
         dst = src['cache'] / f'p{page:03d}_w1024.jpg'
         if dst.exists():
             continue
-        url = src['url'].format(n=page + src['offset'])
+        offset = src['offset']
+        for first_page, later in sorted(src.get('shift', {}).items()):
+            if page >= first_page:
+                offset = later
+        url = src['url'].format(n=page + offset)
         for attempt in range(4):
             try:
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (research; waqf sign study)'})
