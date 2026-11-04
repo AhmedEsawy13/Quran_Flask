@@ -40,6 +40,9 @@ COLUMN = 'المساحة'
 DECISION_EDITION = 'المساحة · فحص'
 CARD_SETS = ('mesaha-waqf-all', 'mesaha-waqf-473-827', 'mesaha-waqf-header-pages')
 SIGNS = frozenset({'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'})
+# A card holds one sign; words that carry two are set here, read by eye on the page (2026-11-04: the 1924
+# and 1952 pages print قلى and the سكتة on «مرقدنا»). add_mesaha1371_waqf_column.py starts from this column.
+TWO_SIGNS = {(36, 52, 6): 'ق,س'}
 
 
 def load_decisions() -> dict[tuple[int, int], str]:
@@ -71,6 +74,9 @@ def resolve(cards: list[dict], decisions: dict[tuple[int, int], str]) -> tuple[d
             problems.append(f"{c['id']}: {c['key']} has no printed position")
             continue
         marks[(s, a, pos)] = mark
+    for key, both in TWO_SIGNS.items():
+        if key in marks and marks[key] and marks[key] in both.split(','):
+            marks[key] = both
     return marks, problems
 
 
