@@ -336,6 +336,66 @@ def build_extra_cards() -> dict:
     return dict(Counter(c['model'] for c in cards))
 
 
+GAP_SET = 'mesaha-waqf-1371-gaps'
+
+
+def build_gap_cards() -> dict:
+    """Cards for the 1952 gaps found by eye (2026-11-04): words other prints mark where the 1952 page prints a
+    sign the column lacks. The cards above only cover words whose 1952 READING differs from 1924, so a sign the
+    reader missed on both prints never got one. Seats: data/mesaha-waqf/mesaha-waqf-1371-gaps/seats.json
+    ({key: database surah:ayah:word_index, page, mark: the sign seen, or '' when unsure, note}).
+    Same decision store as the main 1952 set; group B = a sign seen by eye, N = unsure."""
+    import sqlite3
+    from collections import Counter
+    from pipeline.cv_waqf.word_space import printed_position
+    from pipeline.paw_split.mesaha_waqf import SCRIPT_DB, load_columns
+    out = ROOT / 'data' / 'mesaha-waqf' / GAP_SET
+    seats = json.loads((out / 'seats.json').read_text(encoding='utf-8'))
+    (out / 'cards').mkdir(parents=True, exist_ok=True)
+    key_of = dict(sqlite3.connect(SCRIPT_DB).execute('SELECT word_index, word_key FROM words'))
+    db = sqlite3.connect(ROOT / 'data' / 'mushaf_waqf.db')
+    col = {(s_, a_, w_): (m or '').strip() for s_, a_, w_, m in db.execute(
+        'SELECT "السورة", "الآية", word_index, "المساحة" FROM waqf')}
+    hints = load_columns()
+    cards, missing = [], []
+    for x in seats:
+        s_, a_, n_ = map(int, x['key'].split(':'))
+        found = None
+        for page in (x['page'], x['page'] - 1, x['page'] + 1):
+            path = TRACE / f'paw-words-{page:03d}.json'
+            if not path.is_file():
+                continue
+            d = json.load(open(path, encoding='utf-8'))
+            for w in d['words']:
+                k = key_of.get(w['word_index'])
+                if not k or w['ring']:
+                    continue
+                ks, ka, kn = map(int, k.split(':'))
+                if (ks, ka) == (s_, a_) and printed_position(SCRIPT_DB, ks, ka, kn) == n_:
+                    found = (page, d, w, k)
+                    break
+            if found:
+                break
+        if not found:
+            missing.append(x['key'])
+            continue
+        page, d, w, k = found
+        cid = f'{page:03d}-{w["word_index"]}'
+        card_image(page, w, d, None, out / 'cards' / f'{cid}.jpg')
+        m24 = col.get((s_, a_, n_), '')
+        hint = {kk: v for kk, v in hints.get((s_, a_, n_), {}).items() if v}
+        cards.append({'id': cid, 'page': page, 'line': w['line'], 'word_index': w['word_index'], 'key': k,
+                      'text': w['text'], 'group': 'B' if x['mark'] else 'N', 'model': x['mark'] or None,
+                      'conf': None, 'hint': {'المساحة ١٣٤٢': m24, **hint} if m24 else hint,
+                      'suggest': x['mark'], 'note': x.get('note', '')})
+    data = {'pages': sorted({c['page'] for c in cards}), 'decision_edition': DECISION_EDITION, 'cards': cards,
+            'a_sample': []}
+    (out / 'data.json').write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
+    if missing:
+        print('not found on the page:', missing)
+    return dict(Counter(c['group'] for c in cards))
+
+
 def main(argv: list[str]) -> int:
     cmd, pages = argv[0], [int(x) for x in argv[1:]]
     OUT.mkdir(parents=True, exist_ok=True)
@@ -365,6 +425,9 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd == 'extra-cards':
         print(EXTRA_SET, build_extra_cards())
+        return 0
+    if cmd == 'gap-cards':
+        print(GAP_SET, build_gap_cards())
         return 0
     raise SystemExit(f'unknown command {cmd!r}')
 
