@@ -378,11 +378,14 @@ def align_stretch(li, toks, span):
         own = [p for p in bodies if p['id'] in w['pieces']]
         w['x0'] = float(min((p['x0'] for p in own), default=0)); w['x1'] = float(max((p['x1'] for p in own), default=0))
     words_out.extend(words)
+    if best[m, n] < INF:
+        LINE_COST[li + 1] = LINE_COST.get(li + 1, 0.0) + float(best[m, n])
 
 # --- words per line ----------------------------------------------------------------------------
 words_out = []
 forced_lines = set()
 UNCLAIMED = []
+LINE_COST = {}      # alignment cost per line (summed over its stretches): high where the text does not fit the ink
 for li, tokens in enumerate(line_tokens):
     bodies = sorted((p for p in pieces if p['line'] == li and not p['mark']), key=lambda p: -p['x1'])
     line_rings = sorted((r for r in rings if r['line'] == li), key=lambda r: -r['x1'])
@@ -593,6 +596,7 @@ checks = {
     'empty_lines': sorted({LINE_NUMBERS[w['line'] - 1] for w in words_out if not w['ring'] and not w.get('pieces')}),
     'moves': os.environ.get('MOVES', ''),
     'unclaimed_bodies': UNCLAIMED,
+    'line_costs': {LINE_NUMBERS[k - 1]: round(v, 3) for k, v in sorted(LINE_COST.items())},
     'blue_pieces': sum(1 for p in pieces if p.get('color') == 'blue'),
     'blue_unowned': sum(1 for p in pieces if p.get('color') == 'blue' and not any(p['id'] in w.get('pieces', []) for w in words_out)),
 }
