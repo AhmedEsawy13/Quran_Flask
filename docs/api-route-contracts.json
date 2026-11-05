@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 137,
+  "route_count": 138,
   "routes": [
     {
       "auth": "editor",
@@ -3138,6 +3138,34 @@
       "success_keys": [
         "pages"
       ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_qvp_tajweed",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/qvp-tajweed/<int:page_number>.json",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
     },
     {
       "auth": "public",

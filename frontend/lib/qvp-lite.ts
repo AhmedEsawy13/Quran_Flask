@@ -40,6 +40,8 @@ export type QvpView = {
 export const QVP_FAMILY_WAQF = 4;
 /** `Mark::Saktah` — pause, but classified as a reading sign, not Family::Waqf. */
 export const QVP_MARK_SAKTAH = 26;
+/** `Family::Diacritic` in qvp-format. */
+export const QVP_FAMILY_DIACRITIC = 1;
 
 export function isQvpPausePath(family: number, mark: number) {
   return family === QVP_FAMILY_WAQF || mark === QVP_MARK_SAKTAH;
@@ -71,6 +73,8 @@ type DrawOptions = {
   hideWaqf?: boolean | ReadonlySet<number>;
   /** Athar: the colour of each printed pause sign, by its QVP mark; `undefined` keeps it in ink. */
   waqfInk?: (mark: number) => string | undefined;
+  /** Athar: a colour for single paths (tajweed marks), by path index; it wins over `waqfInk`. */
+  pathInk?: ReadonlyMap<number, string>;
 };
 
 type Box = [number, number, number, number];
@@ -499,7 +503,7 @@ export class QvpLitePage {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    {scale = 1, x = 0, y = 0, ink = "#231f20", highlight = [], band = "#bedbfa", hideWaqf = false, waqfInk}: DrawOptions & {
+    {scale = 1, x = 0, y = 0, ink = "#231f20", highlight = [], band = "#bedbfa", hideWaqf = false, waqfInk, pathInk}: DrawOptions & {
       highlight?: number[];
       band?: string;
     } = {},
@@ -514,16 +518,27 @@ export class QvpLitePage {
     ctx.fillStyle = ink;
     this.#paths.forEach(({path, rule, family, mark}, index) => {
       if (this.#hidden(index, family, mark, hideWaqf)) return;
-      this.#fill(ctx, path, rule, family, mark, ink, waqfInk);
+      this.#fill(ctx, path, rule, family, mark, ink, waqfInk, pathInk?.get(index));
     });
     ctx.restore();
   }
 
+  /** Athar: the word's diacritic-family paths (path indices, in drawing order). */
+  diacriticPaths(wordIndex: number): number[] {
+    const word = this.words[wordIndex];
+    if (!word) return [];
+    const out: number[] = [];
+    for (let path = word.firstPath; path < word.firstPath + word.nPaths; path++) {
+      if (this.#paths[path].family === QVP_FAMILY_DIACRITIC) out.push(path);
+    }
+    return out;
+  }
+
   #fill(
     ctx: CanvasRenderingContext2D, path: Path2D, rule: CanvasFillRule, family: number, mark: number,
-    ink: string, waqfInk: DrawOptions["waqfInk"],
+    ink: string, waqfInk: DrawOptions["waqfInk"], forced?: string,
   ) {
-    const colour = waqfInk && isQvpPausePath(family, mark) ? waqfInk(mark) : undefined;
+    const colour = forced ?? (waqfInk && isQvpPausePath(family, mark) ? waqfInk(mark) : undefined);
     if (!colour) {
       ctx.fill(path, rule);
       return;
@@ -597,7 +612,7 @@ export class QvpLitePage {
   #drawPaths(
     ctx: CanvasRenderingContext2D,
     pathIndices: number[],
-    {scale = 1, x = 0, y = 0, ink = "#231f20", hideWaqf = false, waqfInk}: DrawOptions = {},
+    {scale = 1, x = 0, y = 0, ink = "#231f20", hideWaqf = false, waqfInk, pathInk}: DrawOptions = {},
   ) {
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, x, y);
@@ -605,7 +620,7 @@ export class QvpLitePage {
     for (const index of pathIndices) {
       const {path, rule, family, mark} = this.#paths[index];
       if (this.#hidden(index, family, mark, hideWaqf)) continue;
-      this.#fill(ctx, path, rule, family, mark, ink, waqfInk);
+      this.#fill(ctx, path, rule, family, mark, ink, waqfInk, pathInk?.get(index));
     }
     ctx.restore();
   }

@@ -20,3 +20,11 @@ def test_no_folder_means_no_beta_pages(client, tmp_path, monkeypatch):
     monkeypatch.setattr(core.config, 'SHAMARLY_QVP_DIR', str(tmp_path / 'absent'))
     assert client.get('/api/shamarly/qvp-pages').get_json() == {'pages': []}
     assert client.get('/api/shamarly/qvp/42.qvp').status_code == 404
+
+
+def test_tajweed_sidecar_is_served_per_page(client, tmp_path, monkeypatch):
+    (tmp_path / '042.tajweed.json').write_text('{"2:285:1": ["madda_normal"]}')
+    monkeypatch.setattr(core.config, 'SHAMARLY_QVP_DIR', str(tmp_path))
+    ok = client.get('/api/shamarly/qvp-tajweed/42.json')
+    assert ok.status_code == 200 and ok.get_json() == {'2:285:1': ['madda_normal']}
+    assert client.get('/api/shamarly/qvp-tajweed/43.json').status_code == 404

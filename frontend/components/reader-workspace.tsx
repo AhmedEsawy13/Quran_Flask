@@ -199,10 +199,11 @@ export function ReaderWorkspace() {
     editionId,
     editionId === "shamarly" && leftPage?.glyph_mapping_mode === "shemrly-page-local" ? leftPage.font_name : undefined,
   );
-  const tajweedAvailable = view === "page" && editionId !== "shamarly" && editionId !== "madinah_qvp";
+  // الشمرلي: only its «رسم الملف» beta pages colour (their marks); the font pages cannot colour letters
+  const tajweedAvailable = view === "page" && editionId !== "madinah_qvp";
   const tajweedOn = tajweedEnabled && tajweedAvailable;
   const tajweedPages = dualActive ? [rightPage, leftPage] : [visibleResult?.page || null];
-  const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
+  const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn && editionId !== "shamarly");
 
   useEffect(() => {
     if (!restoreLastPosition && !restoreView && !restoreEdition && !restoreLayout && !restoreMargins) return;
@@ -676,9 +677,11 @@ export function ReaderWorkspace() {
               className="hidden gap-1.5 px-2.5 xl:inline-flex"
               aria-pressed={tajweedOn}
               disabled={!tajweedAvailable}
-              title={editionId === "shamarly" || editionId === "madinah_qvp"
-                ? "التلوين الحرفي غير متاح مع هذا الرسم"
-                : "تلوين أحكام التجويد حرفيًا"}
+              title={editionId === "shamarly"
+                ? "تلوين علامات التجويد (صفحات «رسم الملف» التجريبية فقط)"
+                : editionId === "madinah_qvp"
+                  ? "التلوين الحرفي غير متاح مع هذا الرسم"
+                  : "تلوين أحكام التجويد حرفيًا"}
               onClick={() => setTajweedEnabled((current) => !current)}
             >
               <AtharIcon name="sparkles" className="size-3.5" />
@@ -813,9 +816,11 @@ export function ReaderWorkspace() {
             </div>
           ) : null}
           <CheckControl
-            label={editionId === "shamarly" || editionId === "madinah_qvp"
-              ? "التجويد غير متاح مع هذا الرسم"
-              : "تلوين أحكام التجويد"}
+            label={editionId === "shamarly"
+              ? "تلوين علامات التجويد (صفحات «رسم الملف» التجريبية فقط)"
+              : editionId === "madinah_qvp"
+                ? "التجويد غير متاح مع هذا الرسم"
+                : "تلوين أحكام التجويد"}
             checked={tajweedOn}
             disabled={!tajweedAvailable}
             onChange={(event) => setTajweedEnabled(event.target.checked)}

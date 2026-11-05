@@ -50,6 +50,22 @@ export function loadShamarlyQvpPageSet() {
   return shamarlyPagesPending;
 }
 
+const shamarlyTajweedCache = new Map<number, Promise<Record<string, string[]> | null>>();
+
+/** Beta: {word key: tajweed class of each coloured mark path of the word, in path order}; null when the page has none. */
+export function loadShamarlyTajweed(pageNumber: number) {
+  const safe = Math.max(1, Math.trunc(pageNumber));
+  let pending = shamarlyTajweedCache.get(safe);
+  if (!pending) {
+    pending = fetch(`/backend-api/shamarly/qvp-tajweed/${String(safe).padStart(3, "0")}.json`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: Record<string, string[]> | null) => (data && typeof data === "object" ? data : null))
+      .catch(() => null);
+    shamarlyTajweedCache.set(safe, pending);
+  }
+  return pending;
+}
+
 export function loadShamarlyQvpPage(pageNumber: number) {
   const safe = Math.max(1, Math.trunc(pageNumber));
   let pending = shamarlyCache.get(safe);

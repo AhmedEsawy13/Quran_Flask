@@ -14,6 +14,10 @@ Shamarly classifier says whether a sign is there, and shape templates of this pr
 grouping it is (the classifier's 24-px window also sees the sign above a letter). The prints' sign outlines are
 close but not identical copies, so quran-svg-elements' exact outline-hash keying does not apply here. Basmalas are header_ink; the surah banner
 keeps its lettering (name, ayah count) as header_ink and leaves the ornamental frame to the viewer (data-box).
+Tajweed (shamarly_tajweed.py): the small outlines (marks) the quran-ws tajweed rules cover are emitted as their own
+paths of family "diacritic", one per rule class in a word, and the class of each is written to NNN.tajweed.json
+({word key: [class, ...]} in path order; the reader paints them in its tajweed colours). 91% of the (letter, side)
+targets of the 10 pilot pages find a mark outline (Kraken letter positions + a 32 px offset).
 Each word also gets ShemrlyMushaf's text check (outline counts the text predicts): count_ok / count_off in the stats.
 
 Units are PDF points; the viewBox is the text block.
@@ -37,6 +41,7 @@ import json
 import os
 import sqlite3
 import sys
+import collections
 from html import escape
 from pathlib import Path
 
@@ -224,6 +229,113 @@ def _load_templates():
 def _save_templates():
     import numpy as np
     np.savez_compressed(TEMPLATE_FILE, templates=np.array({k: v[:40] for k, v in TEMPLATES.items()}, dtype=object))
+
+
+TAJWEED = os.environ.get('SHAMARLY_TAJWEED', '1') != '0'
+TJ_OFFSET_PX = float(os.environ.get('TJ_OFFSET_PX', '32'))   # Kraken's letter positions sit ~32 px (300 dpi) off the printed letters
+_TJ: dict = {}
+
+
+def _tajweed_state():
+    """Rule data, the Kraken helpers and the PDF, loaded once."""
+    if not _TJ:
+        import pymupdf
+        import shamarly_kraken_partition as K
+        import shamarly_tajweed as TJ
+        _TJ.update(K=K, TJ=TJ, tj=TJ.Tajweed(lambda c: K.MAP.get(K.base(c), K.base(c)), K.is_letter),
+                   doc=pymupdf.open(PDF), ayah_words={})
+    return _TJ
+
+
+def _ayah_words(keys, ak):
+    st = _tajweed_state()
+    if ak not in st['ayah_words']:
+        st['ayah_words'][ak] = [(wi, t) for wi, (k, t) in keys.items() if k.rsplit(':', 1)[0] == ak
+                                and any(st['K'].is_letter(c) for c in t)]
+    return st['ayah_words'][ak]
+
+
+def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, key_of_owner_word, bottom):
+    """{outline id: tajweed class} for the marks of one line (see shamarly_tajweed)."""
+    import pymupdf
+    st = _tajweed_state()
+    K, TJ, tj = st['K'], st['TJ'], st['tj']
+    outs = [o for o in RAW if line_of[o] == ln]
+    if not outs:
+        return {}
+    lw = [(w['word_index'], keys[w['word_index']][1]) for w in words if w['word_index'] in keys]
+    letters = TJ.letter_bounds
+    x0 = min(BOX[o][0] for o in outs) - 3
+    x1 = max(BOX[o][2] for o in outs) + 3
+    png = Path('/tmp') / 'shamarly_tj_line.png'
+    st['doc'][n - 1].get_pixmap(clip=pymupdf.Rect(x0, bottom - 46, x1, bottom + 2), matrix=pymupdf.Matrix(K.Z, K.Z),
+                                alpha=False).save(png)
+    bounds = letters(png, x0, lw, K, TJ_OFFSET_PX)
+    if not bounds:
+        return {}
+    marks = {}
+    for ak in {keys[wi][0].rsplit(':', 1)[0] for wi, _ in lw}:
+        marks.update(tj.ayah_marks(ak, _ayah_words(keys, ak)))
+    # the writing line: the densest row of the line's ink (letters sit on it; marks hang above or below)
+    import cv2
+    import numpy as np
+    gray = cv2.imread(str(png), cv2.IMREAD_GRAYSCALE)
+    rows = np.convolve((gray < 128).sum(axis=1).astype(float), np.ones(9) / 9, 'same')
+    body_y = (bottom - 46) + float(rows.argmax()) / K.Z
+    wi_of_key = {w['key']: w['word_index'] for w in words}
+    res = {}
+    hit = set()
+    line_wis = {wi for wi, _ in lw}
+    targets = {(wi, j, side) for (wi, j), sd in marks.items() if wi in line_wis for side in sd}
+    for o in outs:
+        if not COMP[o].get('is_mark') or o not in OWNER or o in sign_of:
+            continue
+        wi = wi_of_key.get(OWNER[o])
+        if wi is None:
+            continue
+        cx = (BOX[o][0] + BOX[o][2]) / 2
+        cy = (BOX[o][1] + BOX[o][3]) / 2
+        cand = [(j, b) for (w_, j), b in bounds.items() if w_ == wi]
+        if not cand:
+            continue
+        j = min(cand, key=lambda t: 0.0 if t[1][0] <= cx <= t[1][1] else min(abs(cx - t[1][0]), abs(cx - t[1][1])))[0]
+        rule = (marks.get((wi, j)) or {}).get('above' if cy < body_y else 'below')
+        if rule:
+            res[o] = rule[0]
+            hit.add((wi, j, 'above' if cy < body_y else 'below'))
+    st['cov'] = (len(targets), len(hit & targets))
+    if os.environ.get('TJ_DUMP') == f'{n}:{ln}':
+        im = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        for (wi, j), (xa, xb) in bounds.items():
+            cv2.line(im, (int((xa - x0) * K.Z), 0), (int((xa - x0) * K.Z), 14), (0, 160, 0), 2)
+        cv2.line(im, (0, int((body_y - (bottom - 46)) * K.Z)), (im.shape[1], int((body_y - (bottom - 46)) * K.Z)), (0, 140, 255), 1)
+        for o in outs:
+            b_ = BOX[o]
+            col = (0, 0, 230) if COMP[o].get('is_mark') else (230, 120, 0)
+            cv2.rectangle(im, (int((b_[0] - x0) * K.Z), int((b_[1] - (bottom - 46)) * K.Z)),
+                          (int((b_[2] - x0) * K.Z), int((b_[3] - (bottom - 46)) * K.Z)), col, 1)
+        cv2.imwrite('/tmp/tj_dump.png', im)
+    if os.environ.get('TJ_DIAG'):
+        why = collections.Counter()
+        for (wi, j, side) in targets - hit:
+            b = bounds.get((wi, j))
+            mine = [o for o in outs if OWNER.get(o) and wi_of_key.get(OWNER[o]) == wi and COMP[o].get('is_mark') and o not in sign_of]
+            if b is None:
+                why['letter not placed'] += 1
+            elif not mine:
+                why['word has no small outline'] += 1
+            else:
+                inn = [o for o in mine if b[0] <= (BOX[o][0] + BOX[o][2]) / 2 <= b[1]]
+                if not inn:
+                    why['no small outline in the letter interval'] += 1
+                else:
+                    sides = {'above' if (BOX[o][1] + BOX[o][3]) / 2 < body_y else 'below' for o in inn}
+                    why['outline there but other side' if side not in sides else 'other'] += 1
+                    if side not in sides and os.environ.get('TJ_DIAG') == '2':
+                        print('  other-side', keys[wi][1], 'letter', j, 'want', side, 'found',
+                              [(round((BOX[o][1] + BOX[o][3]) / 2 - body_y, 1), round(BOX[o][2] - BOX[o][0], 1)) for o in inn], file=sys.stderr)
+        st.setdefault('why', collections.Counter()).update(why)
+    return res
 
 
 def page(n: int) -> dict:
@@ -423,6 +535,7 @@ def page(n: int) -> dict:
         return sign_of.get(oid)
 
     # 3. the page
+    tj_side: dict[str, list[str]] = {}
     for ln, ltype, sid in layout:
         if ltype == 'surah_name':
             # the banner sits between the neighbouring text lines; the viewer draws it (box), its lettering kept
@@ -451,6 +564,15 @@ def page(n: int) -> dict:
             out.append('</g>')
             stats['headers'] += 1
             continue
+        tj_of = {}
+        if TAJWEED and ltype == 'ayah':
+            try:
+                tj_of = line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, None, BOTTOM[ln])
+                tt, th = _TJ['cov']
+                stats['tj_targets'] = stats.get('tj_targets', 0) + tt
+                stats['tj_hit'] = stats.get('tj_hit', 0) + th
+            except Exception as exc:                          # a line without colours, not a failed page
+                print('tajweed skip', n, ln, exc, file=sys.stderr)
         out.append(f'<g class="line" data-line="{ln}">')
         open_ayah = None
         for w in words:
@@ -485,6 +607,12 @@ def page(n: int) -> dict:
                     body.append(o)
                 else:
                     waqf.setdefault(si, []).append(o)
+            tjm: dict[str, list[str]] = collections.OrderedDict()
+            if tj_of:
+                for o in body:
+                    if o in tj_of:
+                        tjm.setdefault(tj_of[o], []).append(o)
+                body = [o for o in body if o not in tj_of]
             if body:
                 out.append('<path data-kind="body" d="' + ' '.join(D(o) for o in body) + '"/>')
                 stats['paths'] += 1
@@ -493,6 +621,12 @@ def page(n: int) -> dict:
                            f'data-mark-family="waqf" d="' + ' '.join(D(o) for o in os_) + '"/>')
                 stats['paths'] += 1
                 stats['waqf'] += 1
+            for cls, os_ in tjm.items():                      # tajweed-coloured marks: their own paths, in this order
+                out.append('<path data-kind="mark" data-mark="" data-mark-family="diacritic" d="'
+                           + ' '.join(D(o) for o in os_) + '"/>')
+                tj_side.setdefault(wkey, []).append(cls)
+                stats['paths'] += 1
+                stats['tajweed_marks'] = stats.get('tajweed_marks', 0) + len(os_)
             if not body:
                 stats['empty'].append(wkey)
             # ShemrlyMushaf's text check: a correctly cut word has the outline counts its text predicts
@@ -527,6 +661,7 @@ def page(n: int) -> dict:
         svg = svg.replace(f'class="ayah-fragment" data-ayah-key="{ak}">',
                           f'class="ayah-fragment" data-ayah-key="{ak}" data-ayah-mark="{rid}">')
     OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / f'{n:03d}.tajweed.json').write_text(json.dumps(tj_side, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.svg').write_text(svg, encoding='utf-8')
     stats['bytes'] = len(svg.encode())
     (OUT / f'{n:03d}.json').write_text(json.dumps(stats, ensure_ascii=False), encoding='utf-8')

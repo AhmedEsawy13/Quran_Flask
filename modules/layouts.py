@@ -962,6 +962,16 @@ def get_shamarly_qvp_page(page_number):
     return send_file(path, mimetype='application/octet-stream', max_age=0)
 
 
+@core_bp.route('/api/shamarly/qvp-tajweed/<int:page_number>.json', methods=['GET'])
+def get_shamarly_qvp_tajweed(page_number):
+    """Beta: {word key: [tajweed class per coloured mark path, in the word's path order]} for a pilot page."""
+    from core.config import SHAMARLY_QVP_DIR
+    path = os.path.join(SHAMARLY_QVP_DIR, f'{page_number:03d}.tajweed.json')
+    if not (1 <= page_number <= 999) or not os.path.isfile(path):
+        return jsonify({'error': 'not found'}), 404
+    return send_file(path, mimetype='application/json', max_age=0)
+
+
 @core_bp.route('/api/shamarly/page/<int:page_number>', methods=['GET'])
 def get_shamarly_page(page_number):
     try:

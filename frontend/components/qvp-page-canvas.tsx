@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { canvasPointToPage, loadQvpPage, loadShamarlyQvpPage, prefetchQvpPages, type QvpSource, type QvpWaqfOverlay } from "@/lib/qvp";
+import { canvasPointToPage, loadQvpPage, loadShamarlyQvpPage, loadShamarlyTajweed, prefetchQvpPages, type QvpSource, type QvpWaqfOverlay } from "@/lib/qvp";
 import type { QvpLitePage, QvpView, QvpWord } from "@/lib/qvp-lite";
 import { WAQF_GLYPH_REFERENCE_HEIGHT, WaqfGlyph, waqfGlyphSize } from "@/components/ui/waqf-glyph";
 
@@ -22,7 +22,31 @@ type QvpPageCanvasProps = {
   source?: QvpSource;
   /** Paint the printed pause signs in the reader's waqf colours instead of the text ink. */
   colorWaqf?: boolean;
+  /** Beta (الشمرلي pilot pages): colour the marks the tajweed rules cover, in the reader's tajweed colours. */
+  tajweed?: boolean;
 };
+
+/** The reader's colour for a tajweed class, read from its stylesheet (`.tajweed-rule.<class>`, light and dark). */
+function tajweedColors(rules: Iterable<string>) {
+  const out = new Map<string, string>();
+  if (typeof document === "undefined") return out;
+  const host = document.createElement("div");
+  host.className = "reader-page";
+  host.dataset.tajweed = "true";
+  host.hidden = true;
+  document.body.appendChild(host);
+  try {
+    for (const rule of new Set(rules)) {
+      const probe = document.createElement("span");
+      probe.className = `tajweed-rule ${rule}`;
+      host.appendChild(probe);
+      out.set(rule, getComputedStyle(probe).color);
+    }
+  } finally {
+    host.remove();
+  }
+  return out;
+}
 
 /** QVP marks (qvp-format `Mark`) → the app's waqf tones: م/ق strong, لا (no mark in QVP) avoid, the rest the sign colour. */
 const QVP_MARK_WAQF_LAZIM = 24;
@@ -95,6 +119,7 @@ function paintPage(
     revealedAyahs?: ReadonlySet<number>;
     hidePrintedWaqf?: boolean | ReadonlySet<number>;
     colorWaqf?: boolean;
+    tajweedPaths?: ReadonlyMap<number, string>;
   },
 ): QvpView {
   const ratio = window.devicePixelRatio || 1;
@@ -110,6 +135,10 @@ function paintPage(
   const band = hexAlpha(cssColor("--athar-gold", "#80591f"), 0.18);
   const view = page.fit(canvas, Math.round(8 * ratio));
   const waqfInk = waqfInkFor(Boolean(options.colorWaqf));
+  const colours = options.tajweedPaths?.size ? tajweedColors(options.tajweedPaths.values()) : null;
+  const pathInk = colours
+    ? new Map([...options.tajweedPaths!].flatMap(([path, rule]) => (colours.get(rule) ? [[path, colours.get(rule)!] as const] : [])))
+    : undefined;
   const highlights = highlightIndices(
     page,
     options.surahNumber,
@@ -146,10 +175,10 @@ function paintPage(
       if (box) ctx.fillRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
     }
     ctx.restore();
-    page.drawDecorations(ctx, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk});
-    page.drawWords(ctx, visible, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk});
+    page.drawDecorations(ctx, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
+    page.drawWords(ctx, visible, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
   } else {
-    page.draw(ctx, {...view, ink, highlight: highlights, band, hideWaqf: options.hidePrintedWaqf, waqfInk});
+    page.draw(ctx, {...view, ink, highlight: highlights, band, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
   }
   if (audioWord) page.drawWords(ctx, [audioWord.idx], {...view, ink: accent, hideWaqf: options.hidePrintedWaqf});
   return view;
@@ -169,6 +198,7 @@ export function QvpPageCanvas({
   onWordTap,
   source = "madinah",
   colorWaqf = false,
+  tajweed = false,
 }: QvpPageCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageRef = useRef<QvpLitePage | null>(null);
@@ -176,6 +206,7 @@ export function QvpPageCanvas({
   const [overlayView, setOverlayView] = useState<QvpView & {dpr: number}>({scale: 1, x: 0, y: 0, dpr: 1});
   const [pageWords, setPageWords] = useState<QvpWord[]>([]);
   const [loadedPage, setLoadedPage] = useState<QvpLitePage | null>(null);
+  const [tajweedRules, setTajweedRules] = useState<{key: string; paths: ReadonlyMap<number, string>} | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const requestKey = `${source}:${pageNumber}:${retryToken}`;
   const [loadedKey, setLoadedKey] = useState("");
@@ -214,6 +245,28 @@ export function QvpPageCanvas({
     };
   }, [pageNumber, requestKey, retryToken, source]);
 
+  // Beta: the tajweed class of each coloured mark path, from the page's sidecar file.
+  useEffect(() => {
+    if (!tajweed || source !== "shamarly" || !loadedPage) return;
+    let active = true;
+    void loadShamarlyTajweed(pageNumber).then((sidecar) => {
+      if (!active) return;
+      const paths = new Map<number, string>();
+      for (const word of loadedPage.words) {
+        const rules = sidecar?.[`${word.surah}:${word.ayah}:${word.word}`];
+        if (!rules) continue;
+        const indices = loadedPage.diacriticPaths(word.idx);
+        if (indices.length !== rules.length) continue;       // never guess: a word whose paths do not match keeps its ink
+        indices.forEach((path, i) => paths.set(path, rules[i]));
+      }
+      setTajweedRules({key: requestKey, paths});
+    });
+    return () => {
+      active = false;
+    };
+  }, [loadedPage, pageNumber, requestKey, source, tajweed]);
+  const tajweedPaths = tajweed && tajweedRules?.key === requestKey ? tajweedRules.paths : undefined;
+
   // Each overlay goes in the printed sign's box, or a slot clear of all ink.
   const overlaySlots = useMemo(() => {
     if (!loadedPage) return [];
@@ -242,7 +295,7 @@ export function QvpPageCanvas({
     const redraw = () => {
       const view = paintPage(canvas, page, {
         surahNumber, ayahNumber, activeAudioWord, focusRange, concealFocused, revealedAyahs, hidePrintedWaqf: hiddenWaqf,
-        colorWaqf,
+        colorWaqf, tajweedPaths,
       });
       viewRef.current = view;
       setOverlayView({...view, dpr: window.devicePixelRatio || 1});
@@ -251,7 +304,7 @@ export function QvpPageCanvas({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(redraw);
     observer?.observe(canvas);
     return () => observer?.disconnect();
-  }, [activeAudioWord, ayahNumber, colorWaqf, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
+  }, [activeAudioWord, ayahNumber, colorWaqf, tajweedPaths, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
 
   const handlePointer = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;

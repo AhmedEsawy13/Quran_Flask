@@ -708,7 +708,7 @@ export function MushafRenderer({
       ref={pageRef}
       className={`reader-page is-${view} edition-${editionId}${qvpPage ? " is-qvp" : ""}${memorizationMode ? " is-memorization" : ""}${practice ? " is-practice" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
-      data-tajweed={tajweedEnabled ? "true" : undefined}
+      data-tajweed={tajweedEnabled && editionId !== "shamarly" ? "true" : undefined}
       data-waqf-enabled={waqfEnabled ? "true" : "false"}
       data-waqf-source={activeWaqfSource}
       data-picking={picking ? "true" : undefined}
@@ -808,6 +808,7 @@ export function MushafRenderer({
             waqfOverlays={qvpWaqfOverlays}
             source={shamarlyQvp ? "shamarly" : "madinah"}
             colorWaqf={waqfColored}
+            tajweed={Boolean(tajweedEnabled) && shamarlyQvp}
             onAyahClick={onAyahClick}
             onWordTap={practice
               ? (surah, ayah, word) => {
@@ -850,7 +851,7 @@ export function MushafRenderer({
                   practice={practice}
                   onAyahClick={onAyahClick}
                   editionId={editionId}
-                  tajweedEnabled={tajweedEnabled}
+                  tajweedEnabled={tajweedEnabled && editionId !== "shamarly"}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
                   waqfSource={activeWaqfSource}
