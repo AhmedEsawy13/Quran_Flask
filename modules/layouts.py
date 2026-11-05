@@ -964,7 +964,8 @@ def get_shamarly_qvp_page(page_number):
 
 @core_bp.route('/api/shamarly/qvp-tajweed/<int:page_number>.json', methods=['GET'])
 def get_shamarly_qvp_tajweed(page_number):
-    """Beta: {word key: [tajweed class per coloured mark path, in the word's path order]} for a pilot page."""
+    """Beta: {"marks": {word key: [tajweed class per coloured mark path, in path order]},
+    "letters": {word key: [[x0, x1, class]]}} (page-space x) for a pilot page."""
     from core.config import SHAMARLY_QVP_DIR
     path = os.path.join(SHAMARLY_QVP_DIR, f'{page_number:03d}.tajweed.json')
     if not (1 <= page_number <= 999) or not os.path.isfile(path):

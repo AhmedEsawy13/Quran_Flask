@@ -50,16 +50,25 @@ export function loadShamarlyQvpPageSet() {
   return shamarlyPagesPending;
 }
 
-const shamarlyTajweedCache = new Map<number, Promise<Record<string, string[]> | null>>();
+export type ShamarlyTajweed = {
+  /** word key -> tajweed class of each coloured mark path of the word, in path order */
+  marks: Record<string, string[]>;
+  /** word key -> [x0, x1, class] page-space intervals of the letters to colour (clip painting) */
+  letters: Record<string, Array<[number, number, string]>>;
+};
 
-/** Beta: {word key: tajweed class of each coloured mark path of the word, in path order}; null when the page has none. */
+const shamarlyTajweedCache = new Map<number, Promise<ShamarlyTajweed | null>>();
+
+/** Beta: the tajweed colours of a pilot page; null when the page has none. */
 export function loadShamarlyTajweed(pageNumber: number) {
   const safe = Math.max(1, Math.trunc(pageNumber));
   let pending = shamarlyTajweedCache.get(safe);
   if (!pending) {
     pending = fetch(`/backend-api/shamarly/qvp-tajweed/${String(safe).padStart(3, "0")}.json`)
       .then((response) => (response.ok ? response.json() : null))
-      .then((data: Record<string, string[]> | null) => (data && typeof data === "object" ? data : null))
+      .then((data: Partial<ShamarlyTajweed> | null) => (data && typeof data.marks === "object" && data.marks
+        ? {marks: data.marks, letters: data.letters ?? {}}
+        : null))
       .catch(() => null);
     shamarlyTajweedCache.set(safe, pending);
   }

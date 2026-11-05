@@ -523,6 +523,37 @@ export class QvpLitePage {
     ctx.restore();
   }
 
+  /**
+   * Athar: paint parts of words in a colour, as the word's body paths clipped to x-intervals (page units).
+   * `letters`: word index -> [x0, x1, colour]; `only` limits it to some words (concealed ones stay plain).
+   */
+  drawLetters(
+    ctx: CanvasRenderingContext2D,
+    letters: ReadonlyMap<number, ReadonlyArray<readonly [number, number, string]>>,
+    {scale = 1, x = 0, y = 0}: DrawOptions = {},
+    only?: ReadonlySet<number>,
+  ) {
+    ctx.save();
+    ctx.setTransform(scale, 0, 0, scale, x, y);
+    for (const [wordIndex, intervals] of letters) {
+      const word = this.words[wordIndex];
+      if (!word || (only && !only.has(wordIndex))) continue;
+      for (const [x0, x1, colour] of intervals) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x0, word.box[1] - 2, x1 - x0, word.box[3] - word.box[1] + 4);
+        ctx.clip();
+        ctx.fillStyle = colour;
+        for (let path = word.firstPath; path < word.firstPath + word.nPaths; path++) {
+          const item = this.#paths[path];
+          if (item.family === 0) ctx.fill(item.path, item.rule);      // the letters' bodies; marks and signs have a family
+        }
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
   /** Athar: the word's diacritic-family paths (path indices, in drawing order). */
   diacriticPaths(wordIndex: number): number[] {
     const word = this.words[wordIndex];

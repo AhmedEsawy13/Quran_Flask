@@ -1,15 +1,20 @@
-"""Tajweed colours for the marks (harakat) of the Shamarly vector print.
+"""Tajweed colours for the marks (harakat) and letters of the Shamarly vector print.
 
 Rule data: quran-ws/quran-tajweed (CC BY 4.0; reviewed, 164 rules, per-ayah spans measured against its pinned
 Uthmani Hafs edition). Both the spans and that edition text are downloaded to artifacts/quran-ws-tajweed/ on first
 use (not redistributed from this repository).
 
-A span covers letters and the marks drawn on them. Here only the MARKS are coloured: each mark code point inside
+A span covers letters and the marks drawn on them. Marks: each mark code point inside
 a span is carried over to the letter of our text it sits on (the two texts are aligned letter by letter; they
 differ only by waqf signs and verse-number tokens), and the small outlines of the print that sit within that
 letter's x-interval, above or below the writing line like the mark, take the rule's colour. Letter intervals come
 from Kraken's letter positions (see shamarly_kraken_spans.py). A coloured outline is a whole outline: a dot of
 the letter or a stacked mark can take the colour with it.
+
+Letters (ayah_letters/pick_letters): which letters of a span take its colour depends on the rule (the first
+letter for qalqalah and the shadda letters, the madd letter for madd, every letter for iqlab, ikhfa and idgham). The
+reader clips the word's body to the letter's x-interval; the interval edges are midpoints between Kraken's letters,
+so a colour can bleed a little where strokes overlap.
 
 The colours are the reader's existing tajweed classes (frontend app/globals.css `.tajweed-rule.<class>`).
 """
@@ -78,6 +83,58 @@ class Tajweed:
         self.rule_ids = self.ann['ruleIds']
         self.norm = norm_letter
         self.is_letter = is_letter
+
+    # Which letters of a span take its colour. Spans also hold context letters: a madd span has the letter
+    # before the madd letter, an idgham span the trigger letter of the next word.
+    MADD_LETTERS = set('اويىآ')
+
+    @staticmethod
+    def pick_letters(hukum: str, raws: list[str]) -> list[int]:
+        """Indices (into the span's letters, raw characters) that are coloured."""
+        n = len(raws)
+        if hukum.startswith('qalqalah') or hukum in ('noon-mushaddadah', 'meem-mushaddadah'):
+            return [0] if n else []
+        if hukum in ('madd-muttasil',):
+            return []                                           # the madd sign (a mark) is coloured, not a letter
+        if hukum in ('madd-lazim-kalimi-muthaqqal', 'madd-lazim-kalimi-mukhaffaf'):
+            return [i for i, c in enumerate(raws) if c == 'آ'][:1]
+        if hukum == 'madd-lazim-harfi':
+            return [n - 1] if n else []
+        if hukum.startswith('madd-'):                           # tabee, iwad, badal, silah, munfasil: the madd letter
+            idx = [i for i, c in enumerate(raws) if c in Tajweed.MADD_LETTERS]
+            return idx[-1:] if hukum != 'madd-munfasil' else idx[:1]
+        return list(range(n))                                   # iqlab, ikhfa, idgham: every letter of the span
+
+    def ayah_letters(self, ayah_key: str, our_words: list[tuple[int, str]]) -> dict:
+        """{(word_index, letter index in word): (class, priority)} for the letters one ayah's rules colour."""
+        spans = self.ann['spans'].get(ayah_key) or []
+        text = list(self.edition.get(ayah_key) or '')
+        if not spans or not text:
+            return {}
+        their = [(self.norm(ch), pos) for pos, ch in enumerate(text) if self.is_letter(ch)]
+        letter_at = {pos: i for i, (_, pos) in enumerate(their)}
+        ours = []
+        for wi, t in our_words:
+            for j, ch in enumerate([c for c in t if self.is_letter(c)]):
+                ours.append((wi, j, self.norm(ch)))
+        sm = difflib.SequenceMatcher(None, [b for b, _ in their], [b for _, _, b in ours], autojunk=False)
+        to_ours = {}
+        for a0, b0, size in sm.get_matching_blocks():
+            for t_ in range(size):
+                to_ours[a0 + t_] = ours[b0 + t_][:2]
+        out: dict = {}
+        for s, e, ri in spans:
+            hukum = self.rule_ids[ri].rsplit('.', 1)[0]
+            cls = RULE_CLASS.get(hukum)
+            if not cls:
+                continue
+            idxs = [letter_at[p] for p in range(s, e) if p in letter_at]
+            raws = [text[their[i][1]] for i in idxs]
+            for k in self.pick_letters(hukum, raws):
+                key = to_ours.get(idxs[k])
+                if key is not None and (key not in out or cls[1] > out[key][1]):
+                    out[key] = cls
+        return out
 
     def ayah_marks(self, ayah_key: str, our_words: list[tuple[int, str]]) -> dict:
         """{(word_index, letter index in word): {side: (class, priority)}} for the marks of one ayah.

@@ -15,9 +15,10 @@ grouping it is (the classifier's 24-px window also sees the sign above a letter)
 close but not identical copies, so quran-svg-elements' exact outline-hash keying does not apply here. Basmalas are header_ink; the surah banner
 keeps its lettering (name, ayah count) as header_ink and leaves the ornamental frame to the viewer (data-box).
 Tajweed (shamarly_tajweed.py): the small outlines (marks) the quran-ws tajweed rules cover are emitted as their own
-paths of family "diacritic", one per rule class in a word, and the class of each is written to NNN.tajweed.json
-({word key: [class, ...]} in path order; the reader paints them in its tajweed colours). 91% of the (letter, side)
-targets of the 10 pilot pages find a mark outline (Kraken letter positions + a 32 px offset).
+paths of family "diacritic", one per rule class in a word. NNN.tajweed.json holds {"marks": {word key: [class per
+mark path, in path order]}, "letters": {word key: [[x0, x1, class]]}}: the letters the rules colour as page-space
+x-intervals, which the reader paints by clipping the word's body paths to them (no outline is cut). 91% of the
+(letter, side) targets of the 10 pilot pages find a mark outline (Kraken letter positions + a 32 px offset).
 Each word also gets ShemrlyMushaf's text check (outline counts the text predicts): count_ok / count_off in the stats.
 
 Units are PDF points; the viewBox is the text block.
@@ -231,6 +232,7 @@ def _save_templates():
     np.savez_compressed(TEMPLATE_FILE, templates=np.array({k: v[:40] for k, v in TEMPLATES.items()}, dtype=object))
 
 
+VX0 = 82.0                # the page's left edge in PDF points (the SVG viewBox origin)
 TAJWEED = os.environ.get('SHAMARLY_TAJWEED', '1') != '0'
 TJ_OFFSET_PX = float(os.environ.get('TJ_OFFSET_PX', '32'))   # Kraken's letter positions sit ~32 px (300 dpi) off the printed letters
 _TJ: dict = {}
@@ -256,13 +258,13 @@ def _ayah_words(keys, ak):
 
 
 def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, key_of_owner_word, bottom):
-    """{outline id: tajweed class} for the marks of one line (see shamarly_tajweed)."""
+    """({outline id: tajweed class} for the marks, {word_index: [(x0, x1, class)]} for the letters) of one line."""
     import pymupdf
     st = _tajweed_state()
     K, TJ, tj = st['K'], st['TJ'], st['tj']
     outs = [o for o in RAW if line_of[o] == ln]
     if not outs:
-        return {}
+        return {}, {}
     lw = [(w['word_index'], keys[w['word_index']][1]) for w in words if w['word_index'] in keys]
     letters = TJ.letter_bounds
     x0 = min(BOX[o][0] for o in outs) - 3
@@ -272,7 +274,7 @@ def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, ke
                                 alpha=False).save(png)
     bounds = letters(png, x0, lw, K, TJ_OFFSET_PX)
     if not bounds:
-        return {}
+        return {}, {}
     marks = {}
     for ak in {keys[wi][0].rsplit(':', 1)[0] for wi, _ in lw}:
         marks.update(tj.ayah_marks(ak, _ayah_words(keys, ak)))
@@ -304,6 +306,24 @@ def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, ke
             res[o] = rule[0]
             hit.add((wi, j, 'above' if cy < body_y else 'below'))
     st['cov'] = (len(targets), len(hit & targets))
+    # the letters the rules colour: their x-intervals, neighbours of one class merged into one
+    lcls = {}
+    for ak in {keys[wi][0].rsplit(':', 1)[0] for wi, _ in lw}:
+        lcls.update(tj.ayah_letters(ak, _ayah_words(keys, ak)))
+    by_word: dict = {}
+    for (wi, j), cls in lcls.items():
+        if wi in line_wis and (wi, j) in bounds:
+            by_word.setdefault(wi, []).append((*bounds[(wi, j)], cls[0]))
+    letters_out = {}
+    for wi, items in by_word.items():
+        merged = []
+        for xa, xb, c in sorted(items):
+            if merged and merged[-1][2] == c and xa - merged[-1][1] < 0.6:
+                merged[-1] = (merged[-1][0], xb, c)
+            else:
+                merged.append((xa, xb, c))
+        letters_out[wi] = merged
+    st['letters'] = (len(lcls), sum(len(v) for v in letters_out.values()))
     if os.environ.get('TJ_DUMP') == f'{n}:{ln}':
         im = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         for (wi, j), (xa, xb) in bounds.items():
@@ -335,7 +355,7 @@ def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, ke
                         print('  other-side', keys[wi][1], 'letter', j, 'want', side, 'found',
                               [(round((BOX[o][1] + BOX[o][3]) / 2 - body_y, 1), round(BOX[o][2] - BOX[o][0], 1)) for o in inn], file=sys.stderr)
         st.setdefault('why', collections.Counter()).update(why)
-    return res
+    return res, letters_out
 
 
 def page(n: int) -> dict:
@@ -536,6 +556,7 @@ def page(n: int) -> dict:
 
     # 3. the page
     tj_side: dict[str, list[str]] = {}
+    tj_letters: dict[str, list] = {}
     for ln, ltype, sid in layout:
         if ltype == 'surah_name':
             # the banner sits between the neighbouring text lines; the viewer draws it (box), its lettering kept
@@ -564,10 +585,10 @@ def page(n: int) -> dict:
             out.append('</g>')
             stats['headers'] += 1
             continue
-        tj_of = {}
+        tj_of, tj_letters_of = {}, {}
         if TAJWEED and ltype == 'ayah':
             try:
-                tj_of = line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, None, BOTTOM[ln])
+                tj_of, tj_letters_of = line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, None, BOTTOM[ln])
                 tt, th = _TJ['cov']
                 stats['tj_targets'] = stats.get('tj_targets', 0) + tt
                 stats['tj_hit'] = stats.get('tj_hit', 0) + th
@@ -621,6 +642,9 @@ def page(n: int) -> dict:
                            f'data-mark-family="waqf" d="' + ' '.join(D(o) for o in os_) + '"/>')
                 stats['paths'] += 1
                 stats['waqf'] += 1
+            if wi in tj_letters_of:                            # page-space x (the viewBox starts at VX0)
+                tj_letters[wkey] = [[round(a - VX0, 2), round(b - VX0, 2), c] for a, b, c in tj_letters_of[wi]]
+                stats['tajweed_letters'] = stats.get('tajweed_letters', 0) + len(tj_letters[wkey])
             for cls, os_ in tjm.items():                      # tajweed-coloured marks: their own paths, in this order
                 out.append('<path data-kind="mark" data-mark="" data-mark-family="diacritic" d="'
                            + ' '.join(D(o) for o in os_) + '"/>')
@@ -653,7 +677,7 @@ def page(n: int) -> dict:
     box_tops = [float(m.group(1)) for m in re.finditer(r'data-box="[\d.]+ ([\d.]+) ', '\n'.join(out))]
     vy0 = min(ys0 + box_tops) - 6
     vy1 = max(ys1) + 6
-    vx0, vx1 = 82.0, 523.0
+    vx0, vx1 = VX0, 523.0
     out[0] = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vx0:.1f} {vy0:.1f} {vx1 - vx0:.1f} {vy1 - vy0:.1f}" '
               f'data-page="{n}" data-edition="shamarly">')
     svg = '\n'.join(out)
@@ -661,7 +685,7 @@ def page(n: int) -> dict:
         svg = svg.replace(f'class="ayah-fragment" data-ayah-key="{ak}">',
                           f'class="ayah-fragment" data-ayah-key="{ak}" data-ayah-mark="{rid}">')
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / f'{n:03d}.tajweed.json').write_text(json.dumps(tj_side, ensure_ascii=False), encoding='utf-8')
+    (OUT / f'{n:03d}.tajweed.json').write_text(json.dumps({'marks': tj_side, 'letters': tj_letters}, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.svg').write_text(svg, encoding='utf-8')
     stats['bytes'] = len(svg.encode())
     (OUT / f'{n:03d}.json').write_text(json.dumps(stats, ensure_ascii=False), encoding='utf-8')

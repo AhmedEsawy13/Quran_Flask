@@ -120,6 +120,7 @@ function paintPage(
     hidePrintedWaqf?: boolean | ReadonlySet<number>;
     colorWaqf?: boolean;
     tajweedPaths?: ReadonlyMap<number, string>;
+    tajweedLetters?: ReadonlyMap<number, ReadonlyArray<readonly [number, number, string]>>;
   },
 ): QvpView {
   const ratio = window.devicePixelRatio || 1;
@@ -135,9 +136,20 @@ function paintPage(
   const band = hexAlpha(cssColor("--athar-gold", "#80591f"), 0.18);
   const view = page.fit(canvas, Math.round(8 * ratio));
   const waqfInk = waqfInkFor(Boolean(options.colorWaqf));
-  const colours = options.tajweedPaths?.size ? tajweedColors(options.tajweedPaths.values()) : null;
-  const pathInk = colours
-    ? new Map([...options.tajweedPaths!].flatMap(([path, rule]) => (colours.get(rule) ? [[path, colours.get(rule)!] as const] : [])))
+  const letterClasses = options.tajweedLetters
+    ? [...options.tajweedLetters.values()].flatMap((items) => items.map((item) => item[2]))
+    : [];
+  const colours = options.tajweedPaths?.size || letterClasses.length
+    ? tajweedColors([...(options.tajweedPaths?.values() ?? []), ...letterClasses])
+    : null;
+  const pathInk = colours && options.tajweedPaths
+    ? new Map([...options.tajweedPaths].flatMap(([path, rule]) => (colours.get(rule) ? [[path, colours.get(rule)!] as const] : [])))
+    : undefined;
+  const letterInk = colours && options.tajweedLetters
+    ? new Map([...options.tajweedLetters].map(([word, items]) => [
+      word,
+      items.flatMap(([a, b, rule]) => (colours.get(rule) ? [[a, b, colours.get(rule)!] as const] : [])),
+    ] as const))
     : undefined;
   const highlights = highlightIndices(
     page,
@@ -177,8 +189,10 @@ function paintPage(
     ctx.restore();
     page.drawDecorations(ctx, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
     page.drawWords(ctx, visible, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
+    if (letterInk) page.drawLetters(ctx, letterInk, view, new Set(visible));
   } else {
     page.draw(ctx, {...view, ink, highlight: highlights, band, hideWaqf: options.hidePrintedWaqf, waqfInk, pathInk});
+    if (letterInk) page.drawLetters(ctx, letterInk, view);
   }
   if (audioWord) page.drawWords(ctx, [audioWord.idx], {...view, ink: accent, hideWaqf: options.hidePrintedWaqf});
   return view;
@@ -206,7 +220,11 @@ export function QvpPageCanvas({
   const [overlayView, setOverlayView] = useState<QvpView & {dpr: number}>({scale: 1, x: 0, y: 0, dpr: 1});
   const [pageWords, setPageWords] = useState<QvpWord[]>([]);
   const [loadedPage, setLoadedPage] = useState<QvpLitePage | null>(null);
-  const [tajweedRules, setTajweedRules] = useState<{key: string; paths: ReadonlyMap<number, string>} | null>(null);
+  const [tajweedRules, setTajweedRules] = useState<{
+    key: string;
+    paths: ReadonlyMap<number, string>;
+    letters: ReadonlyMap<number, ReadonlyArray<readonly [number, number, string]>>;
+  } | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const requestKey = `${source}:${pageNumber}:${retryToken}`;
   const [loadedKey, setLoadedKey] = useState("");
@@ -252,20 +270,26 @@ export function QvpPageCanvas({
     void loadShamarlyTajweed(pageNumber).then((sidecar) => {
       if (!active) return;
       const paths = new Map<number, string>();
+      const letters = new Map<number, ReadonlyArray<readonly [number, number, string]>>();
       for (const word of loadedPage.words) {
-        const rules = sidecar?.[`${word.surah}:${word.ayah}:${word.word}`];
-        if (!rules) continue;
-        const indices = loadedPage.diacriticPaths(word.idx);
-        if (indices.length !== rules.length) continue;       // never guess: a word whose paths do not match keeps its ink
-        indices.forEach((path, i) => paths.set(path, rules[i]));
+        const wordKey = `${word.surah}:${word.ayah}:${word.word}`;
+        const rules = sidecar?.marks[wordKey];
+        if (rules) {
+          const indices = loadedPage.diacriticPaths(word.idx);
+          // never guess: a word whose paths do not match the sidecar keeps its ink
+          if (indices.length === rules.length) indices.forEach((path, i) => paths.set(path, rules[i]));
+        }
+        const spans = sidecar?.letters[wordKey];
+        if (spans?.length) letters.set(word.idx, spans);
       }
-      setTajweedRules({key: requestKey, paths});
+      setTajweedRules({key: requestKey, paths, letters});
     });
     return () => {
       active = false;
     };
   }, [loadedPage, pageNumber, requestKey, source, tajweed]);
   const tajweedPaths = tajweed && tajweedRules?.key === requestKey ? tajweedRules.paths : undefined;
+  const tajweedLetters = tajweed && tajweedRules?.key === requestKey ? tajweedRules.letters : undefined;
 
   // Each overlay goes in the printed sign's box, or a slot clear of all ink.
   const overlaySlots = useMemo(() => {
@@ -295,7 +319,7 @@ export function QvpPageCanvas({
     const redraw = () => {
       const view = paintPage(canvas, page, {
         surahNumber, ayahNumber, activeAudioWord, focusRange, concealFocused, revealedAyahs, hidePrintedWaqf: hiddenWaqf,
-        colorWaqf, tajweedPaths,
+        colorWaqf, tajweedPaths, tajweedLetters,
       });
       viewRef.current = view;
       setOverlayView({...view, dpr: window.devicePixelRatio || 1});
@@ -304,7 +328,7 @@ export function QvpPageCanvas({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(redraw);
     observer?.observe(canvas);
     return () => observer?.disconnect();
-  }, [activeAudioWord, ayahNumber, colorWaqf, tajweedPaths, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
+  }, [activeAudioWord, ayahNumber, colorWaqf, tajweedPaths, tajweedLetters, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
 
   const handlePointer = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
