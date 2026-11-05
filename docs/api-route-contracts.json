@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 133,
+  "route_count": 135,
   "routes": [
     {
       "auth": "editor",
@@ -2265,6 +2265,7 @@
       "success_keys": [
         "a_sample",
         "cards",
+        "note",
         "pages",
         "set",
         "sets",
@@ -2550,6 +2551,69 @@
         "pending_before",
         "published"
       ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mushaf_editor_qatar_glyph_pages",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/qatar-glyphs",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "fallback",
+        "pages"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mushaf_editor_qatar_glyph_svg",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/qatar-glyphs/<int:page_number>.svg",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": []
     },
     {
       "auth": "editor",

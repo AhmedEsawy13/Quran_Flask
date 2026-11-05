@@ -332,6 +332,7 @@
             });
         }
         updateRefChrome();
+        updateGlyphToggle();
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
         if (btn.dataset.edition === state.edition) return;
@@ -531,6 +532,108 @@
     }
 
     /* ── Page rendering ──────────────────────────────────────────── */
+    function decorateWordElement(wordElement, w) {
+        const cleanText = stripEmbeddedWaqf(w.text || '');
+        wordElement.dataset.wordId = String(w.word_index);
+        wordElement.dataset.text = cleanText;
+        if (w.surah != null) wordElement.dataset.surah = String(w.surah);
+        if (w.ayah != null) wordElement.dataset.ayah = String(w.ayah);
+        wordElement.tabIndex = 0;
+        wordElement.setAttribute('role', 'button');
+        const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
+        const editionEntry = entries.find(e => e.version === state.edition);
+        const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
+        const editionSym = (editionEntry && editionEntry.symbols) || '';
+        const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
+        const peers = peerMarksFromEntries(entries);
+        wordElement.dataset.baseline = baselineSym;
+        wordElement.dataset.peers = JSON.stringify(peers);
+        applyWordMark(wordElement, editionSym, baselineSym, peers);
+    }
+
+    /* ── Beta: Qatar pages drawn from the print (traced word glyphs, no waqf marks) ── */
+    const GLYPH_KEY = 'athar.editor.qatarGlyphs';
+    const glyph = { pages: new Set(), fallback: new Set(), on: false, token: 0, cache: new Map() };
+    try { glyph.on = localStorage.getItem(GLYPH_KEY) === '1'; } catch (_e) { /* storage blocked */ }
+
+    function updateGlyphToggle() {
+        const box = document.getElementById('ed-glyph-toggle-wrap');
+        const input = document.getElementById('ed-glyph-toggle');
+        if (!box || !input) return;
+        box.hidden = state.edition !== 'قطر' || (glyph.pages.size + glyph.fallback.size) === 0;
+        input.checked = glyph.on;
+    }
+
+    async function loadGlyphPages() {
+        try {
+            const data = await window.AtharApi.json('/api/mushaf-editor/qatar-glyphs');
+            glyph.pages = new Set(data.pages || []);
+            glyph.fallback = new Set(data.fallback || []);
+        } catch (_e) { glyph.pages = new Set(); }
+        updateGlyphToggle();
+    }
+
+    async function glyphSvg(page) {
+        if (!glyph.cache.has(page)) {
+            glyph.cache.set(page, fetch(`/api/mushaf-editor/qatar-glyphs/${page}.svg`, { credentials: 'same-origin' })
+                .then(r => (r.ok ? r.text() : null)).catch(() => null));
+        }
+        return glyph.cache.get(page);
+    }
+
+    async function renderGlyphPage(payload) {
+        const container = els.page;
+        container.classList.remove('ed-glyph-mode');
+        container.removeAttribute('data-glyph-note');
+        if (!payload || state.edition !== 'قطر' || !glyph.on) return;
+        const page = payload.page_number;
+        if (!glyph.pages.has(page)) {
+            if (glyph.fallback.has(page) || glyph.pages.size) {
+                container.dataset.glyphNote = glyph.fallback.has(page)
+                    ? 'هذه الصفحة بالخط: تقسيم الكلمات فيها لم يكتمل بعد'
+                    : 'هذه الصفحة بالخط: لم تُرسم من صورة المصحف بعد';
+            }
+            return;
+        }
+        const token = ++glyph.token;
+        const text = await glyphSvg(page);
+        if (token !== glyph.token || !text) return;
+        const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+        const svg = document.importNode(doc.documentElement, true);
+        svg.classList.add('ed-glyph-svg');
+        svg.setAttribute('role', 'group');
+        svg.setAttribute('aria-label', `صفحة ${page} من صورة المصحف (تجريبي)`);
+        const byId = new Map();
+        (payload.lines || []).forEach(line => (line.words || []).forEach(w => byId.set(String(w.word_index), w)));
+        svg.querySelectorAll('g.word').forEach(g => {
+            const w = byId.get(g.dataset.wordId || '');
+            if (!w) return;
+            g.classList.add('ed-word');
+            decorateWordElement(g, w);
+        });
+        const titles = new Map((payload.lines || []).map(l => [String(l.line_number), l.display_text || '']));
+        const NS = 'http://www.w3.org/2000/svg';
+        svg.querySelectorAll('g.surah-name[data-box]').forEach(g => {
+            const [x, y, w, h] = g.dataset.box.split(' ').map(Number);
+            const rect = document.createElementNS(NS, 'rect');
+            Object.entries({ x: x + w * 0.04, y: y + h * 0.12, width: w * 0.92, height: h * 0.76, rx: h * 0.2 })
+                .forEach(([k, v]) => rect.setAttribute(k, String(v)));
+            rect.setAttribute('class', 'ed-glyph-banner');
+            const label = document.createElementNS(NS, 'text');
+            label.setAttribute('x', String(x + w / 2));
+            label.setAttribute('y', String(y + h * 0.62));
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('font-size', String(h * 0.42));
+            label.setAttribute('class', 'ed-glyph-banner-text');
+            label.textContent = titles.get(g.dataset.line || '') || '';
+            g.insertBefore(rect, g.firstChild);
+            if (!g.querySelector('path')) g.append(label);
+        });
+        container.innerHTML = '';
+        container.classList.add('ed-glyph-mode');
+        container.appendChild(svg);
+    }
+
     function renderPage(payload) {
         const container = els.page;
         container.innerHTML = '';
@@ -553,25 +656,7 @@
             countWord: () => false,
             textForWord: context => stripEmbeddedWaqf(context.raw),
             decorateLine: (root, { line }) => { root.dataset.justify = line.is_centered ? '0' : '1'; },
-            decorateWord: (wordElement, context) => {
-                const w = context.word;
-                const cleanText = stripEmbeddedWaqf(w.text || '');
-                wordElement.dataset.wordId = String(w.word_index);
-                wordElement.dataset.text = cleanText;
-                if (w.surah != null) wordElement.dataset.surah = String(w.surah);
-                if (w.ayah != null) wordElement.dataset.ayah = String(w.ayah);
-                wordElement.tabIndex = 0;
-                wordElement.setAttribute('role', 'button');
-                const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
-                const editionEntry = entries.find(e => e.version === state.edition);
-                const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
-                const editionSym = (editionEntry && editionEntry.symbols) || '';
-                const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
-                const peers = peerMarksFromEntries(entries);
-                wordElement.dataset.baseline = baselineSym;
-                wordElement.dataset.peers = JSON.stringify(peers);
-                applyWordMark(wordElement, editionSym, baselineSym, peers);
-            },
+            decorateWord: (wordElement, context) => decorateWordElement(wordElement, context.word),
         });
 
         renderPageChrome({
@@ -587,6 +672,7 @@
             ayah: payload.anchor_ayah_number,
         });
         syncWaqfPreview(payload.anchor_surah_number, payload.anchor_ayah_number);
+        renderGlyphPage(payload);
     }
 
     /* ── Page sizing & line-fit ────────────────────────────────────── */
@@ -1464,10 +1550,20 @@
         hideLogin();
         updateSessionUI();
         await resolveVerseHint();
+        await loadGlyphPages();
         await loadProgress();
         await loadPage();
         loadAudit();
         loadPendingPages();
+    }
+    const glyphInput = document.getElementById('ed-glyph-toggle');
+    if (glyphInput) {
+        glyphInput.addEventListener('change', () => {
+            glyph.on = glyphInput.checked;
+            try { localStorage.setItem(GLYPH_KEY, glyph.on ? '1' : '0'); } catch (_e) { /* storage blocked */ }
+            closePopup();
+            loadPage();
+        });
     }
     if (els.loginForm) {
         els.loginForm.addEventListener('submit', async e => {

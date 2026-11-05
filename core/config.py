@@ -40,6 +40,9 @@ QPC_V1_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'qpc-v1-15-lines.db')
 # مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
 # breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
 QATAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-qatar-layout.db')
+# Beta: Qatar pages traced from the print (pipeline/paw_split/qatar_qvp_svg.py); local only until the scans' rights
+# are settled, so a server without the folder simply offers no glyph pages.
+QATAR_GLYPH_SVG_DIR = os.environ.get('QATAR_GLYPH_SVG_DIR', os.path.join(_ROOT, 'artifacts', 'qatar-qvp', 'svg'))
 # Layout Studio working copy for مصحف البحرين. Seeded from QPC V2 but kept
 # separate so line edits/undo never mutate the shared Madinah 1421 source.
 BAHRAIN_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-bahrain-layout.db')

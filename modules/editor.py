@@ -9,6 +9,7 @@ Without Supabase, writes still go to local mushaf_waqf.db (laptop workflow).
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import shutil
@@ -386,6 +387,43 @@ def _editor_layout_db(edition: str) -> str:
             return BAHRAIN_LAYOUT_DATABASE
         return QPC_V2_LAYOUT_DATABASE
     return QATAR_LAYOUT_DATABASE
+
+
+def _qatar_glyph_pages() -> dict:
+    """{page: stats} of the traced Qatar pages present on this server (beta)."""
+    from core.config import QATAR_GLYPH_SVG_DIR
+    out = {}
+    if not os.path.isdir(QATAR_GLYPH_SVG_DIR):
+        return out
+    for name in os.listdir(QATAR_GLYPH_SVG_DIR):
+        if name.endswith('.svg') and name[:-4].isdigit():
+            page = int(name[:-4])
+            stats_path = os.path.join(QATAR_GLYPH_SVG_DIR, f'{page:03d}.json')
+            try:
+                with open(stats_path, encoding='utf-8') as fh:
+                    out[page] = json.load(fh)
+            except (OSError, ValueError):
+                out[page] = {}
+    return out
+
+
+@editor_bp.route('/api/mushaf-editor/qatar-glyphs', methods=['GET'])
+@require_editor
+def mushaf_editor_qatar_glyph_pages():
+    """Beta: which Qatar pages can be drawn from the print; a page whose split left words without ink falls back."""
+    pages = _qatar_glyph_pages()
+    ready = sorted(p for p, st in pages.items() if len(st.get('empty') or []) <= 2)
+    return jsonify({'pages': ready, 'fallback': sorted(set(pages) - set(ready))})
+
+
+@editor_bp.route('/api/mushaf-editor/qatar-glyphs/<int:page_number>.svg', methods=['GET'])
+@require_editor
+def mushaf_editor_qatar_glyph_svg(page_number):
+    from core.config import QATAR_GLYPH_SVG_DIR
+    path = os.path.join(QATAR_GLYPH_SVG_DIR, f'{page_number:03d}.svg')
+    if not (1 <= page_number <= _MAX_MUSHAF_PAGE) or not os.path.isfile(path):
+        return jsonify({'error': 'not found'}), 404
+    return send_file(path, mimetype='image/svg+xml', max_age=3600)
 
 
 @editor_bp.route('/api/mushaf-editor/page-by-ayah/<int:surah>/<int:ayah>', methods=['GET'])

@@ -760,3 +760,19 @@ body.ed-compare-print .ed-word.ed-diff .ed-waqf-mark { color: inherit; }
 @media (max-width: 720px) {
     .ed-location-tools { flex-wrap: wrap; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; }
 }
+
+/* ── Beta: Qatar page drawn from the print (traced word glyphs, waqf signs hidden) ── */
+.ed-glyph-toggle { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; cursor: pointer; white-space: nowrap; }
+.ed-glyph-toggle small { opacity: .7; }
+.ed-page.ed-glyph-mode { display: flex; align-items: flex-start; justify-content: center; }
+.ed-glyph-svg { width: 100%; height: auto; max-height: 100%; color: var(--athar-ink, #1b1b1b); }
+.ed-glyph-svg path { fill: currentColor; }
+.ed-glyph-svg path[data-mark-family="waqf"] { display: none; }
+.ed-glyph-svg path[data-kind="ayah_mark_ornament"] { fill: #a36b2c; }
+.ed-glyph-svg g.word { cursor: pointer; outline: none; }
+.ed-glyph-svg g.word:hover path, .ed-glyph-svg g.word:focus path { fill: #1f6f5c; }
+.ed-glyph-svg g.word.ed-selected path { fill: #b5481f; }
+.ed-glyph-svg g.word.ed-diff path { fill: #9a3412; }
+.ed-glyph-banner { fill: none; stroke: #a36b2c; stroke-width: .35; }
+.ed-glyph-banner-text { fill: currentColor; font-family: inherit; }
+.ed-page[data-glyph-note]::before { content: attr(data-glyph-note); display: block; font-size: .75rem; opacity: .7; text-align: center; margin-bottom: .25rem; }
