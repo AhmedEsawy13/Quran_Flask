@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { canvasPointToPage, loadQvpPage, prefetchQvpPages, type QvpWaqfOverlay } from "@/lib/qvp";
+import { canvasPointToPage, loadQvpPage, loadShamarlyQvpPage, prefetchQvpPages, type QvpSource, type QvpWaqfOverlay } from "@/lib/qvp";
 import type { QvpLitePage, QvpView, QvpWord } from "@/lib/qvp-lite";
 import { WAQF_GLYPH_REFERENCE_HEIGHT, WaqfGlyph, waqfGlyphSize } from "@/components/ui/waqf-glyph";
 
@@ -18,6 +18,8 @@ type QvpPageCanvasProps = {
   waqfOverlays?: QvpWaqfOverlay[];
   onAyahClick?: (surah: number, ayah: number) => void;
   onWordTap?: (surah: number, ayah: number, word: number) => void;
+  /** Defaults to the Madinah CDN pages. */
+  source?: QvpSource;
 };
 
 function cssColor(name: string, fallback: string) {
@@ -146,6 +148,7 @@ export function QvpPageCanvas({
   waqfOverlays = [],
   onAyahClick,
   onWordTap,
+  source = "madinah",
 }: QvpPageCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageRef = useRef<QvpLitePage | null>(null);
@@ -154,7 +157,7 @@ export function QvpPageCanvas({
   const [pageWords, setPageWords] = useState<QvpWord[]>([]);
   const [loadedPage, setLoadedPage] = useState<QvpLitePage | null>(null);
   const [retryToken, setRetryToken] = useState(0);
-  const requestKey = `${pageNumber}:${retryToken}`;
+  const requestKey = `${source}:${pageNumber}:${retryToken}`;
   const [loadedKey, setLoadedKey] = useState("");
   const [failure, setFailure] = useState<{key: string; message: string} | null>(null);
   const status = failure?.key === requestKey
@@ -167,14 +170,14 @@ export function QvpPageCanvas({
   useEffect(() => {
     let active = true;
     pageRef.current = null;
-    loadQvpPage(pageNumber)
+    (source === "shamarly" ? loadShamarlyQvpPage(pageNumber) : loadQvpPage(pageNumber))
       .then((page) => {
         if (!active) return;
         pageRef.current = page;
         setPageWords(page.words);
         setLoadedPage(page);
         setLoadedKey(requestKey);
-        prefetchQvpPages(pageNumber);
+        if (source !== "shamarly") prefetchQvpPages(pageNumber);
       })
       .catch((reason: unknown) => {
         if (!active) return;
@@ -189,7 +192,7 @@ export function QvpPageCanvas({
     return () => {
       active = false;
     };
-  }, [pageNumber, requestKey, retryToken]);
+  }, [pageNumber, requestKey, retryToken, source]);
 
   // Each overlay goes in the printed sign's box, or a slot clear of all ink.
   const overlaySlots = useMemo(() => {

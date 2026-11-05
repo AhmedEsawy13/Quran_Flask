@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 135,
+  "route_count": 137,
   "routes": [
     {
       "auth": "editor",
@@ -3112,6 +3112,60 @@
       "success_keys": [
         "pages"
       ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_qvp_pages",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/qvp-pages",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "pages"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_qvp_page",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/qvp/<int:page_number>.qvp",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
     },
     {
       "auth": "public",

@@ -43,6 +43,9 @@ QATAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-qatar-layout.db')
 # Beta: Qatar pages traced from the print (pipeline/paw_split/qatar_qvp_svg.py); local only until the scans' rights
 # are settled, so a server without the folder simply offers no glyph pages.
 QATAR_GLYPH_SVG_DIR = os.environ.get('QATAR_GLYPH_SVG_DIR', os.path.join(_ROOT, 'artifacts', 'qatar-qvp', 'svg'))
+# Beta: الشمرلي pages as QVP, drawn with the vector PDF's own outlines (pipeline/paw_split/shamarly_qvp_svg.py, then
+# quran-engine's svg2qvp). Local only for now; a server without the folder lists no pages.
+SHAMARLY_QVP_DIR = os.environ.get('SHAMARLY_QVP_DIR', os.path.join(_ROOT, 'artifacts', 'shamarly-qvp', 'qvp'))
 # Layout Studio working copy for مصحف البحرين. Seeded from QPC V2 but kept
 # separate so line edits/undo never mutate the shared Madinah 1421 source.
 BAHRAIN_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-bahrain-layout.db')

@@ -30,6 +30,39 @@ export function loadQvpPage(pageNumber: number, signal?: AbortSignal) {
   return pending;
 }
 
+/** Which print a QVP page comes from: the quran.ws Madinah CDN, or Athar's own الشمرلي beta pages. */
+export type QvpSource = "madinah" | "shamarly";
+
+const shamarlyCache = new Map<number, Promise<QvpLitePage>>();
+let shamarlyPagesPending: Promise<ReadonlySet<number>> | null = null;
+
+/**
+ * Beta: الشمرلي pages drawn with the vector PDF's own outlines (pipeline/paw_split/shamarly_qvp_svg.py
+ * → quran-engine svg2qvp), served by Flask. An empty set where the server has none.
+ */
+export function loadShamarlyQvpPageSet() {
+  if (!shamarlyPagesPending) {
+    shamarlyPagesPending = fetch("/backend-api/shamarly/qvp-pages")
+      .then((response) => (response.ok ? response.json() : {pages: []}))
+      .then((data: {pages?: number[]}) => new Set(Array.isArray(data.pages) ? data.pages : []) as ReadonlySet<number>)
+      .catch(() => new Set<number>());
+  }
+  return shamarlyPagesPending;
+}
+
+export function loadShamarlyQvpPage(pageNumber: number) {
+  const safe = Math.max(1, Math.trunc(pageNumber));
+  let pending = shamarlyCache.get(safe);
+  if (!pending) {
+    pending = loadPage(`/backend-api/shamarly/qvp/${String(safe).padStart(3, "0")}.qvp`);
+    shamarlyCache.set(safe, pending);
+    pending.catch(() => {
+      shamarlyCache.delete(safe);
+    });
+  }
+  return pending;
+}
+
 export function prefetchQvpPages(pageNumber: number) {
   for (const neighbor of [pageNumber - 1, pageNumber + 1]) {
     if (neighbor >= 1 && neighbor <= 604) void loadQvpPage(neighbor);

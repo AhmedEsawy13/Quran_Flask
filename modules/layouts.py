@@ -15,7 +15,7 @@ import unicodedata
 from collections import defaultdict
 from functools import lru_cache
 
-from flask import jsonify, request
+from flask import jsonify, request, send_file
 
 from core import layout_persistence
 from core.blueprints import core_bp
@@ -936,6 +936,29 @@ def get_shamarly_available_pages():
         raise PersistenceError('تعذّر تحميل قائمة خطوط الشمرلي') from exc
     pages.sort()
     return jsonify({'pages': pages})
+
+
+@core_bp.route('/api/shamarly/qvp-pages', methods=['GET'])
+def get_shamarly_qvp_pages():
+    """Beta: الشمرلي pages available as QVP (drawn from the vector PDF). Empty where the folder is absent."""
+    from core.config import SHAMARLY_QVP_DIR
+    pages = []
+    if os.path.isdir(SHAMARLY_QVP_DIR):
+        for name in os.listdir(SHAMARLY_QVP_DIR):
+            m = re.match(r'^(\d{3})\.qvp$', name)
+            if m:
+                pages.append(int(m.group(1)))
+    pages.sort()
+    return jsonify({'pages': pages})
+
+
+@core_bp.route('/api/shamarly/qvp/<int:page_number>.qvp', methods=['GET'])
+def get_shamarly_qvp_page(page_number):
+    from core.config import SHAMARLY_QVP_DIR
+    path = os.path.join(SHAMARLY_QVP_DIR, f'{page_number:03d}.qvp')
+    if not (1 <= page_number <= 999) or not os.path.isfile(path):
+        return jsonify({'error': 'not found'}), 404
+    return send_file(path, mimetype='application/octet-stream', max_age=3600)
 
 
 @core_bp.route('/api/shamarly/page/<int:page_number>', methods=['GET'])

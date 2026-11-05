@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
@@ -18,7 +18,8 @@ import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 import { QvpPageCanvas } from "@/components/qvp-page-canvas";
-import { qvpWaqfPlan } from "@/lib/qvp";
+import { loadShamarlyQvpPageSet, qvpWaqfPlan } from "@/lib/qvp";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 export type PracticeTap = {
   surah: number;
@@ -196,6 +197,45 @@ function wordWaqfMarks(word: MushafWord) {
   if (!Array.isArray(word.waqf_symbols)) return [];
   return word.waqf_symbols.filter((mark) => mark.symbols.trim());
 }
+
+const SHAMARLY_QVP_KEY = "athar.shamarlyQvp";
+const SHAMARLY_QVP_EVENT = "athar:shamarly-qvp";
+
+function subscribeShamarlyQvp(onChange: () => void) {
+  window.addEventListener(SHAMARLY_QVP_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(SHAMARLY_QVP_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/** Pilot الشمرلي QVP pages on this server, and the reader's beta toggle (remembered per browser). */
+function useShamarlyQvpBeta(active: boolean) {
+  const [pages, setPages] = useState<ReadonlySet<number>>(() => new Set());
+  const on = useSyncExternalStore(
+    subscribeShamarlyQvp,
+    () => readStorage(SHAMARLY_QVP_KEY) === "1",
+    () => false,
+  );
+  useEffect(() => {
+    if (!active) return;
+    let live = true;
+    void loadShamarlyQvpPageSet().then((set) => {
+      if (live) setPages(set);
+    });
+    return () => {
+      live = false;
+    };
+  }, [active]);
+  const setOn = (next: boolean) => {
+    writeStorage(SHAMARLY_QVP_KEY, next ? "1" : "0");
+    window.dispatchEvent(new Event(SHAMARLY_QVP_EVENT));
+  };
+  return {pages: active ? pages : EMPTY_PAGES, on, setOn};
+}
+
+const EMPTY_PAGES: ReadonlySet<number> = new Set();
 
 function usesNativeEmbeddedWaqf(editionId: MushafEditionId, waqfSource: string) {
   if (editionId === "shamarly" || editionId === "azhar_amiri") return false;
@@ -570,10 +610,13 @@ export function MushafRenderer({
   const firstVerse = page
     ? firstPageVerse(page, surahNumber, ayahNumber)
     : {surah: surahNumber, ayah: ayahNumber};
-  const qvpPage = isQvpEdition(editionId);
+  // Beta: الشمرلي pages drawn from the vector PDF as QVP (pilot pages only, behind a toggle).
+  const shamarlyBeta = useShamarlyQvpBeta(editionId === "shamarly" && view === "page");
+  const shamarlyQvp = Boolean(page && shamarlyBeta.on && shamarlyBeta.pages.has(page.page_number));
+  const qvpPage = isQvpEdition(editionId) || shamarlyQvp;
   // QVP: marks off → hide all printed signs; another mushaf → hide and redraw
-  // only the words where it differs from the print.
-  const qvpPlan = qvpPage && waqfEnabled && !usesNativeEmbeddedWaqf(editionId, activeWaqfSource)
+  // only the words where it differs from the print. (الشمرلي always reads its own column: its print is right.)
+  const qvpPlan = isQvpEdition(editionId) && waqfEnabled && !usesNativeEmbeddedWaqf(editionId, activeWaqfSource)
     ? qvpWaqfPlan(page, activeWaqfSource)
     : null;
   const hidePrintedWaqf: boolean | string = qvpPage && !waqfEnabled
@@ -760,6 +803,7 @@ export function MushafRenderer({
             revealedAyahs={revealedAyahs}
             hidePrintedWaqf={hidePrintedWaqf}
             waqfOverlays={qvpWaqfOverlays}
+            source={shamarlyQvp ? "shamarly" : "madinah"}
             onAyahClick={onAyahClick}
             onWordTap={practice
               ? (surah, ayah, word) => {
@@ -817,7 +861,18 @@ export function MushafRenderer({
       </div>
 
       <footer className="mushaf-foot">
-        <span>{edition.label}{qvpPage ? " · مطابق للمطبوع" : fontLoading ? " — يُحمّل الخط…" : ""}</span>
+        <span>{edition.label}{shamarlyQvp ? " · من ملف المصحف (تجريبي)" : qvpPage ? " · مطابق للمطبوع" : fontLoading ? " — يُحمّل الخط…" : ""}</span>
+        {editionId === "shamarly" && view === "page" && page && shamarlyBeta.pages.has(page.page_number) ? (
+          <button
+            type="button"
+            className="shamarly-qvp-toggle"
+            aria-pressed={shamarlyBeta.on}
+            title="يرسم الصفحة بخطوط ملف المصحف نفسه (PDF) عبر quran-engine — صفحات تجريبية مختارة"
+            onClick={() => shamarlyBeta.setOn(!shamarlyBeta.on)}
+          >
+            {shamarlyBeta.on ? "رسم الملف ✓" : "رسم الملف (تجريبي)"}
+          </button>
+        ) : null}
         {view === "page" && page && onPageNavigate ? (
           <button
             type="button"

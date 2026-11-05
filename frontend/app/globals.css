@@ -296,6 +296,24 @@ a {
   border-block-start: 1px solid var(--athar-line-soft);
 }
 
+.shamarly-qvp-toggle {
+  border: 1px solid var(--athar-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: var(--athar-accent);
+  font-size: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  flex: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shamarly-qvp-toggle[aria-pressed="true"] {
+  border-color: var(--athar-accent);
+  background: color-mix(in srgb, var(--athar-accent) 10%, transparent);
+}
+
 .mushaf-foot a,
 .page-number {
   display: grid;
