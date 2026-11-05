@@ -6,13 +6,13 @@
   },
   "engine": {
     "npm_package": "@quran.ws/engine",
-    "npm": "0.7.0",
-    "acknowledged_git_tag": "v0.7.0",
+    "npm": "0.8.0",
+    "acknowledged_git_tag": "v0.8.0",
     "consumed": "lite-fork"
   },
   "lite": {
     "source_path": "web/lite.mjs",
-    "source_ref": "v0.7.0",
+    "source_ref": "v0.8.0",
     "athar_extensions": [
       "path family/mark columns",
       "hideWaqf",
@@ -21,5 +21,5 @@
       "waqfInk"
     ]
   },
-  "notes": "Auto-synced pages v0.5.0 from quran-ws/quran-engine. Format still QVP1. Athar lite fork kept for family/mark overlay."
+  "notes": "Pages v0.5.0 (QVP1). Engine v0.8.0 acknowledged: web/lite.mjs is byte-identical to v0.7.0, so the Athar lite fork needs no change; reflow printed breaks / validate.rs are full-engine only. svg2qvp v0.8.0 builds the الشمرلي beta pages."
 }

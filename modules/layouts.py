@@ -958,7 +958,8 @@ def get_shamarly_qvp_page(page_number):
     path = os.path.join(SHAMARLY_QVP_DIR, f'{page_number:03d}.qvp')
     if not (1 <= page_number <= 999) or not os.path.isfile(path):
         return jsonify({'error': 'not found'}), 404
-    return send_file(path, mimetype='application/octet-stream', max_age=3600)
+    # beta pages are rebuilt in place: revalidate (ETag) instead of caching for an hour
+    return send_file(path, mimetype='application/octet-stream', max_age=0)
 
 
 @core_bp.route('/api/shamarly/page/<int:page_number>', methods=['GET'])

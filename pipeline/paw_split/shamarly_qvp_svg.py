@@ -6,24 +6,28 @@ outlines (L{line}:C{k}, the line font after knife cuts and moves) and their owne
 now (reviewer decisions + the word-owner model's auto-accept), via line_ownership.line_editor_payload.
 
 Written in the structure quran-engine's svg2qvp reads: line > ayah-fragment > word > path[data-kind, data-mark,
-data-mark-family]. A verse number token (٥) is the ayah-mark decoration that ends its fragment. Waqf signs: the
-Shamarly CV detector says which sign is near where, but its box can sit on the harakat under the sign; the small
-outlines in a window around it (each with the dots inside it) are scored by the same Shamarly classifier and the best
-one becomes a mark of family "waqf", so the renderer's hideWaqf hides it. Basmalas are header_ink; the surah banner
+data-mark-family]. A verse number token (٥) is the ayah-mark decoration that ends its fragment. Waqf signs become
+marks of family "waqf", so the renderer's hideWaqf hides them. They are looked for page-wide (a sign can sit in the
+band of the line above its word) from two sources: the Shamarly CV detector's marks, and every sign of the page's
+«الشمرلي» waqf column above its word (the detector misses some). Candidates are groupings of small outlines; the
+Shamarly classifier says whether a sign is there, and shape templates of this print's confirmed signs say which
+grouping it is (the classifier's 24-px window also sees the sign above a letter). The prints' sign outlines are
+close but not identical copies, so quran-svg-elements' exact outline-hash keying does not apply here. Basmalas are header_ink; the surah banner
 keeps its lettering (name, ayah count) as header_ink and leaves the ornamental frame to the viewer (data-box).
 Each word also gets ShemrlyMushaf's text check (outline counts the text predicts): count_ok / count_off in the stats.
 
 Units are PDF points; the viewBox is the text block.
 
-    /opt/homebrew/bin/python3 -m pipeline.cv_waqf.run_page --edition الشمرلي --page 42 \\
-        --json-out artifacts/shamarly-qvp/waqf/042.json
+    /opt/homebrew/bin/python3 pipeline/paw_split/shamarly_qvp_prep.py 4 42 ...     # detector + waqf column
     ~/Development/ShemrlyMushaf/.venv/bin/python pipeline/paw_split/shamarly_qvp_svg.py 4 42 ...
-        -> artifacts/shamarly-qvp/svg/NNN.svg (+ NNN.json stats)
+        -> artifacts/shamarly-qvp/svg/NNN.svg (+ NNN.json stats; waqf/templates.npz grows: run twice on a
+           fresh set so every page is chosen with templates)
     qvp-convert svg2qvp svg/042.svg qvp/042.qvp qvp/042.words.json     # quran-engine crates/qvp-convert (v0.8.0)
         -> artifacts/shamarly-qvp/qvp/, served by /api/shamarly/qvp/NNN.qvp to the reader's «رسم الملف (تجريبي)»
 
 Pilot (2026-11-05, pages 4 42 50 77 100 145 150 187 300 404): 1,499 words, every outline owned; svg→qvp→svg
-round trip within 1 px; 90/90 printed signs tagged (2 detector false marks rejected, p≈0); text check passes
+round trip within 1 px; 92/92 signs of the waqf column tagged and hidden (5 of them missed by the detector;
+2 detector false marks rejected), each checked by eye on a contact sheet; text check passes
 42.5% of words (ShemrlyMushaf: ~97% precise; the rest are unchecked, not wrong). Ownership on these pages is the
 word-owner model's auto-accept (~91% exact on its blind eval): page ink is exact, word boundaries may be off by a mark.
 """
@@ -46,7 +50,7 @@ PDF = SHEMRLY / 'BOOK_27111_1.pdf'
 DET_WIDTH = 1024.0       # the detector reads data/refs/shamarly_pdf/cache/pNNN_w1024.jpg (whole PDF page)
 WAQF_MARK = {'ج': 'waqf_jaiz_mustawi_al_tarafayn', 'ق': 'waqf_jaiz_waqf_awla', 'ص': 'waqf_jaiz_wasl_awla',
              'م': 'waqf_lazim', 'ع': 'waqf_al_muanaqah', 'س': 'saktah',
-             'لا': ''}   # QVP's mark taxonomy has no «لا» (the new Madinah print has none): family waqf, mark none
+             'لا': ''}   # «لا» is waqf_mamnu in quran-svg-elements' taxonomy v2, not yet in qvp-format (v0.8.0): family waqf, mark none
 DIGITS = set('٠١٢٣٤٥٦٧٨٩')
 
 
@@ -153,6 +157,75 @@ def _banner_name(n: int, top: float, bot: float, bx0: float, bx1: float):
     return out
 
 
+TEMPLATES: dict[str, list] = {}      # symbol -> [(normalised mask, aspect)] of signs confirmed in this print
+TEMPLATE_FILE = WAQF / 'templates.npz'
+SHAPE_MAX = 0.24          # a detector sign's cluster vs this print's confirmed signs
+COLUMN_SHAPE_MAX = 0.15   # a sign found only from the column must look like one: no detector behind it
+
+
+def _group_mask(raws, k, x0, bottoms):
+    """Binary mask of a set of outlines (line-font recordings), 10 px per PDF point; holes cut out."""
+    import cv2
+    import numpy as np
+    polys = []
+    for raw, bottom in zip(raws, bottoms):
+        pts, cur = [], None
+        for op, args in raw:
+            ps = [(float(p[0]) / k + x0, bottom - float(p[1]) / k) for p in args if p is not None]
+            if op == 'moveTo':
+                cur = ps[0]; pts.append([cur])
+            elif op in ('lineTo', 'qCurveTo', 'curveTo') and ps and pts:
+                if op == 'curveTo' and len(ps) == 3:
+                    a, b, c = ps
+                    for t in (0.25, 0.5, 0.75, 1.0):
+                        u = 1 - t
+                        pts[-1].append((u**3 * cur[0] + 3*u*u*t*a[0] + 3*u*t*t*b[0] + t**3 * c[0],
+                                        u**3 * cur[1] + 3*u*u*t*a[1] + 3*u*t*t*b[1] + t**3 * c[1]))
+                    cur = c
+                else:
+                    pts[-1].extend(ps); cur = ps[-1]
+        polys.extend(p for p in pts if len(p) >= 3)
+    if not polys:
+        return np.zeros((1, 1), bool)
+    allp = np.concatenate([np.array(p) for p in polys])
+    ox, oy = allp[:, 0].min() - 1, allp[:, 1].min() - 1
+    w = int((allp[:, 0].max() - ox + 1) * 10) + 2; h = int((allp[:, 1].max() - oy + 1) * 10) + 2
+    mask = np.zeros((h, w), np.uint8)
+    for p in polys:
+        layer = np.zeros_like(mask)
+        cv2.fillPoly(layer, [np.round((np.array(p) - (ox, oy)) * 10).astype(np.int32)], 1)
+        mask ^= layer
+    return mask.astype(bool)
+
+
+def _shape(mask):
+    from extract_pdf_pages import normalize_shape_mask
+    return normalize_shape_mask(mask)
+
+
+def _shape_dist(shape, sym):
+    from extract_pdf_pages import TemplateShape, shape_distance
+    from scipy.ndimage import distance_transform_edt
+    best = 1.5
+    for tm, ta in TEMPLATES.get(sym, []):
+        best = min(best, float(shape_distance(shape[0], shape[1], TemplateShape(tm, distance_transform_edt(~tm), ta))))
+    return best
+
+
+def _load_templates():
+    import numpy as np
+    if TEMPLATES or not TEMPLATE_FILE.exists():
+        return
+    z = np.load(TEMPLATE_FILE, allow_pickle=True)
+    for sym, items in z['templates'].item().items():
+        TEMPLATES[sym] = [(m, float(a)) for m, a in items]
+
+
+def _save_templates():
+    import numpy as np
+    np.savez_compressed(TEMPLATE_FILE, templates=np.array({k: v[:40] for k, v in TEMPLATES.items()}, dtype=object))
+
+
 def page(n: int) -> dict:
     from pdf_glyph_editor import CONTENT_X0, PDF_TO_FONT, load_page_report
     from pdf_review_store import DEFAULT_OUTPUT_ROOT, load_page_review, page_directory
@@ -184,16 +257,175 @@ def page(n: int) -> dict:
     if TC_MODEL is None:
         TC_MODEL = json.loads(text_check.MODEL_PATH.read_text(encoding='utf-8'))
     lines = {int(l['line_number']): l for l in report['lines']}
-    stats = {'words': 0, 'paths': 0, 'waqf': 0, 'waqf_signs': len(signs), 'waqf_unmatched': [], 'rings': 0,
+    stats = {'words': 0, 'paths': 0, 'waqf': 0, 'waqf_signs': len(signs), 'rings': 0,
              'headers': 0, 'empty': [], 'count_ok': 0, 'count_off': [], 'unowned': 0, 'shared': 0, 'lines': len(lines)}
     out = ['VIEWBOX']
     frag = {}
-    used_signs = set()
-    best_low = {}
 
+    # 1. every outline of every text line, in page points, with its owner word
+    RAW, COMP, OWNER, BOX, BOTTOM, PAYLOAD = {}, {}, {}, {}, {}, {}
+    for ln, ltype, _sid in layout:
+        line = lines.get(ln)
+        if ltype == 'surah_name' or line is None:
+            continue
+        BOTTOM[ln] = float(line['bbox'][3])
+        payload = PAYLOAD[ln] = line_editor_payload(db, RUN, n, page_dir, report, ln, review)
+        comp = {c['id']: c for c in payload['components']}
+        for suffix, raw, _p in line_outlines(page_dir, report, ln):
+            oid = f'L{ln}:{suffix}'
+            RAW[oid], COMP[oid] = raw, comp.get(oid, {})
+            BOX[oid] = _bbox_pt(raw, k, x0, BOTTOM[ln])
+            ks = payload['owners'].get(oid) or []
+            if not ks:
+                stats['unowned'] += 1
+                continue
+            if len(ks) > 1:
+                stats['shared'] += 1
+            OWNER[oid] = ks[0]
+        for oid, c in comp.items():          # a hole goes with the outline it sits in
+            host = c.get('hole_of')
+            if host and host in OWNER:
+                OWNER[oid] = OWNER[host]
+    line_of = {oid: int(oid[1:].split(':')[0]) for oid in RAW}
+    key_of_owner = {}                        # owner key ('word:123') -> word_key
+    for ln, payload in PAYLOAD.items():
+        for w in payload['words']:
+            key_of_owner[w['key']] = keys.get(w['word_index'], ('0:0:0', ''))[0]
+
+    # 2. waqf signs, page-wide (a sign can sit in the band of the line above its word). The detector's box is
+    # only near the sign (it can sit on the harakat under it), and the detector misses some signs, so every sign
+    # of the page's «الشمرلي» column is looked for above its word as well. Candidates are small outlines in the
+    # window, each with the outlines whose centre lies inside it (dots, holes); the Shamarly waqf classifier picks
+    # the one that reads best as the sign. The whole sign goes to the word that owns its main outline.
+    def centre(bx):
+        return (bx[0] + bx[2]) / 2, (bx[1] + bx[3]) / 2
+    sign_of: dict[str, int] = {}
+    found: list[tuple[str, str, tuple]] = []          # (symbol, source, group box) per tagged sign
+
+    # Sign pieces: small outlines (a sign's letters, dots, holes). صلى is wide, so the line font's own is_mark
+    # test is not used. Each piece offers a few groupings (alone; with the pieces inside or just above it, ق's
+    # dots; with pieces under 0.5 pt away), so a sign is taken whole without swallowing the harakat beside it.
+    def small(o):
+        b = BOX[o]
+        return (b[3] - b[1]) <= 13.0 and (b[2] - b[0]) <= 22.0
+    pieces = [o for o in RAW if small(o) and o in OWNER]
+    near: dict[str, list[str]] = {o: [] for o in pieces}
+    for a_i, a in enumerate(pieces):
+        A = BOX[a]
+        for b in pieces[a_i + 1:]:
+            B = BOX[b]
+            if line_of[a] == line_of[b] and A[0] - 0.5 <= B[2] and B[0] - 0.5 <= A[2] and A[1] - 0.5 <= B[3] and B[1] - 0.5 <= A[3]:
+                near[a].append(b); near[b].append(a)
+
+    def groupings(o):
+        out = {frozenset([o])}
+        b = BOX[o]
+        out.add(frozenset([o] + [q for q in pieces if q != o and line_of[q] == line_of[o]
+                                 and b[0] - 1.0 <= centre(BOX[q])[0] <= b[2] + 1.0
+                                 and b[1] - 3.0 <= centre(BOX[q])[1] <= b[3] + 0.8
+                                 and (BOX[q][2] - BOX[q][0]) * (BOX[q][3] - BOX[q][1]) < 0.6 * (b[2] - b[0]) * (b[3] - b[1])]))
+        seen, todo = {o}, [o]
+        while todo:
+            for q in near[todo.pop()]:
+                if q not in seen:
+                    seen.add(q); todo.append(q)
+        out.add(frozenset(seen))
+        return out
+
+    def look(win, sym):
+        """(p, main, group, box, shape distance) of the best sign grouping in the window: the classifier's
+        probability first (24-px window), then the most complete grouping, then the topmost."""
+        groups = set()
+        for o in pieces:
+            if o not in sign_of and win[0] <= centre(BOX[o])[0] <= win[2] and win[1] <= centre(BOX[o])[1] <= win[3]:
+                groups |= {g for g in groupings(o) if not (g & sign_of.keys())}
+        scored = []
+        for g in groups:
+            g = sorted(g)
+            gb = (min(BOX[o][0] for o in g), min(BOX[o][1] for o in g), max(BOX[o][2] for o in g), max(BOX[o][3] for o in g))
+            # a sign is 6-16 pt across; a lone dot or hole (~2 pt) is not one, however its window scores
+            if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > 14 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
+                continue
+            p = _sign_prob(n, gb, sym)
+            if os.environ.get('SIGN_DEBUG'):
+                print('   cand', sym, [round(v, 1) for v in gb], len(g), round(p, 3), file=sys.stderr)
+            if p >= SIGN_MIN_P:
+                scored.append((p, g, gb))
+        if not scored:
+            return (0.0, None, None, None, 9.0)
+        # The 24-px window also sees the sign above a letter, so a letter piece can score as high as the sign.
+        # With this print's confirmed signs as templates the closest shape wins (a fuller grouping on near
+        # ties); before there are any, the topmost of the best-scoring (signs sit above the letters).
+        if TEMPLATES.get(sym):
+            rows = [(_shape_dist(_shape(_group_mask([RAW[o] for o in g], k, x0, [BOTTOM[line_of[o]] for o in g])), sym),
+                     p, g, gb) for p, g, gb in scored]
+            low = min(r[0] for r in rows)
+            dist, p, g, gb = max((r for r in rows if r[0] <= low + 0.02), key=lambda r: (len(r[2]), -r[0]))
+            return (p, g[0], g, gb, dist)
+        top = max(round(p, 2) for p, _g, _gb in scored)
+        p, g, gb = min((t for t in scored if round(t[0], 2) == top), key=lambda t: (t[2][1], -len(t[1])))
+        return (p, g[0], g, gb, 5.0)
+
+    def tag(p, main, g, gb, sym, source):
+        if source == 'detector' and p >= 0.99:
+            TEMPLATES.setdefault(sym, []).append(
+                _shape(_group_mask([RAW[o] for o in g], k, x0, [BOTTOM[line_of[o]] for o in g])))
+        i = len(found)
+        found.append((sym, source, gb))
+        for o in g:
+            sign_of[o] = i
+            OWNER[o] = OWNER[main]
+        stats.setdefault('waqf_p', []).append(round(p, 2))
+
+    misses = []
+    for sb, sym, wk in signs:                      # detector marks
+        p, main, g, gb, dist = look((sb[0] - 22, sb[1] - 14, sb[2] + 22, sb[3] + 1), sym)
+        if main:
+            tag(p, main, g, gb, sym, 'detector')
+            stats.setdefault('det_dist', []).append(round(dist, 3) if dist < 5 else None)
+        else:
+            misses.append(['detector', wk, sym, round(p, 2), round(dist, 3)])
+    colpath = WAQF / f'{n:03d}.column.json'
+    col = json.load(open(colpath, encoding='utf-8')) if colpath.exists() else {}
+    stats['column_signs'] = len(col)
+    ink_of_key: dict[str, list[str]] = {}
+    for o, ow in OWNER.items():
+        if o not in sign_of and not COMP[o].get('is_mark'):
+            ink_of_key.setdefault(key_of_owner.get(ow, ''), []).append(o)
+    stats['column_added'] = []
+    for wk, sym in col.items():
+        body = ink_of_key.get(wk)
+        if not body or sym not in WAQF_MARK:
+            if body is None:
+                misses.append(['column', wk, sym, 'word not on page'])
+            continue
+        owned = [o for o, ow in OWNER.items() if key_of_owner.get(ow) == wk]      # the split may hand it the sign
+        wx0 = min(BOX[o][0] for o in owned); wx1 = max(BOX[o][2] for o in owned)
+        wy0 = min(BOX[o][1] for o in body); wy1 = max(BOX[o][3] for o in body)
+        win = (wx0 - 8, wy0 - 18, wx1 + 8, wy0 + 0.45 * (wy1 - wy0))
+        # already tagged near this word? (the same sign within ~25 pt; the column and the detector's word keys
+        # can differ by a word, and a sign can sit in the band of the line above)
+        if any(s_ == sym and win[0] - 25 <= centre(gb)[0] <= win[2] + 25 and win[1] - 8 <= centre(gb)[1] <= win[3] + 8
+               for s_, _src, gb in found):
+            continue
+        if os.environ.get('SIGN_DEBUG'):
+            print('COLUMN', wk, sym, [round(v, 1) for v in win], file=sys.stderr)
+        p, main, g, gb, dist = look(win, sym)
+        # without the detector, the shape must agree too: a harakah near a real sign can pass the classifier
+        if main and dist < COLUMN_SHAPE_MAX:
+            tag(p, main, g, gb, sym, 'column')
+            stats['column_added'].append([wk, sym, round(p, 2), round(dist, 3)])
+        else:
+            misses.append(['column', wk, sym, round(p, 2), round(dist, 3)])
+    stats['waqf_missed'] = misses
+
+    def sign_for(oid):
+        return sign_of.get(oid)
+
+    # 3. the page
     for ln, ltype, sid in layout:
         if ltype == 'surah_name':
-            # the banner sits between the neighbouring text lines; the viewer draws it (box), black ink kept
+            # the banner sits between the neighbouring text lines; the viewer draws it (box), its lettering kept
             above = max((l['bbox'][3] for m, l in lines.items() if m < ln), default=None)
             below = min((l['bbox'][1] for m, l in lines.items() if m > ln), default=None)
             top = above if above is not None else (below - 1.9 * 43.0)
@@ -206,75 +438,16 @@ def page(n: int) -> dict:
             out.append('</g>')
             stats['headers'] += 1
             continue
-        line = lines.get(ln)
-        if line is None:
+        if ln not in PAYLOAD:
             continue
-        bottom = float(line['bbox'][3])
-        payload = line_editor_payload(db, RUN, n, page_dir, report, ln, review)
-        raws = {f'L{ln}:{suffix}': raw for suffix, raw, _p in line_outlines(page_dir, report, ln)}
-        comp = {c['id']: c for c in payload['components']}
-        key_of = {w['key']: w for w in payload['words']}
-        owner = {}
-        for oid in raws:
-            ks = payload['owners'].get(oid) or []
-            if not ks:
-                stats['unowned'] += 1
-                continue
-            if len(ks) > 1:
-                stats['shared'] += 1
-            owner[oid] = ks[0]
-        # a hole goes with the outline it sits in
-        for oid, c in comp.items():
-            host = c.get('hole_of')
-            if host and host in owner:
-                owner[oid] = owner[host]
-        boxes = {oid: _bbox_pt(raw, k, x0, bottom) for oid, raw in raws.items()}
-
-        # The detector's box (~14 pt) is only near the sign: it can sit on the harakat under it. Candidates are the
-        # small outlines in a window reaching up from the box, each with the outlines whose centre lies inside it
-        # (dots, holes); the waqf classifier picks the candidate that reads best as the detected sign. The whole
-        # sign goes to the word that owns its main outline.
-        def centre(bx):
-            return (bx[0] + bx[2]) / 2, (bx[1] + bx[3]) / 2
-
-        def group_of(main):
-            mb = boxes[main]
-            return [o for o in raws if o == main or (
-                comp.get(o, {}).get('is_mark') and o not in sign_of
-                and mb[0] - 0.8 <= centre(boxes[o])[0] <= mb[2] + 0.8 and mb[1] - 0.8 <= centre(boxes[o])[1] <= mb[3] + 0.8)]
-        sign_of = {}
-        for i, (sb, sym, _wk) in enumerate(signs):
-            if i in used_signs:
-                continue
-            cand = [o for o in raws if comp.get(o, {}).get('is_mark') and o in owner and o not in sign_of
-                    and sb[0] - 22 <= centre(boxes[o])[0] <= sb[2] + 22 and sb[1] - 14 <= centre(boxes[o])[1] <= sb[3] + 1]
-            if not cand:
-                continue
-            scored = []
-            for main in cand:
-                g = group_of(main)
-                gx0 = min(boxes[o][0] for o in g); gy0 = min(boxes[o][1] for o in g)
-                gx1 = max(boxes[o][2] for o in g); gy1 = max(boxes[o][3] for o in g)
-                scored.append((_sign_prob(n, (gx0, gy0, gx1, gy1), sym), main, g))
-            p, main, g = max(scored, key=lambda t: t[0])
-            if p < SIGN_MIN_P:
-                best_low[i] = max(best_low.get(i, 0.0), p)
-                continue
-            stats.setdefault('waqf_p', []).append(round(p, 2))
-            for o in g:
-                sign_of[o] = i
-                owner[o] = owner[main]
-            used_signs.add(i)
-
-        def sign_for(oid):
-            return sign_of.get(oid)
-
+        payload = PAYLOAD[ln]
+        D = lambda o: _d(RAW[o], k, x0, BOTTOM[line_of[o]])
         words = sorted(payload['words'], key=lambda w: -w['cell'][0])        # reading order
         if ltype == 'basmallah':
-            ink = [raws[o] for o in raws if o in owner]
+            ink = [o for o in RAW if line_of[o] == ln and o in OWNER]
             out.append(f'<g class="basmalah" data-line="{ln}">')
             if ink:
-                out.append('<path data-kind="header_ink" d="' + ' '.join(_d(r, k, x0, bottom) for r in ink) + '"/>')
+                out.append('<path data-kind="header_ink" d="' + ' '.join(D(o) for o in ink) + '"/>')
             out.append('</g>')
             stats['headers'] += 1
             continue
@@ -285,7 +458,7 @@ def page(n: int) -> dict:
             wkey, text = keys.get(wi, ('0:0:0', w.get('token') or ''))
             s_, a_, _ = wkey.split(':')
             ak = f'{s_}:{a_}'
-            mine = [o for o in raws if owner.get(o) == w['key']]
+            mine = [o for o in RAW if OWNER.get(o) == w['key']]
             if text and set(text) <= DIGITS | {'۝'}:
                 if open_ayah:
                     out.append('</g>')
@@ -293,8 +466,7 @@ def page(n: int) -> dict:
                 rid = f'ayah-mark-{n}-{ak.replace(":", "-")}'
                 out.append(f'<g class="ayah-mark" id="{rid}" data-ayah-key="{ak}">')
                 if mine:
-                    out.append('<path data-kind="ayah_mark_ornament" d="'
-                               + ' '.join(_d(raws[o], k, x0, bottom) for o in mine) + '"/>')
+                    out.append('<path data-kind="ayah_mark_ornament" d="' + ' '.join(D(o) for o in mine) + '"/>')
                 out.append('</g>')
                 frag[ak] = rid
                 stats['rings'] += 1
@@ -314,11 +486,11 @@ def page(n: int) -> dict:
                 else:
                     waqf.setdefault(si, []).append(o)
             if body:
-                out.append('<path data-kind="body" d="' + ' '.join(_d(raws[o], k, x0, bottom) for o in body) + '"/>')
+                out.append('<path data-kind="body" d="' + ' '.join(D(o) for o in body) + '"/>')
                 stats['paths'] += 1
             for si, os_ in waqf.items():
-                out.append(f'<path data-kind="mark" data-mark="{WAQF_MARK.get(signs[si][1], "")}" '
-                           f'data-mark-family="waqf" d="' + ' '.join(_d(raws[o], k, x0, bottom) for o in os_) + '"/>')
+                out.append(f'<path data-kind="mark" data-mark="{WAQF_MARK.get(found[si][0], "")}" '
+                           f'data-mark-family="waqf" d="' + ' '.join(D(o) for o in os_) + '"/>')
                 stats['paths'] += 1
                 stats['waqf'] += 1
             if not body:
@@ -326,8 +498,8 @@ def page(n: int) -> dict:
             # ShemrlyMushaf's text check: a correctly cut word has the outline counts its text predicts
             # (flags ~94% of wrong words on its blind eval pages); the waqf sign may or may not be in the text
             tot = len(mine)
-            small = sum(1 for o in mine if (boxes[o][3] - boxes[o][1]) < 9.0
-                        and (boxes[o][2] - boxes[o][0]) * (boxes[o][3] - boxes[o][1]) < 28.0)
+            small = sum(1 for o in mine if (BOX[o][3] - BOX[o][1]) < 9.0
+                        and (BOX[o][2] - BOX[o][0]) * (BOX[o][3] - BOX[o][1]) < 28.0)
             nw = sum(len(v) for v in waqf.values())
             need = text_check.predict(TC_MODEL, text)
             if need in ((tot, small), (tot - nw, small - nw)):
@@ -340,8 +512,6 @@ def page(n: int) -> dict:
             out.append('</g>')
         out.append('</g>')
     out.append('</svg>')
-    stats['waqf_unmatched'] = [[signs[i][2], signs[i][1], round(best_low.get(i, 0.0), 2)]
-                               for i in range(len(signs)) if i not in used_signs]
 
     ys0 = [float(l['bbox'][1]) for l in lines.values()]
     ys1 = [float(l['bbox'][3]) for l in lines.values()]
@@ -364,5 +534,7 @@ def page(n: int) -> dict:
 
 
 if __name__ == '__main__':
+    _load_templates()
     for arg in sys.argv[1:]:
         print(arg, page(int(arg)), flush=True)
+    _save_templates()
