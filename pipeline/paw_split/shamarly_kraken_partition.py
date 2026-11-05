@@ -38,7 +38,8 @@ from shamarly_qvp_svg import _bbox_pt, _group_mask  # noqa: E402
 
 PDF = SHEMRLY / 'BOOK_27111_1.pdf'
 EVAL = SHEMRLY / 'output' / 'pdf' / 'pipeline-eval'
-MODEL = Path.home() / 'Library/Application Support/htrmopo/b4a70336-339f-508b-abf4-24b698091dd7/arabic_best.mlmodel'
+import os  # noqa: E402
+MODEL = Path(os.environ.get('KRAKEN_MODEL') or Path.home() / 'Library/Application Support/htrmopo/b4a70336-339f-508b-abf4-24b698091dd7/arabic_best.mlmodel')
 DPI = 300
 Z = DPI / 72
 MAP = {'ٱ': 'ا', 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ى': 'ي', 'ی': 'ي', 'ة': 'ه', 'ک': 'ك', 'ؤ': 'و', 'ئ': 'ي'}
@@ -64,18 +65,29 @@ _NET = {}
 def kraken_read(png_path):
     from kraken import rpred
     from kraken.containers import BaselineLine, Segmentation
-    from kraken.lib.models import load_any
     from PIL import Image
+    new_api = str(MODEL).endswith('.safetensors')          # a fine-tuned model from `ketos convert`
     if 'net' not in _NET:
-        _NET['net'] = load_any(str(MODEL), train=False, device='cpu')
+        if new_api:
+            from kraken.configs import RecognitionInferenceConfig
+            from kraken.tasks import RecognitionTaskModel
+            _NET['net'] = RecognitionTaskModel.load_model(str(MODEL))
+            _NET['cfg'] = RecognitionInferenceConfig(bidi_reordering=False)
+        else:
+            from kraken.lib.models import load_any
+            _NET['net'] = load_any(str(MODEL), train=False, device='cpu')
     image = Image.open(png_path).convert('RGB')
     w, h = image.size
     by = int(0.66 * h)
     seg = Segmentation(type='baselines', imagename=str(png_path), text_direction='horizontal-rl', script_detection=False,
                        lines=[BaselineLine(id='l', baseline=[(2, by), (w - 2, by)],
                                            boundary=[(2, 2), (w - 3, 2), (w - 3, h - 3), (2, h - 3)], base_dir='R')])
-    rec = list(rpred.rpred(_NET['net'], image, seg, bidi_reordering=False))[0]
-    xs = [sum(p[0] for p in cut) / len(cut) for cut in rec.cuts]
+    if new_api:
+        rec = list(_NET['net'].predict(image, seg, _NET['cfg']))[0]
+    else:
+        rec = list(rpred.rpred(_NET['net'], image, seg, bidi_reordering=False))[0]
+    xs = [(sum(p[0] for p in c) / len(c)) if isinstance(c[0], (tuple, list)) else (c[0] + c[2]) / 2 if len(c) == 4 else sum(c) / len(c)
+          for c in rec.cuts]
     return rec.prediction, xs
 
 
