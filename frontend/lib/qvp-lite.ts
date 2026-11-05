@@ -69,6 +69,8 @@ type DrawOptions = {
   ink?: string;
   /** Athar: `true` hides every printed pause sign; a set hides only those words' signs. */
   hideWaqf?: boolean | ReadonlySet<number>;
+  /** Athar: the colour of each printed pause sign, by its QVP mark; `undefined` keeps it in ink. */
+  waqfInk?: (mark: number) => string | undefined;
 };
 
 type Box = [number, number, number, number];
@@ -497,7 +499,7 @@ export class QvpLitePage {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    {scale = 1, x = 0, y = 0, ink = "#231f20", highlight = [], band = "#bedbfa", hideWaqf = false}: DrawOptions & {
+    {scale = 1, x = 0, y = 0, ink = "#231f20", highlight = [], band = "#bedbfa", hideWaqf = false, waqfInk}: DrawOptions & {
       highlight?: number[];
       band?: string;
     } = {},
@@ -512,9 +514,23 @@ export class QvpLitePage {
     ctx.fillStyle = ink;
     this.#paths.forEach(({path, rule, family, mark}, index) => {
       if (this.#hidden(index, family, mark, hideWaqf)) return;
-      ctx.fill(path, rule);
+      this.#fill(ctx, path, rule, family, mark, ink, waqfInk);
     });
     ctx.restore();
+  }
+
+  #fill(
+    ctx: CanvasRenderingContext2D, path: Path2D, rule: CanvasFillRule, family: number, mark: number,
+    ink: string, waqfInk: DrawOptions["waqfInk"],
+  ) {
+    const colour = waqfInk && isQvpPausePath(family, mark) ? waqfInk(mark) : undefined;
+    if (!colour) {
+      ctx.fill(path, rule);
+      return;
+    }
+    ctx.fillStyle = colour;
+    ctx.fill(path, rule);
+    ctx.fillStyle = ink;
   }
 
   #hidden(index: number, family: number, mark: number, hideWaqf: DrawOptions["hideWaqf"]) {
@@ -581,7 +597,7 @@ export class QvpLitePage {
   #drawPaths(
     ctx: CanvasRenderingContext2D,
     pathIndices: number[],
-    {scale = 1, x = 0, y = 0, ink = "#231f20", hideWaqf = false}: DrawOptions = {},
+    {scale = 1, x = 0, y = 0, ink = "#231f20", hideWaqf = false, waqfInk}: DrawOptions = {},
   ) {
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, x, y);
@@ -589,7 +605,7 @@ export class QvpLitePage {
     for (const index of pathIndices) {
       const {path, rule, family, mark} = this.#paths[index];
       if (this.#hidden(index, family, mark, hideWaqf)) continue;
-      ctx.fill(path, rule);
+      this.#fill(ctx, path, rule, family, mark, ink, waqfInk);
     }
     ctx.restore();
   }

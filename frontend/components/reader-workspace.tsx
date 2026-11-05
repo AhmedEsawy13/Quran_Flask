@@ -1,7 +1,7 @@
 "use client";
 
 import { qvpVersionQuery } from "@/lib/qvp";
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { type Ayah, type MushafPage, type Surah, getJson } from "@/lib/api";
 import {
@@ -51,6 +51,28 @@ type ReaderNavigator = "surah" | "juz" | "page";
 
 function clampInteger(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, Math.trunc(value)));
+}
+
+const WAQF_COLOR_KEY = "athar-reader-waqf-color";
+const STORED_FLAG_EVENT = "athar:stored-flag";
+
+function subscribeStoredFlags(onChange: () => void) {
+  window.addEventListener(STORED_FLAG_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(STORED_FLAG_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/** A yes/no preference kept in localStorage on its own, so links that set the position do not reset it. */
+function useStoredFlag(key: string) {
+  const value = useSyncExternalStore(subscribeStoredFlags, () => readStorage(key) === "true", () => false);
+  const set = (next: boolean) => {
+    writeStorage(key, String(next));
+    window.dispatchEvent(new Event(STORED_FLAG_EVENT));
+  };
+  return [value, set] as const;
 }
 
 function parsePositiveInteger(value: string | null, fallback: number) {
@@ -124,6 +146,7 @@ export function ReaderWorkspace() {
   const [dualAvailable, setDualAvailable] = useState(false);
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
   const [waqfEnabled, setWaqfEnabled] = useState(true);
+  const [waqfColored, setWaqfColored] = useStoredFlag(WAQF_COLOR_KEY);
   const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
   // Keep printed waqf marks in sync with the selected mushaf edition.
   const activeWaqfSource = editionWaqfSource(editionId, waqfSource);
@@ -745,9 +768,10 @@ export function ReaderWorkspace() {
             disabled={view !== "page"}
             onChange={(event) => setMarginMode(event.target.checked)}
           />
-          {isQvpEdition(editionId) ? (
+          {isQvpEdition(editionId) || editionId === "shamarly" ? (
             <div className="grid gap-2 sm:col-span-2">
               <span className="text-[0.7rem] text-athar-ink-faint">علامات الوقف</span>
+              {isQvpEdition(editionId) ? (
               <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="مصدر علامات الوقف">
                 {WAQF_SOURCES.map((source) => (
                   <button
@@ -769,13 +793,22 @@ export function ReaderWorkspace() {
                   </button>
                 ))}
               </div>
+              ) : null}
               <CheckControl
                 label="إظهار علامات الوقف"
                 checked={waqfEnabled}
                 onChange={(event) => setWaqfEnabled(event.target.checked)}
               />
+              <CheckControl
+                label="تلوين علامات الوقف المطبوعة"
+                checked={waqfColored && waqfEnabled}
+                disabled={!waqfEnabled}
+                onChange={(event) => setWaqfColored(event.target.checked)}
+              />
               <p className="m-0 text-[0.68rem] leading-5 text-athar-ink-faint">
-                علامات المدينة المطبوعة جزء من الحبر. إخفاؤها أو استبدالها بمصحف آخر يعمل كما في الخطوط: تُحذف علامات المجمع ثم تُرسم علامات أثَر فوق الكلمة.
+                {editionId === "shamarly"
+                  ? "في صفحات «رسم الملف» التجريبية علامات الشمرلي جزء من الحبر: تُخفى أو تُلوَّن (م وق بالأخضر، لا بالأحمر، والبقية بلون العلامة)."
+                  : "علامات المدينة المطبوعة جزء من الحبر. إخفاؤها أو استبدالها بمصحف آخر يعمل كما في الخطوط: تُحذف علامات المجمع ثم تُرسم علامات أثَر فوق الكلمة."}
               </p>
             </div>
           ) : null}
@@ -899,6 +932,7 @@ export function ReaderWorkspace() {
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
+                  waqfColored={waqfColored}
                   waqfSource={activeWaqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
@@ -925,6 +959,7 @@ export function ReaderWorkspace() {
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
+                  waqfColored={waqfColored}
                   waqfSource={activeWaqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
@@ -952,6 +987,7 @@ export function ReaderWorkspace() {
               tajweedLoading={tajweedLoading}
               tajweedSegmentsByWord={tajweedSegmentsByWord}
               waqfEnabled={waqfEnabled}
+              waqfColored={waqfColored}
               waqfSource={activeWaqfSource}
               onSurahNavigate={() => setNavigatorMode("surah")}
               onJuzNavigate={() => setNavigatorMode("juz")}

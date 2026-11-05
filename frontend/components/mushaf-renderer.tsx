@@ -48,6 +48,8 @@ type MushafRendererProps = {
   tajweedLoading?: boolean;
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   waqfEnabled?: boolean;
+  /** QVP pages: paint the printed pause signs in the waqf colours. */
+  waqfColored?: boolean;
   waqfSource?: string;
   dualLayout?: boolean;
   memorizationMode?: boolean;
@@ -574,6 +576,7 @@ export function MushafRenderer({
   tajweedLoading = false,
   tajweedSegmentsByWord,
   waqfEnabled = true,
+  waqfColored = false,
   waqfSource,
   dualLayout = false,
   memorizationMode = false,
@@ -804,6 +807,7 @@ export function MushafRenderer({
             hidePrintedWaqf={hidePrintedWaqf}
             waqfOverlays={qvpWaqfOverlays}
             source={shamarlyQvp ? "shamarly" : "madinah"}
+            colorWaqf={waqfColored}
             onAyahClick={onAyahClick}
             onWordTap={practice
               ? (surah, ayah, word) => {

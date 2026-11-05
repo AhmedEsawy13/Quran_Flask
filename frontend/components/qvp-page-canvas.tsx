@@ -20,7 +20,24 @@ type QvpPageCanvasProps = {
   onWordTap?: (surah: number, ayah: number, word: number) => void;
   /** Defaults to the Madinah CDN pages. */
   source?: QvpSource;
+  /** Paint the printed pause signs in the reader's waqf colours instead of the text ink. */
+  colorWaqf?: boolean;
 };
+
+/** QVP marks (qvp-format `Mark`) → the app's waqf tones: م/ق strong, لا (no mark in QVP) avoid, the rest the sign colour. */
+const QVP_MARK_WAQF_LAZIM = 24;
+const QVP_MARK_WAQF_AWLA = 22;
+const QVP_MARK_NONE = 0;
+
+function waqfInkFor(enabled: boolean): ((mark: number) => string) | undefined {
+  if (!enabled) return undefined;
+  const strong = cssColor("--athar-waqf-strong", "#166534");
+  const avoid = cssColor("--athar-waqf-avoid", "#b91c1c");
+  const sign = cssColor("--athar-waqf-mark", "#9a3412");
+  return (mark) => (mark === QVP_MARK_WAQF_LAZIM || mark === QVP_MARK_WAQF_AWLA
+    ? strong
+    : mark === QVP_MARK_NONE ? avoid : sign);
+}
 
 function cssColor(name: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
@@ -77,6 +94,7 @@ function paintPage(
     concealFocused?: boolean;
     revealedAyahs?: ReadonlySet<number>;
     hidePrintedWaqf?: boolean | ReadonlySet<number>;
+    colorWaqf?: boolean;
   },
 ): QvpView {
   const ratio = window.devicePixelRatio || 1;
@@ -91,6 +109,7 @@ function paintPage(
   const accent = cssColor("--athar-accent", "#176447");
   const band = hexAlpha(cssColor("--athar-gold", "#80591f"), 0.18);
   const view = page.fit(canvas, Math.round(8 * ratio));
+  const waqfInk = waqfInkFor(Boolean(options.colorWaqf));
   const highlights = highlightIndices(
     page,
     options.surahNumber,
@@ -127,10 +146,10 @@ function paintPage(
       if (box) ctx.fillRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
     }
     ctx.restore();
-    page.drawDecorations(ctx, {...view, ink, hideWaqf: options.hidePrintedWaqf});
-    page.drawWords(ctx, visible, {...view, ink, hideWaqf: options.hidePrintedWaqf});
+    page.drawDecorations(ctx, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk});
+    page.drawWords(ctx, visible, {...view, ink, hideWaqf: options.hidePrintedWaqf, waqfInk});
   } else {
-    page.draw(ctx, {...view, ink, highlight: highlights, band, hideWaqf: options.hidePrintedWaqf});
+    page.draw(ctx, {...view, ink, highlight: highlights, band, hideWaqf: options.hidePrintedWaqf, waqfInk});
   }
   if (audioWord) page.drawWords(ctx, [audioWord.idx], {...view, ink: accent, hideWaqf: options.hidePrintedWaqf});
   return view;
@@ -149,6 +168,7 @@ export function QvpPageCanvas({
   onAyahClick,
   onWordTap,
   source = "madinah",
+  colorWaqf = false,
 }: QvpPageCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageRef = useRef<QvpLitePage | null>(null);
@@ -222,6 +242,7 @@ export function QvpPageCanvas({
     const redraw = () => {
       const view = paintPage(canvas, page, {
         surahNumber, ayahNumber, activeAudioWord, focusRange, concealFocused, revealedAyahs, hidePrintedWaqf: hiddenWaqf,
+        colorWaqf,
       });
       viewRef.current = view;
       setOverlayView({...view, dpr: window.devicePixelRatio || 1});
@@ -230,7 +251,7 @@ export function QvpPageCanvas({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(redraw);
     observer?.observe(canvas);
     return () => observer?.disconnect();
-  }, [activeAudioWord, ayahNumber, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
+  }, [activeAudioWord, ayahNumber, colorWaqf, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
 
   const handlePointer = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;

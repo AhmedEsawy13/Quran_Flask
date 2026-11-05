@@ -17,7 +17,8 @@
       "path family/mark columns",
       "hideWaqf",
       "inkBox",
-      "pauseBox"
+      "pauseBox",
+      "waqfInk"
     ]
   },
   "notes": "Auto-synced pages v0.5.0 from quran-ws/quran-engine. Format still QVP1. Athar lite fork kept for family/mark overlay."
