@@ -167,7 +167,14 @@ export function ReaderWorkspace() {
   const [marginMode, setMarginMode] = useState(() => searchParams.get("margins") === "1");
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
-  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${activeWaqfSource}:${retryToken}`;
+  // The pin only counts while the reader is still on the verse it was made for (another verse or surah chosen
+  // by hand leaves it unused). Flipping lands on a page chosen by number. A page can open mid-verse, and the verse alone resolves to the
+  // page it STARTS on (page-by-ayah), which sent «next» straight back to the page just left.
+  const [pageTarget, setPageTarget] = useState<{page: number; surah: number; ayah: number} | null>(null);
+  const pinnedPage = view === "page" && pageTarget && pageTarget.surah === surahNumber && pageTarget.ayah === ayahNumber
+    ? pageTarget.page
+    : null;
+  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${pinnedPage ?? ""}:${activeWaqfSource}:${retryToken}`;
   const visibleResult = contentResult.requestKey === requestKey ? contentResult : null;
   const pageFontName = editionId === "shamarly" && visibleResult?.page?.glyph_mapping_mode === "shemrly-page-local"
     ? visibleResult.page.font_name
@@ -296,7 +303,9 @@ export function ReaderWorkspace() {
     const controller = new AbortController();
     const edition = MUSHAF_EDITIONS[editionId];
     const path = view === "page"
-      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${mushafVersionQuery(editionId, activeWaqfSource)}`
+      ? (pinnedPage
+        ? `/backend-api/${edition.apiBase}/page/${pinnedPage}${mushafVersionQuery(editionId, activeWaqfSource)}`
+        : `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${mushafVersionQuery(editionId, activeWaqfSource)}`)
       : `/backend-api/surahs/${surahNumber}/ayahs/${ayahNumber}?source=qpc_hafs`;
     getJson<Ayah | MushafPage>(path, controller.signal)
       .then((data) => {
@@ -317,7 +326,7 @@ export function ReaderWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [positionReady, view, editionId, surahNumber, ayahNumber, activeWaqfSource, requestKey]);
+  }, [positionReady, view, editionId, surahNumber, ayahNumber, pinnedPage, activeWaqfSource, requestKey]);
 
   useEffect(() => {
     if (!dualActive || !visibleResult?.page || !spreadRequestKey) return;
@@ -401,6 +410,7 @@ export function ReaderWorkspace() {
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
+      setPageTarget({page: safePage, surah: position.surah, ayah: position.ayah});
       navigateToVerse(position.surah, position.ayah);
       setNavigatorMode(null);
     } catch (reason: unknown) {
@@ -473,6 +483,7 @@ export function ReaderWorkspace() {
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
+      setPageTarget({page: targetPage, surah: position.surah, ayah: position.ayah});
       navigateToVerse(position.surah, position.ayah);
     } catch (reason: unknown) {
       setCatalogError(reason instanceof Error ? reason.message : "تعذّر الانتقال بين الصفحات.");
