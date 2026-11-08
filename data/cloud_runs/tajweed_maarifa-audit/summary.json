@@ -1,0 +1,21 @@
+{
+ "edition": "التجويد دار المعرفة",
+ "pages": 604,
+ "errors": 0,
+ "match": 4001,
+ "wrong": 39,
+ "missing": 323,
+ "extra": 19,
+ "db_waqf_marks_on_pages": 4363,
+ "exact_recall": 0.917,
+ "tabs": {
+  "shift": 0,
+  "shift_unsure": 0,
+  "add": 1,
+  "maybe": 18,
+  "differs": 36,
+  "missed": 297,
+  "resolved": 0,
+  "confirmed": 29
+ }
+}

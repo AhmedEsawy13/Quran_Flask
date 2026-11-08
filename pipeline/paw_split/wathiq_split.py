@@ -286,7 +286,7 @@ KRAKEN = {}
 KR_TOL = 0.25 * PITCH
 
 
-def align_stretch(li, toks, span):
+def align_stretch(li, toks, span, dry=False):
     """Match the stretch's letter bodies (right to left) to its words' letter groups and give each
     body to the word of the group it matches. DP over (bodies used, groups used)."""
     seq = []                                                   # (word position, group text)
@@ -353,6 +353,8 @@ def align_stretch(li, toks, span):
                         c += KR_PEN     # Kraken read a space inside one word
                 if best[i, k] + c < best[ni, nk]:
                     best[ni, nk] = best[i, k] + c; back[(ni, nk)] = (i, k, db, dg)
+    if dry:
+        return float(best[m, n])
     words = [{'line': li + 1, 'word_index': wi, 'text': t, 'pieces': [], 'ring': False} for wi, t in toks]
     if best[m, n] == INF:
         forced_lines.add(li + 1)
@@ -378,32 +380,38 @@ def align_stretch(li, toks, span):
         own = [p for p in bodies if p['id'] in w['pieces']]
         w['x0'] = float(min((p['x0'] for p in own), default=0)); w['x1'] = float(max((p['x1'] for p in own), default=0))
     words_out.extend(words)
+    if best[m, n] < INF:
+        LINE_COST[li + 1] = LINE_COST.get(li + 1, 0.0) + float(best[m, n])
 
 # --- words per line ----------------------------------------------------------------------------
 words_out = []
 forced_lines = set()
 UNCLAIMED = []
-for li, tokens in enumerate(line_tokens):
+LINE_COST = {}      # alignment cost per line (summed over its stretches): high where the text does not fit the ink
+def align_line(li, tokens, dry=False):
+    """Align one line's tokens to its ink (stretches between verse rings). dry: only the cost."""
     bodies = sorted((p for p in pieces if p['line'] == li and not p['mark']), key=lambda p: -p['x1'])
     line_rings = sorted((r for r in rings if r['line'] == li), key=lambda r: -r['x1'])
-    # spans between rings (RTL): tokens between verse markers
     # Stretches of words between anchors (RTL): line edges and verse rings, matched in order.
     line_right = max([p['x1'] for p in bodies] + [r['x1'] for r in line_rings] or [bx1])
     line_left = min([p['x0'] for p in bodies] + [r['x0'] for r in line_rings] or [bx0])
     ring_tokens = [i for i, (_, t) in enumerate(tokens) if is_number(t)]
     if len(ring_tokens) != len(line_rings):
+        if dry:
+            return float('inf')
         print(f'line {li + 1}: {len(ring_tokens)} verse tokens but {len(line_rings)} rings found')
     stretches, start_i, right = [], 0, line_right
     for n_ring, ti in enumerate(ring_tokens):
         r = line_rings[n_ring] if n_ring < len(line_rings) else None
         left = r['x1'] if r else line_left
         stretches.append((tokens[start_i:ti], right, left))
-        if r:
+        if r and not dry:
             words_out.append({'line': li + 1, 'word_index': tokens[ti][0], 'text': tokens[ti][1],
                               'x0': r['x0'], 'x1': r['x1'], 'ring': True})
         right = r['x0'] if r else left
         start_i = ti + 1
     stretches.append((tokens[start_i:], right, line_left))
+    total = 0.0
     for toks, right, left in stretches:
         if not toks:
             continue
@@ -413,7 +421,64 @@ for li, tokens in enumerate(line_tokens):
         star_marks = [p for p in pieces if any(t == '۞' for _, t in toks) and p['line'] == li and p['mark'] and is_star(p)
                       and left - 2 <= p['cx'] <= right + 2]
         span = [p for p in bodies if left - 2 <= p['cx'] <= right + 2 and not p.get('taken')] + hamza_marks + star_marks
-        align_stretch(li, toks, span)
+        if dry:
+            total += align_stretch(li, toks, span, dry=True)
+        else:
+            align_stretch(li, toks, span)
+    return total
+
+
+# Wathiq breaks some lines up to a few words away from the old Madinah layout (p17: line 7 ends «مِّنْ عِندِ»,
+# three words later), and a text that does not fit its line is squeezed in silently: every word after it
+# slides. So the page's line breaks are chosen together: each may move up to BREAK_SHIFT words, the
+# alignment cost of every line is computed for every choice, and a DP picks the cheapest consistent set
+# (a small cost per word moved keeps the layout's break when the ink does not say otherwise).
+BREAK_SHIFT = int(os.environ.get('BREAK_SHIFT', '3'))
+BREAK_PEN = float(os.environ.get('BREAK_PEN', '0.6'))
+BREAKS = {}
+if BREAK_SHIFT and len(line_tokens) > 1:
+    _flat = [t for row in line_tokens for t in row]
+    _ends = list(np.cumsum([len(r) for r in line_tokens]))          # layout break after line li = _ends[li]
+    _L = len(line_tokens)
+    # a surah banner between two text lines fixes that break
+    _fixed = {li for li in range(_L - 1) if TEXT_SLOTS[li + 1] != TEXT_SLOTS[li] + 1}
+    _opts = []
+    for li in range(_L - 1):
+        e = _ends[li]
+        _opts.append([e] if li in _fixed else [e + d for d in range(-BREAK_SHIFT, BREAK_SHIFT + 1) if 0 < e + d < len(_flat)])
+    _cache = {}
+    def _lc(li, a, b):
+        if (li, a, b) not in _cache:
+            _cache[(li, a, b)] = align_line(li, _flat[a:b], dry=True) if b > a else float('inf')
+        return _cache[(li, a, b)]
+    # DP over the break after each line: state = token index where line li ends
+    _prev = {0: (0.0, None)}          # end of "line -1"
+    _hist = []
+    for li in range(_L):
+        cur = {}
+        ends = _opts[li] if li < _L - 1 else [len(_flat)]
+        for b in ends:
+            for a, (c0, _) in _prev.items():
+                if b <= a:
+                    continue
+                c = c0 + _lc(li, a, b) + (BREAK_PEN * abs(b - _ends[li]) if li < _L - 1 else 0.0)
+                if c < cur.get(b, (float('inf'),))[0]:
+                    cur[b] = (c, a)
+        _hist.append(cur); _prev = cur
+    if _prev and min(v[0] for v in _prev.values()) < float('inf'):
+        b = len(_flat); cut = []
+        for li in range(_L - 1, -1, -1):
+            cut.append(b); b = _hist[li][b][1]
+        cut = cut[::-1]
+        starts = [0] + cut[:-1]
+        new_tokens = [_flat[a:b] for a, b in zip(starts, cut)]
+        for li in range(_L - 1):
+            if cut[li] != _ends[li]:
+                BREAKS[LINE_NUMBERS[li]] = int(cut[li] - _ends[li])   # + : the line ends later than the layout
+        line_tokens = new_tokens
+
+for li, tokens in enumerate(line_tokens):
+    align_line(li, tokens)
 
 for w in words_out:
     if w['text'] == '۞':
@@ -593,6 +658,8 @@ checks = {
     'empty_lines': sorted({LINE_NUMBERS[w['line'] - 1] for w in words_out if not w['ring'] and not w.get('pieces')}),
     'moves': os.environ.get('MOVES', ''),
     'unclaimed_bodies': UNCLAIMED,
+    'breaks_moved': BREAKS,
+    'line_costs': {LINE_NUMBERS[k - 1]: round(v, 3) for k, v in sorted(LINE_COST.items())},
     'blue_pieces': sum(1 for p in pieces if p.get('color') == 'blue'),
     'blue_unowned': sum(1 for p in pieces if p.get('color') == 'blue' and not any(p['id'] in w.get('pieces', []) for w in words_out)),
 }

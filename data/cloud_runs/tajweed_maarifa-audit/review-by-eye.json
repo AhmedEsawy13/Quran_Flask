@@ -1,0 +1,3305 @@
+[
+ {
+  "kind": "not_in_db",
+  "word_key": "2:114:25",
+  "text": "خِزْيࣱ",
+  "cv": "ج",
+  "conf": 0.6184,
+  "db": null,
+  "box": [
+   76,
+   624,
+   100,
+   648
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p018_2-114-25.jpg",
+  "raw": {
+   "raw_key": "2:114:25",
+   "raw_text": "خِزْيࣱ"
+  },
+  "page": 18,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:144:9",
+  "text": "تَرْضَىٰهَاۚ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   553,
+   889,
+   577,
+   913
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p022_2-144-9.jpg",
+  "raw": {
+   "raw_key": "2:144:9",
+   "raw_text": "تَرْضَىٰهَاۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 22,
+  "verdict": "real",
+  "note": "صلى over ترضاها; old Madinah (and all other prints) ج",
+  "print_sign": "ص"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:174:12",
+  "text": "قَلِيلًا",
+  "cv": "ج",
+  "conf": 0.5937,
+  "db": "لا",
+  "box": [
+   410,
+   996,
+   434,
+   1020
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "قطر": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p026_2-174-12.jpg",
+  "raw": {
+   "raw_key": "2:174:12",
+   "raw_text": "قَلِيلًا"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 26,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:195:10",
+  "text": "وَأَحْسِنُوٓا۟ۚ",
+  "cv": "ج",
+  "conf": 0.6932,
+  "db": "ع",
+  "box": [
+   814,
+   906,
+   838,
+   930
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ع",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "crop": "p030_2-195-10.jpg",
+  "raw": {
+   "raw_key": "2:195:10",
+   "raw_text": "وَأَحْسِنُوٓا۟ۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.255
+  },
+  "page": 30,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:202:5",
+  "text": "كَسَبُوا۟ۚ",
+  "cv": "ق",
+  "conf": 0.9662,
+  "db": "ج",
+  "box": [
+   418,
+   1490,
+   442,
+   1514
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p031_2-202-5.jpg",
+  "raw": {
+   "raw_key": "2:202:3",
+   "raw_text": "نَصِيبࣱ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.194
+  },
+  "page": 31,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:282:107",
+  "text": "تَكْتُبُوهَاۗ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   312,
+   1296,
+   336,
+   1320
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p048_2-282-107.jpg",
+  "raw": {
+   "raw_key": "2:282:107",
+   "raw_text": "تَكْتُبُوهَاۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 48,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "2:282:110",
+  "text": "تَبَايَعْتُمْۚ",
+  "cv": "ص",
+  "conf": 0.6486,
+  "db": "ج",
+  "box": [
+   176,
+   1284,
+   200,
+   1308
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p048_2-282-110.jpg",
+  "raw": {
+   "raw_key": "2:282:110",
+   "raw_text": "تَبَايَعْتُمْۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.669
+  },
+  "page": 48,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "3:4:4",
+  "text": "لِّلنَّاسِ",
+  "cv": "ج",
+  "conf": 0.6986,
+  "db": null,
+  "box": [
+   690,
+   526,
+   714,
+   550
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p050_3-4-4.jpg",
+  "raw": {
+   "raw_key": "3:4:4",
+   "raw_text": "لِّلنَّاسِ"
+  },
+  "page": 50,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "3:137:5",
+  "text": "سُنَنࣱ",
+  "cv": "ج",
+  "conf": 0.8889,
+  "db": null,
+  "box": [
+   60,
+   902,
+   84,
+   926
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p067_3-137-5.jpg",
+  "raw": {
+   "raw_key": "3:137:5",
+   "raw_text": "سُنَنࣱ"
+  },
+  "page": 67,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "3:179:27",
+  "text": "يَشَآءُۖ",
+  "cv": "ج",
+  "conf": 0.9705,
+  "db": "ص",
+  "box": [
+   246,
+   1112,
+   274,
+   1125
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p073_3-179-27.jpg",
+  "raw": {
+   "raw_key": "3:179:27",
+   "raw_text": "يَشَآءُۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 73,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "4:23:49",
+  "text": "سَلَفَۗ",
+  "cv": "ج",
+  "conf": 0.7097,
+  "db": "ق",
+  "box": [
+   474,
+   1486,
+   498,
+   1510
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p081_4-23-49.jpg",
+  "raw": {
+   "raw_key": "4:23:49",
+   "raw_text": "سَلَفَۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 81,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "4:142:12",
+  "text": "كُسَالَىٰ",
+  "cv": "ج",
+  "conf": 0.6827,
+  "db": null,
+  "box": [
+   567,
+   610,
+   591,
+   634
+  ],
+  "others": {
+   "الأزهر": "ج"
+  },
+  "crop": "p101_4-142-12.jpg",
+  "raw": {
+   "raw_key": "4:142:12",
+   "raw_text": "كُسَالَىٰ"
+  },
+  "page": 101,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "5:26:6",
+  "text": "سَنَةࣰۛ",
+  "cv": "ص",
+  "conf": 0.8281,
+  "db": "ع",
+  "box": [
+   69,
+   411,
+   93,
+   435
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ع",
+   "قطر": "ع",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "crop": "p112_5-26-6.jpg",
+  "raw": {
+   "raw_key": "5:26:6",
+   "raw_text": "سَنَةࣰۛ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 112,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "5:54:20",
+  "text": "ٱلْكَٰفِرِينَ",
+  "cv": "ج",
+  "conf": 0.6048,
+  "db": null,
+  "box": [
+   185,
+   917,
+   209,
+   941
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p117_5-54-20.jpg",
+  "raw": {
+   "raw_key": "5:54:20",
+   "raw_text": "ٱلْكَٰفِرِينَ"
+  },
+  "page": 117,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "6:2:8",
+  "text": "أَجَلࣰاۖ",
+  "cv": "ج",
+  "conf": 0.8347,
+  "db": "ص",
+  "box": [
+   411,
+   534,
+   435,
+   558
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p128_6-2-8.jpg",
+  "raw": {
+   "raw_key": "6:2:8",
+   "raw_text": "أَجَلࣰاۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.161
+  },
+  "page": 128,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "5:115:5",
+  "text": "عَلَيْكُمْۖ",
+  "cv": "ج",
+  "conf": 0.8844,
+  "db": "ص",
+  "box": [
+   317,
+   314,
+   341,
+   338
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p127_5-115-5.jpg",
+  "raw": {
+   "raw_key": "5:115:5",
+   "raw_text": "عَلَيْكُمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.019
+  },
+  "page": 127,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "7:12:11",
+  "text": "مِّنْهُ",
+  "cv": "ج",
+  "conf": 0.7451,
+  "db": null,
+  "box": [
+   217,
+   72,
+   260,
+   91
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p152_7-12-11.jpg",
+  "raw": {
+   "raw_key": "7:12:11",
+   "raw_text": "مِّنْهُ"
+  },
+  "page": 152,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "8:60:19",
+  "text": "تَعْلَمُونَهُمُ",
+  "cv": "ق",
+  "conf": 0.9931,
+  "db": null,
+  "box": [
+   736,
+   1244,
+   752,
+   1256
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج"
+  },
+  "crop": "p184_8-60-19.jpg",
+  "raw": {
+   "raw_key": "8:60:19",
+   "raw_text": "تَعْلَمُونَهُمُ"
+  },
+  "page": 184,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "9:60:19",
+  "text": "ٱللَّهِۗ",
+  "cv": "ص",
+  "conf": 1.0,
+  "db": "ق",
+  "box": [
+   654,
+   1186,
+   678,
+   1210
+  ],
+  "others": {},
+  "crop": "p196_9-60-19.jpg",
+  "raw": {
+   "raw_key": "9:60:19",
+   "raw_text": "ٱللَّهِۗ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    647,
+    1188,
+    663,
+    1202
+   ],
+   "seat_d": 7.4,
+   "crop": "p196_9-60-19_confirm.jpg"
+  },
+  "page": 196,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "10:7:10",
+  "text": "بِهَا",
+  "cv": "ق",
+  "conf": 0.6601,
+  "db": null,
+  "box": [
+   850,
+   210,
+   874,
+   234
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p209_10-7-10.jpg",
+  "raw": {
+   "raw_key": "10:7:10",
+   "raw_text": "بِهَا"
+  },
+  "page": 209,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "10:35:19",
+  "text": "يُتَّبَعَ",
+  "cv": "ج",
+  "conf": 0.6096,
+  "db": null,
+  "box": [
+   924,
+   420,
+   948,
+   444
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p213_10-35-19.jpg",
+  "raw": {
+   "raw_key": "10:35:19",
+   "raw_text": "يُتَّبَعَ"
+  },
+  "page": 213,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "12:18:13",
+  "text": "جَمِيلࣱۖ",
+  "cv": "ج",
+  "conf": 0.9999,
+  "db": "ص",
+  "box": [
+   74,
+   614,
+   98,
+   638
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p237_12-18-13.jpg",
+  "raw": {
+   "raw_key": "12:18:13",
+   "raw_text": "جَمِيلࣱۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.073
+  },
+  "page": 237,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "12:65:22",
+  "text": "بَعِيرࣲۖ",
+  "cv": "ج",
+  "conf": 0.6629,
+  "db": "ص",
+  "box": [
+   376,
+   512,
+   400,
+   536
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p243_12-65-22.jpg",
+  "raw": {
+   "raw_key": "12:65:22",
+   "raw_text": "بَعِيرࣲۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.035
+  },
+  "page": 243,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "13:8:11",
+  "text": "تَزْدَادُۚ",
+  "cv": "ج",
+  "conf": 0.9998,
+  "db": "ص",
+  "box": [
+   785,
+   577,
+   809,
+   601
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ص",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p250_13-8-11.jpg",
+  "raw": {
+   "raw_key": "13:8:11",
+   "raw_text": "تَزْدَادُۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.267
+  },
+  "page": 250,
+  "verdict": "real",
+  "note": "ج over تزداد; old Madinah ص, new Madinah and al-Azhar ج",
+  "print_sign": "ج"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "13:27:9",
+  "text": "رَّبِّهِۦۚ",
+  "cv": "ج",
+  "conf": 0.7889,
+  "db": "ق",
+  "box": [
+   502,
+   1288,
+   526,
+   1312
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "crop": "p252_13-27-9.jpg",
+  "raw": {
+   "raw_key": "13:27:12",
+   "raw_text": "ٱللَّهَ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.008
+  },
+  "page": 252,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "13:33:32",
+  "text": "ٱلسَّبِيلِۗ",
+  "cv": "ص",
+  "conf": 0.6147,
+  "db": "ق",
+  "box": [
+   600,
+   1380,
+   624,
+   1404
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "crop": "p253_13-33-32.jpg",
+  "raw": {
+   "raw_key": "13:33:32",
+   "raw_text": "ٱلسَّبِيلِۗ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 253,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "13:35:16",
+  "text": "ٱتَّقَوا۟ۚ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   203,
+   226,
+   227,
+   250
+  ],
+  "others": {},
+  "crop": "p254_13-35-16.jpg",
+  "raw": {
+   "raw_key": "13:35:16",
+   "raw_text": "ٱتَّقَوا۟ۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.035
+  },
+  "page": 254,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "15:60:2",
+  "text": "ٱمْرَأَتَهُۥ",
+  "cv": "ج",
+  "conf": 0.928,
+  "db": null,
+  "box": [
+   379,
+   710,
+   403,
+   734
+  ],
+  "others": {
+   "الأزهر": "ج"
+  },
+  "crop": "p265_15-60-2.jpg",
+  "raw": {
+   "raw_key": "15:60:2",
+   "raw_text": "ٱمْرَأَتَهُۥ"
+  },
+  "page": 265,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "15:85:11",
+  "text": "لَـَٔاتِيَةࣱۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   742,
+   1079,
+   766,
+   1103
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p266_15-85-11.jpg",
+  "raw": {
+   "raw_key": "15:85:11",
+   "raw_text": "لَـَٔاتِيَةࣱۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 266,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "18:17:18",
+  "text": "مِّنْهُۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   573,
+   513,
+   597,
+   537
+  ],
+  "others": {},
+  "crop": "p295_18-17-18.jpg",
+  "raw": {
+   "raw_key": "18:17:18",
+   "raw_text": "مِّنْهُۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.318
+  },
+  "page": 295,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "21:80:7",
+  "text": "بَأْسِكُمْۖ",
+  "cv": "ج",
+  "conf": 0.9956,
+  "db": "ص",
+  "box": [
+   182,
+   1298,
+   206,
+   1322
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p328_21-80-7.jpg",
+  "raw": {
+   "raw_key": "21:80:7",
+   "raw_text": "بَأْسِكُمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.104
+  },
+  "page": 328,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "22:17:10",
+  "text": "أَشْرَكُوٓا۟",
+  "cv": "ج",
+  "conf": 0.5594,
+  "db": null,
+  "box": [
+   738,
+   324,
+   762,
+   348
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p334_22-17-10.jpg",
+  "raw": {
+   "raw_key": "22:17:10",
+   "raw_text": "أَشْرَكُوٓا۟"
+  },
+  "page": 334,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "23:27:12",
+  "text": "ٱلتَّنُّورُ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "لا",
+  "box": [
+   354,
+   1293,
+   378,
+   1317
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p343_23-27-12.jpg",
+  "raw": {
+   "raw_key": "23:27:12",
+   "raw_text": "ٱلتَّنُّورُ"
+  },
+  "verify": {
+   "found": true,
+   "p": 0.999,
+   "box": [
+    358,
+    1272,
+    375,
+    1291
+   ],
+   "seat_d": 23.1,
+   "crop": "p343_23-27-12_confirm.jpg"
+  },
+  "page": 343,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "25:53:10",
+  "text": "أُجَاجࣱ",
+  "cv": "ص",
+  "conf": 0.7067,
+  "db": null,
+  "box": [
+   327,
+   1194,
+   351,
+   1218
+  ],
+  "others": {},
+  "crop": "p364_25-53-10.jpg",
+  "raw": {
+   "raw_key": "25:53:10",
+   "raw_text": "أُجَاجࣱ"
+  },
+  "page": 364,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "27:37:8",
+  "text": "بِهَا",
+  "cv": "ج",
+  "conf": 0.6045,
+  "db": null,
+  "box": [
+   616,
+   320,
+   640,
+   344
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p380_27-37-8.jpg",
+  "raw": {
+   "raw_key": "27:37:8",
+   "raw_text": "بِهَا"
+  },
+  "page": 380,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "27:44:11",
+  "text": "سَاقَيْهَاۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   340,
+   1374,
+   364,
+   1398
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p380_27-44-11.jpg",
+  "raw": {
+   "raw_key": "27:44:11",
+   "raw_text": "سَاقَيْهَاۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.004
+  },
+  "page": 380,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "28:31:3",
+  "text": "عَصَاكَۚ",
+  "cv": "ج",
+  "conf": 0.693,
+  "db": "ص",
+  "box": [
+   432,
+   602,
+   456,
+   626
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p389_28-31-3.jpg",
+  "raw": {
+   "raw_key": "28:31:3",
+   "raw_text": "عَصَاكَۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.207
+  },
+  "page": 389,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "29:50:7",
+  "text": "رَّبِّهِۦۚ",
+  "cv": "ج",
+  "conf": 0.6146,
+  "db": "ص",
+  "box": [
+   616,
+   990,
+   640,
+   1014
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p402_29-50-7.jpg",
+  "raw": {
+   "raw_key": "29:50:7",
+   "raw_text": "رَّبِّهِۦۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.138
+  },
+  "page": 402,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "30:5:2",
+  "text": "ٱللَّهِۚ",
+  "cv": "ص",
+  "conf": 0.9995,
+  "db": "ج",
+  "box": [
+   503,
+   1470,
+   527,
+   1494
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p404_30-5-2.jpg",
+  "raw": {
+   "raw_key": "30:5:2",
+   "raw_text": "ٱللَّهِۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.732
+  },
+  "page": 404,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "34:15:6",
+  "text": "ءَايَةࣱۖ",
+  "cv": "ج",
+  "conf": 1.0,
+  "db": "ص",
+  "box": [
+   438,
+   133,
+   462,
+   157
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p430_34-15-6.jpg",
+  "raw": {
+   "raw_key": "34:15:6",
+   "raw_text": "ءَايَةࣱۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.022
+  },
+  "page": 430,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "35:32:12",
+  "text": "مُّقْتَصِدࣱ",
+  "cv": "ج",
+  "conf": 0.8834,
+  "db": null,
+  "box": [
+   824,
+   414,
+   848,
+   438
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p438_35-32-12.jpg",
+  "raw": {
+   "raw_key": "35:32:12",
+   "raw_text": "مُّقْتَصِدࣱ"
+  },
+  "page": 438,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "36:66:7",
+  "text": "ٱلصِّرَٰطَ",
+  "cv": "ج",
+  "conf": 0.7613,
+  "db": null,
+  "box": [
+   798,
+   1102,
+   822,
+   1126
+  ],
+  "others": {
+   "الأزهر": "ج"
+  },
+  "crop": "p444_36-66-7.jpg",
+  "raw": {
+   "raw_key": "36:66:7",
+   "raw_text": "ٱلصِّرَٰطَ"
+  },
+  "page": 444,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "38:8:11",
+  "text": "ذِكْرِيۚ",
+  "cv": "ج",
+  "conf": 0.9998,
+  "db": "ص",
+  "box": [
+   682,
+   815,
+   706,
+   839
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p453_38-8-11.jpg",
+  "raw": {
+   "raw_key": "38:8:11",
+   "raw_text": "ذِكْرِيۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 453,
+  "verdict": "position",
+  "note": "the sign is printed as old Madinah has it, on the neighbouring word; the audit attached it to the wrong key"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "40:39:6",
+  "text": "مَتَٰعࣱ",
+  "cv": "ص",
+  "conf": 0.7732,
+  "db": null,
+  "box": [
+   363,
+   1190,
+   387,
+   1214
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "قطر": "ص",
+   "الكويت": "ص"
+  },
+  "crop": "p471_40-39-6.jpg",
+  "raw": {
+   "raw_key": "40:39:6",
+   "raw_text": "مَتَٰعࣱ"
+  },
+  "page": 471,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "40:44:4",
+  "text": "لَكُمْۚ",
+  "cv": "ص",
+  "conf": 0.6668,
+  "db": "ج",
+  "box": [
+   517,
+   599,
+   541,
+   623
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p472_40-44-4.jpg",
+  "raw": {
+   "raw_key": "40:44:4",
+   "raw_text": "لَكُمْۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.788
+  },
+  "page": 472,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "40:48:6",
+  "text": "فِيهَآ",
+  "cv": "ص",
+  "conf": 0.9742,
+  "db": null,
+  "box": [
+   326,
+   1264,
+   350,
+   1288
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "الكويت": "ص"
+  },
+  "crop": "p472_40-48-6.jpg",
+  "raw": {
+   "raw_key": "40:48:6",
+   "raw_text": "فِيهَآ"
+  },
+  "page": 472,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "47:15:34",
+  "text": "رَّبِّهِمْۖ",
+  "cv": "ق",
+  "conf": 0.7114,
+  "db": "ص",
+  "box": [
+   668,
+   800,
+   692,
+   824
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p508_47-15-34.jpg",
+  "raw": {
+   "raw_key": "47:15:34",
+   "raw_text": "رَّبِّهِمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.229
+  },
+  "page": 508,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "47:20:13",
+  "text": "ٱلْقِتَالُ",
+  "cv": "ج",
+  "conf": 0.8902,
+  "db": "لا",
+  "box": [
+   539,
+   234,
+   563,
+   258
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "قطر": "لا",
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "crop": "p509_47-20-13.jpg",
+  "raw": {
+   "raw_key": "47:20:13",
+   "raw_text": "ٱلْقِتَالُ"
+  },
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    528,
+    220,
+    544,
+    238
+   ],
+   "seat_d": 43.0,
+   "crop": "p509_47-20-13_confirm.jpg"
+  },
+  "page": 509,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "58:22:42",
+  "text": "عَنْهُۚ",
+  "cv": "ق",
+  "conf": 1.0,
+  "db": "ج",
+  "box": [
+   882,
+   600,
+   906,
+   624
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p545_58-22-42.jpg",
+  "raw": {
+   "raw_key": "58:22:42",
+   "raw_text": "عَنْهُۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.129
+  },
+  "page": 545,
+  "verdict": "real",
+  "note": "قلى over «ورضوا عنه»; old Madinah (and all other prints) ج",
+  "print_sign": "ق"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "59:4:5",
+  "text": "وَرَسُولَهُۥۖ",
+  "cv": "ج",
+  "conf": 0.8707,
+  "db": "ص",
+  "box": [
+   744,
+   69,
+   768,
+   93
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "crop": "p546_59-4-5.jpg",
+  "raw": {
+   "raw_key": "59:4:4",
+   "raw_text": "ٱللَّهَ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.049
+  },
+  "page": 546,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "63:4:8",
+  "text": "لِقَوْلِهِمْۖ",
+  "cv": "ج",
+  "conf": 0.9135,
+  "db": "ص",
+  "box": [
+   542,
+   1384,
+   566,
+   1408
+  ],
+  "others": {},
+  "crop": "p554_63-4-8.jpg",
+  "raw": {
+   "raw_key": "63:4:8",
+   "raw_text": "لِقَوْلِهِمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.022
+  },
+  "page": 554,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "65:12:8",
+  "text": "مِثْلَهُنَّۖ",
+  "cv": "ق",
+  "conf": 0.7436,
+  "db": null,
+  "box": [
+   502,
+   1379,
+   526,
+   1403
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "البحرين": "ص"
+  },
+  "crop": "p559_65-12-8.jpg",
+  "raw": {
+   "raw_key": "65:12:8",
+   "raw_text": "مِثْلَهُنَّۖ"
+  },
+  "page": 559,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "not_in_db",
+  "word_key": "65:12:18",
+  "text": "قَدِيرࣱ",
+  "cv": "ج",
+  "conf": 0.9715,
+  "db": null,
+  "box": [
+   614,
+   1480,
+   638,
+   1504
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p559_65-12-18.jpg",
+  "raw": {
+   "raw_key": "65:12:18",
+   "raw_text": "قَدِيرࣱ"
+  },
+  "page": 559,
+  "verdict": "false",
+  "note": "no waqf sign: the reader fired on a colour tajweed mark, a vowel or a header"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "66:2:8",
+  "text": "مَوْلَىٰكُمْۖ",
+  "cv": "ج",
+  "conf": 0.9977,
+  "db": "ص",
+  "box": [
+   50,
+   423,
+   74,
+   447
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ج",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "crop": "p560_66-2-8.jpg",
+  "raw": {
+   "raw_key": "66:2:8",
+   "raw_text": "مَوْلَىٰكُمْۖ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 560,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "73:20:35",
+  "text": "مَّرْضَىٰ",
+  "cv": "ج",
+  "conf": 0.9651,
+  "db": "لا",
+  "box": [
+   52,
+   326,
+   76,
+   350
+  ],
+  "others": {},
+  "crop": "p575_73-20-35.jpg",
+  "raw": {
+   "raw_key": "73:20:35",
+   "raw_text": "مَّرْضَىٰ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 575,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "74:31:21",
+  "text": "إِيمَٰنࣰا",
+  "cv": "م",
+  "conf": 1.0,
+  "db": "لا",
+  "box": [
+   58,
+   630,
+   82,
+   654
+  ],
+  "others": {
+   "الأزهر": "لا",
+   "الكويت": "لا"
+  },
+  "crop": "p576_74-31-21.jpg",
+  "raw": {
+   "raw_key": "74:31:21",
+   "raw_text": "إِيمَٰنࣰا"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 576,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "74:31:38",
+  "text": "مَثَلࣰاۚ",
+  "cv": "ص",
+  "conf": 0.7792,
+  "db": "ج",
+  "box": [
+   326,
+   822,
+   350,
+   846
+  ],
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "crop": "p576_74-31-38.jpg",
+  "raw": {
+   "raw_key": "74:31:38",
+   "raw_text": "مَثَلࣰاۚ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.173
+  },
+  "page": 576,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "symbol_differs",
+  "word_key": "75:27:2",
+  "text": "مَنْ͏ۜ",
+  "cv": "ج",
+  "conf": 0.9963,
+  "db": "س",
+  "box": [
+   528,
+   330,
+   552,
+   354
+  ],
+  "others": {
+   "الأزهر": "س",
+   "المدينة الجديد": "س",
+   "قطر": "س",
+   "الكويت": "س",
+   "البحرين": "س",
+   "الشمرلي": "س"
+  },
+  "crop": "p578_75-27-2.jpg",
+  "raw": {
+   "raw_key": "75:27:2",
+   "raw_text": "مَنْ͏ۜ"
+  },
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 578,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:2:5",
+  "text": "فِيهِۛ",
+  "cv": null,
+  "conf": null,
+  "db": "ع",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ع",
+   "قطر": "ع",
+   "الكويت": "ع",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "word_box": [
+   258,
+   358,
+   294,
+   543
+  ],
+  "crop": "p002_2-2-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 2,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:33:4",
+  "text": "بِأَسْمَآئِهِمْۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   696,
+   658,
+   768,
+   756
+  ],
+  "crop": "p006_2-33-4_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 6,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:108:10",
+  "text": "قَبْلُۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   752,
+   477,
+   796,
+   574
+  ],
+  "crop": "p017_2-108-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 17,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:131:5",
+  "text": "أَسْلِمْۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   57,
+   761,
+   158,
+   858
+  ],
+  "crop": "p020_2-131-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 20,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:147:3",
+  "text": "رَّبِّكَ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   930,
+   269,
+   953,
+   365
+  ],
+  "crop": "p023_2-147-3_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    882,
+    318,
+    896,
+    325
+   ],
+   "seat_d": 55.5,
+   "crop": "p023_2-147-3_confirm.jpg"
+  },
+  "page": 23,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:148:4",
+  "text": "مُوَلِّيهَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   303,
+   269,
+   404,
+   365
+  ],
+  "crop": "p023_2-148-4_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.025
+  },
+  "page": 23,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "2:253:6",
+  "text": "بَعْضࣲۘ",
+  "cv": null,
+  "conf": null,
+  "db": "م",
+  "others": {},
+  "word_box": [
+   474,
+   84,
+   550,
+   181
+  ],
+  "crop": "p042_2-253-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 42,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "3:50:12",
+  "text": "عَلَيْكُمْۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   685,
+   1054,
+   784,
+   1150
+  ],
+  "crop": "p056_3-50-12_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.01
+  },
+  "page": 56,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "3:152:7",
+  "text": "بِإِذْنِهِۦۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   588,
+   661,
+   690,
+   758
+  ],
+  "crop": "p069_3-152-7_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 69,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "3:151:16",
+  "text": "ٱلنَّارُۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ص",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   396,
+   468,
+   498,
+   565
+  ],
+  "crop": "p069_3-151-16_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 0.978,
+   "box": [
+    369,
+    521,
+    378,
+    531
+   ],
+   "seat_d": 38.0,
+   "crop": "p069_3-151-16_confirm.jpg"
+  },
+  "page": 69,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "4:92:22",
+  "text": "يَصَّدَّقُوا۟ۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   460,
+   278,
+   520,
+   375
+  ],
+  "crop": "p093_4-92-22_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.019
+  },
+  "page": 93,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "4:92:47",
+  "text": "مُّؤْمِنَةࣲۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   518,
+   569,
+   604,
+   666
+  ],
+  "crop": "p093_4-92-47_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 93,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "4:162:14",
+  "text": "قَبْلِكَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   750,
+   1342,
+   842,
+   1439
+  ],
+  "crop": "p103_4-162-14_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 0.992,
+   "box": [
+    788,
+    1375,
+    804,
+    1394
+   ],
+   "seat_d": 32.2,
+   "crop": "p103_4-162-14_confirm.jpg"
+  },
+  "page": 103,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "6:91:39",
+  "text": "ٱللَّهُۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   566,
+   375,
+   601,
+   472
+  ],
+  "crop": "p139_6-91-39_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.068
+  },
+  "page": 139,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:75:17",
+  "text": "رَّبِّهِۦۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   344,
+   561,
+   370,
+   658
+  ],
+  "crop": "p160_7-75-17_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.098
+  },
+  "page": 160,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:103:11",
+  "text": "بِهَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   701,
+   1332,
+   790,
+   1429
+  ],
+  "crop": "p163_7-103-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 163,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:128:6",
+  "text": "وَٱصْبِرُوٓا۟ۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   761,
+   954,
+   830,
+   1052
+  ],
+  "crop": "p165_7-128-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.019
+  },
+  "page": 165,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:155:6",
+  "text": "لِّمِيقَٰتِنَاۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   648,
+   1152,
+   741,
+   1249
+  ],
+  "crop": "p169_7-155-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 169,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:172:16",
+  "text": "بَلَىٰ",
+  "cv": null,
+  "conf": null,
+  "db": "ع",
+  "others": {
+   "قطر": "ع",
+   "الكويت": "ع",
+   "البحرين": "ج",
+   "الشمرلي": "ع"
+  },
+  "word_box": [
+   538,
+   386,
+   572,
+   483
+  ],
+  "crop": "p173_7-172-16_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 173,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:178:5",
+  "text": "ٱلْمُهْتَدِيۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   466,
+   1454,
+   568,
+   1551
+  ],
+  "crop": "p173_7-178-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.146
+  },
+  "page": 173,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "7:173:11",
+  "text": "بَعْدِهِمْۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   201,
+   580,
+   244,
+   677
+  ],
+  "crop": "p173_7-173-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 173,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "9:49:11",
+  "text": "سَقَطُوا۟ۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   543,
+   364,
+   674,
+   461
+  ],
+  "crop": "p195_9-49-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 195,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "10:15:5",
+  "text": "بَيِّنَٰتࣲ",
+  "cv": null,
+  "conf": null,
+  "db": "لا",
+  "others": {
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "word_box": [
+   426,
+   77,
+   458,
+   173
+  ],
+  "crop": "p210_10-15-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 210,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "11:3:17",
+  "text": "فَضْلَهُۥۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   860,
+   1146,
+   898,
+   1243
+  ],
+  "crop": "p221_11-3-17_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.241
+  },
+  "page": 221,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "11:48:11",
+  "text": "مَّعَكَۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   297,
+   476,
+   374,
+   573
+  ],
+  "crop": "p227_11-48-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.883
+  },
+  "page": 227,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "13:38:18",
+  "text": "ٱللَّهِۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   371,
+   855,
+   458,
+   952
+  ],
+  "crop": "p254_13-38-18_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 254,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "16:12:9",
+  "text": "بِأَمْرِهِۦٓۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   428,
+   946,
+   522,
+   1044
+  ],
+  "crop": "p268_16-12-9_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 268,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "16:70:4",
+  "text": "يَتَوَفَّىٰكُمْۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   518,
+   855,
+   660,
+   952
+  ],
+  "crop": "p274_16-70-4_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.102
+  },
+  "page": 274,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "21:34:6",
+  "text": "ٱلْخُلْدَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   677,
+   1336,
+   745,
+   1432
+  ],
+  "crop": "p324_21-34-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.047
+  },
+  "page": 324,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "21:43:6",
+  "text": "دُونِنَاۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   255,
+   1137,
+   326,
+   1234
+  ],
+  "crop": "p325_21-43-6_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 325,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "22:64:7",
+  "text": "ٱلْأَرْضِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ق",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   438,
+   1436,
+   494,
+   1533
+  ],
+  "crop": "p339_22-64-7_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.007
+  },
+  "page": 339,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "24:45:21",
+  "text": "أَرْبَعࣲۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   196,
+   272,
+   254,
+   368
+  ],
+  "crop": "p356_24-45-21_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.308
+  },
+  "page": 356,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "25:7:9",
+  "text": "ٱلْأَسْوَاقِ",
+  "cv": null,
+  "conf": null,
+  "db": "لا",
+  "others": {
+   "الكويت": "لا",
+   "الشمرلي": "لا"
+  },
+  "word_box": [
+   64,
+   760,
+   224,
+   856
+  ],
+  "crop": "p360_25-7-9_miss.jpg",
+  "verify": {
+   "found": true,
+   "p": 1.0,
+   "box": [
+    62,
+    807,
+    79,
+    822
+   ],
+   "seat_d": 9.6,
+   "crop": "p360_25-7-9_confirm.jpg"
+  },
+  "page": 360,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "27:44:17",
+  "text": "قَوَارِيرَۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   192,
+   1330,
+   216,
+   1426
+  ],
+  "crop": "p380_27-44-17_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 380,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "27:52:5",
+  "text": "ظَلَمُوٓا۟ۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ق",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   472,
+   1048,
+   571,
+   1144
+  ],
+  "crop": "p381_27-52-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.001
+  },
+  "page": 381,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "28:34:10",
+  "text": "يُصَدِّقُنِيٓۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   712,
+   1234,
+   794,
+   1330
+  ],
+  "crop": "p389_28-34-10_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.002
+  },
+  "page": 389,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "28:88:15",
+  "text": "وَجْهَهُۥۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   474,
+   662,
+   550,
+   759
+  ],
+  "crop": "p396_28-88-15_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.028
+  },
+  "page": 396,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "30:29:7",
+  "text": "عِلْمࣲۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   456,
+   848,
+   503,
+   945
+  ],
+  "crop": "p407_30-29-7_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.005
+  },
+  "page": 407,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "33:23:15",
+  "text": "يَنتَظِرُۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   364,
+   177,
+   429,
+   274
+  ],
+  "crop": "p421_33-23-15_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 421,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "36:30:3",
+  "text": "ٱلْعِبَادِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ص",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   773,
+   278,
+   840,
+   374
+  ],
+  "crop": "p442_36-30-3_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.011
+  },
+  "page": 442,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "38:8:5",
+  "text": "بَيْنِنَاۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   793,
+   761,
+   864,
+   858
+  ],
+  "crop": "p453_38-8-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.052
+  },
+  "page": 453,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "39:8:30",
+  "text": "قَلِيلًا",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {},
+  "word_box": [
+   268,
+   957,
+   424,
+   1054
+  ],
+  "crop": "p459_39-8-30_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.022
+  },
+  "page": 459,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "42:23:18",
+  "text": "ٱلْقُرْبَىٰۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   572,
+   175,
+   646,
+   272
+  ],
+  "crop": "p486_42-23-18_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 486,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "45:10:16",
+  "text": "أَوْلِيَآءَۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ص",
+   "الكويت": "ص",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   434,
+   1048,
+   530,
+   1144
+  ],
+  "crop": "p499_45-10-16_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.009
+  },
+  "page": 499,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "49:12:11",
+  "text": "إِثْمࣱۖ",
+  "cv": null,
+  "conf": null,
+  "db": "ص",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ص",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ص",
+   "الشمرلي": "ص"
+  },
+  "word_box": [
+   373,
+   75,
+   402,
+   172
+  ],
+  "crop": "p517_49-12-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.183
+  },
+  "page": 517,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "49:12:17",
+  "text": "بَعْضًاۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   310,
+   172,
+   408,
+   269
+  ],
+  "crop": "p517_49-12-17_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.802
+  },
+  "page": 517,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "54:6:2",
+  "text": "عَنْهُمْۘ",
+  "cv": null,
+  "conf": null,
+  "db": "م",
+  "others": {
+   "الأزهر": "م",
+   "المدينة الجديد": "م",
+   "قطر": "م",
+   "الكويت": "م",
+   "البحرين": "م",
+   "الشمرلي": "م"
+  },
+  "word_box": [
+   384,
+   1434,
+   440,
+   1531
+  ],
+  "crop": "p528_54-6-2_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 528,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "59:14:11",
+  "text": "جُدُرِۭۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   423,
+   1052,
+   472,
+   1148
+  ],
+  "crop": "p547_59-14-11_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 547,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "64:11:7",
+  "text": "ٱللَّهِۗ",
+  "cv": null,
+  "conf": null,
+  "db": "ق",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ق",
+   "قطر": "ق",
+   "الكويت": "ق",
+   "البحرين": "ق",
+   "الشمرلي": "ق"
+  },
+  "word_box": [
+   358,
+   270,
+   381,
+   366
+  ],
+  "crop": "p557_64-11-7_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.003
+  },
+  "page": 557,
+  "verdict": "unsure",
+  "note": "cannot tell from the 1024 px scan crop"
+ },
+ {
+  "kind": "cv_missed",
+  "word_key": "85:9:5",
+  "text": "وَٱلْأَرْضِۚ",
+  "cv": null,
+  "conf": null,
+  "db": "ج",
+  "others": {
+   "الأزهر": "ج",
+   "المدينة الجديد": "ج",
+   "قطر": "ج",
+   "الكويت": "ج",
+   "البحرين": "ج",
+   "الشمرلي": "ج"
+  },
+  "word_box": [
+   755,
+   657,
+   834,
+   754
+  ],
+  "crop": "p590_85-9-5_miss.jpg",
+  "verify": {
+   "found": false,
+   "p": 0.0
+  },
+  "page": 590,
+  "verdict": "reader",
+  "note": "the sign is printed as old Madinah has it; the reader missed or misread it"
+ }
+]

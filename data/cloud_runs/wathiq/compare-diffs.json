@@ -1,0 +1,1262 @@
+[
+ {
+  "page": 12,
+  "key": "2:80:14",
+  "text": "يُخْلِفَ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 12,
+  "key": "2:80:16",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 13,
+  "key": "2:85:27",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 17,
+  "key": "2:109:17",
+  "text": "بَعْدِ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 17,
+  "key": "2:109:21",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 17,
+  "key": "2:109:26",
+  "text": "ٱللَّهُ",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 17,
+  "key": "2:109:27",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 24,
+  "key": "2:158:15",
+  "text": "أَن",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9998,
+  "kind": "print_only"
+ },
+ {
+  "page": 24,
+  "key": "2:158:17",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 36,
+  "key": "2:228:5",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 37,
+  "key": "2:233:56",
+  "text": "بِٱلْمَعْرُوفِۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.5971,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 38,
+  "key": "2:235:25",
+  "text": "قَوْلࣰا",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 38,
+  "key": "2:235:26",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 38,
+  "key": "2:235:34",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 39,
+  "key": "2:240:24",
+  "text": "مَّعْرُوفࣲۗ",
+  "old_madinah": "ق",
+  "read": "ع",
+  "conf": 1.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 42,
+  "key": "2:253:6",
+  "text": "بَعْضࣲۘ",
+  "old_madinah": "م",
+  "read": "ج",
+  "conf": 0.5092,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 42,
+  "key": "2:254:18",
+  "text": "شَفَٰعَةࣱۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.8473,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 42,
+  "key": "2:256:21",
+  "text": "لَهَاۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.949,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 43,
+  "key": "2:259:47",
+  "text": "ءَايَةࣰ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 43,
+  "key": "2:259:48",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 43,
+  "key": "2:259:55",
+  "text": "نَكْسُوهَا",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9992,
+  "kind": "print_only"
+ },
+ {
+  "page": 43,
+  "key": "2:259:56",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 44,
+  "key": "2:261:20",
+  "text": "لِمَن",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 44,
+  "key": "2:261:21",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 45,
+  "key": "2:266:28",
+  "text": "فَٱحْتَرَقَتْۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.7953,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 47,
+  "key": "2:276:5",
+  "text": "ٱلصَّدَقَٰتِۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.9155,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 48,
+  "key": "2:282:34",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 48,
+  "key": "2:282:50",
+  "text": "وَلِيُّهُۥ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 48,
+  "key": "2:282:51",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 53,
+  "key": "3:28:8",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 53,
+  "key": "3:28:9",
+  "text": "وَمَن",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 74,
+  "key": "3:181:11",
+  "text": "أَغْنِيَآءُۘ",
+  "old_madinah": "م",
+  "read": "ج",
+  "conf": 0.9713,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 80,
+  "key": "4:19:20",
+  "text": "بِفَٰحِشَةࣲ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9993,
+  "kind": "print_only"
+ },
+ {
+  "page": 80,
+  "key": "4:19:21",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 84,
+  "key": "4:36:24",
+  "text": "أَيْمَٰنُكُمْۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.4039,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 85,
+  "key": "4:43:43",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 91,
+  "key": "4:85:16",
+  "text": "مِّنْهَاۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.8459,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 92,
+  "key": "4:89:22",
+  "text": "وَجَدتُّمُوهُمْۖ",
+  "old_madinah": "ص",
+  "read": "ج",
+  "conf": 0.0587,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 97,
+  "key": "4:118:2",
+  "text": "ٱللَّهُۘ",
+  "old_madinah": "م",
+  "read": "ج",
+  "conf": 0.5116,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 114,
+  "key": "5:41:25",
+  "text": "لَمْ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 114,
+  "key": "5:41:26",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 131,
+  "key": "6:28:8",
+  "text": "قَبْلُۖ",
+  "old_madinah": "ص",
+  "read": "م",
+  "conf": 0.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 143,
+  "key": "6:124:13",
+  "text": "",
+  "old_madinah": "م",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 146,
+  "key": "6:138:21",
+  "text": "ٱفْتِرَآءً",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 146,
+  "key": "6:138:22",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 146,
+  "key": "6:140:15",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 167,
+  "key": "7:141:12",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 167,
+  "key": "7:141:13",
+  "text": "وَفِي",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 168,
+  "key": "7:148:19",
+  "text": "سَبِيلًاۘ",
+  "old_madinah": "م",
+  "read": "ج",
+  "conf": 0.9228,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 186,
+  "key": "8:72:17",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 186,
+  "key": "8:72:18",
+  "text": "وَٱلَّذِينَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 188,
+  "key": "9:13:10",
+  "text": "بَدَءُوكُمْ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 188,
+  "key": "9:13:13",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 196,
+  "key": "9:61:18",
+  "text": "ءَامَنُوا۟",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 196,
+  "key": "9:61:19",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 198,
+  "key": "9:71:15",
+  "text": "وَيُطِيعُونَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9994,
+  "kind": "print_only"
+ },
+ {
+  "page": 198,
+  "key": "9:71:17",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 198,
+  "key": "9:71:19",
+  "text": "سَيَرْحَمُهُمُ",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 198,
+  "key": "9:71:20",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 216,
+  "key": "10:64:11",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 216,
+  "key": "10:64:12",
+  "text": "ذَٰلِكَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 216,
+  "key": "10:68:14",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 216,
+  "key": "10:68:15",
+  "text": "إِنْ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 218,
+  "key": "10:88:14",
+  "text": "لِيُضِلُّوا۟",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 218,
+  "key": "10:88:16",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 223,
+  "key": "11:17:30",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 223,
+  "key": "11:17:31",
+  "text": "إِنَّهُ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 226,
+  "key": "11:43:16",
+  "text": "مَن",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 226,
+  "key": "11:43:17",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 226,
+  "key": "11:44:13",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 226,
+  "key": "11:44:14",
+  "text": "وَقِيلَ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 238,
+  "key": "12:25:10",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 245,
+  "key": "12:83:6",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 245,
+  "key": "12:83:7",
+  "text": "فَصَبْرࣱ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 269,
+  "key": "16:23:9",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 269,
+  "key": "16:23:10",
+  "text": "إِنَّهُۥ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 274,
+  "key": "16:69:8",
+  "text": "رَبِّكِ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 274,
+  "key": "16:69:9",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 274,
+  "key": "16:69:18",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 275,
+  "key": "16:74:4",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 283,
+  "key": "17:17:5",
+  "text": "مِنۢ",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 283,
+  "key": "17:17:7",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 287,
+  "key": "17:51:6",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 287,
+  "key": "17:51:7",
+  "text": "فَسَيَقُولُونَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9991,
+  "kind": "print_only"
+ },
+ {
+  "page": 287,
+  "key": "17:51:20",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 287,
+  "key": "17:51:21",
+  "text": "قُلْ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 293,
+  "key": "17:105:6",
+  "text": "أَرْسَلْنَٰكَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 293,
+  "key": "18:1:11",
+  "text": "",
+  "old_madinah": "س",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 334,
+  "key": "22:18:32",
+  "text": "مُّكْرِمٍۚ",
+  "old_madinah": "ج",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 337,
+  "key": "22:40:11",
+  "text": "ٱللَّهُۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.949,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 337,
+  "key": "22:40:27",
+  "text": "كَثِيرࣰاۗ",
+  "old_madinah": "ق",
+  "read": "ج",
+  "conf": 0.9862,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 337,
+  "key": "22:44:8",
+  "text": "أَخَذْتُهُمْۖ",
+  "old_madinah": "ص",
+  "read": "م",
+  "conf": 1.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 341,
+  "key": "22:74:5",
+  "text": "قَدْرِهِۦٓۚ",
+  "old_madinah": "ق",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 341,
+  "key": "22:76:6",
+  "text": "خَلْفَهُمْۚ",
+  "old_madinah": "ق",
+  "read": "ص",
+  "conf": 0.8087,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 357,
+  "key": "24:58:29",
+  "text": "عَوْرَٰتࣲ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 357,
+  "key": "24:58:30",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 357,
+  "key": "24:58:35",
+  "text": "جُنَاحُۢ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 357,
+  "key": "24:58:36",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 370,
+  "key": "26:83:3",
+  "text": "لِي",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:122:1",
+  "text": "وَإِنَّ",
+  "old_madinah": "",
+  "read": "لا",
+  "conf": 0.9992,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:126:1",
+  "text": "فَٱتَّقُوا۟",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:127:4",
+  "text": "مِنْ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:127:5",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 372,
+  "key": "26:129:1",
+  "text": "وَتَتَّخِذُونَ",
+  "old_madinah": "",
+  "read": "ع",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:132:4",
+  "text": "بِمَا",
+  "old_madinah": "",
+  "read": "ق",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 372,
+  "key": "26:135:1",
+  "text": "إِنِّيٓ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 394,
+  "key": "28:77:15",
+  "text": "ٱللَّهُ",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 394,
+  "key": "28:77:16",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 396,
+  "key": "28:88:9",
+  "text": "إِلَّا",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 396,
+  "key": "28:88:10",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 400,
+  "key": "29:33:14",
+  "text": "وَلَا",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 400,
+  "key": "29:33:15",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 407,
+  "key": "30:30:10",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 407,
+  "key": "30:30:11",
+  "text": "لَا",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9999,
+  "kind": "print_only"
+ },
+ {
+  "page": 409,
+  "key": "30:50:9",
+  "text": "بَعْدَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 409,
+  "key": "30:50:10",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 420,
+  "key": "33:19:29",
+  "text": "ٱللَّهُ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 420,
+  "key": "33:19:30",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 425,
+  "key": "33:53:26",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 425,
+  "key": "33:53:27",
+  "text": "إِنَّ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 443,
+  "key": "36:52:6",
+  "text": "مَّرْقَدِنَاۜۗ",
+  "old_madinah": "ق,س",
+  "read": "ق",
+  "conf": 0.9999,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 445,
+  "key": "36:76:3",
+  "text": "قَوْلُهُمْۘ",
+  "old_madinah": "م",
+  "read": "ج",
+  "conf": 0.9754,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 472,
+  "key": "40:44:8",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 472,
+  "key": "40:44:9",
+  "text": "إِنَّ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 475,
+  "key": "40:77:5",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 491,
+  "key": "43:32:20",
+  "text": "",
+  "old_madinah": "ق",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 517,
+  "key": "49:14:3",
+  "text": "ءَامَنَّاۖ",
+  "old_madinah": "ص",
+  "read": "م",
+  "conf": 0.0,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 517,
+  "key": "49:17:8",
+  "text": "عَلَيَّ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 526,
+  "key": "53:23:20",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 533,
+  "key": "55:54:6",
+  "text": "إِسْتَبْرَقࣲۚ",
+  "old_madinah": "ج",
+  "read": "ص",
+  "conf": 0.9914,
+  "kind": "other_symbol"
+ },
+ {
+  "page": 550,
+  "key": "60:10:26",
+  "text": "",
+  "old_madinah": "ص",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 550,
+  "key": "60:10:27",
+  "text": "وَءَاتُوهُم",
+  "old_madinah": "",
+  "read": "ص",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 550,
+  "key": "60:10:29",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 550,
+  "key": "60:10:37",
+  "text": "",
+  "old_madinah": "ج",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 567,
+  "key": "69:28:4",
+  "text": "",
+  "old_madinah": "س",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 569,
+  "key": "70:37:3",
+  "text": "وَعَنِ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 0.9998,
+  "kind": "print_only"
+ },
+ {
+  "page": 575,
+  "key": "74:4:1",
+  "text": "وَثِيَابَكَ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 575,
+  "key": "74:7:2",
+  "text": "فَٱصْبِرْ",
+  "old_madinah": "",
+  "read": "ج",
+  "conf": 1.0,
+  "kind": "print_only"
+ },
+ {
+  "page": 578,
+  "key": "75:27:2",
+  "text": "",
+  "old_madinah": "س",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ },
+ {
+  "page": 588,
+  "key": "83:14:2",
+  "text": "",
+  "old_madinah": "س",
+  "read": "",
+  "conf": null,
+  "kind": "missed"
+ }
+]

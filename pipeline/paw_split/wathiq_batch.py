@@ -1,4 +1,6 @@
 """Split Wathiq pages, repairing line breaks where the print differs from the old Madinah layout.
+(wathiq_split.py itself re-chooses every break within a few words by alignment cost; this loop only
+handles pages a split still flags.)
 
     python3 pipeline/paw_split/wathiq_batch.py 15 56 190 ...
 A page whose split leaves a word without ink (or a letter body no word claims) is re-split with the
@@ -7,7 +9,7 @@ boundary word moved to the neighbouring line; the variant with fewest such flags
 import json, os, subprocess, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
-WORK = ROOT / 'artifacts' / 'wathiq-trace'
+WORK = ROOT / 'artifacts' / os.environ.get('PAW_WORK', 'wathiq-trace')
 
 
 def run(page, moves):

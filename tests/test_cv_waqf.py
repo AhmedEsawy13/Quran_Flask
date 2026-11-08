@@ -294,7 +294,8 @@ def test_bahrain_has_isolated_optional_model_path():
 # المدينة القديم joined on 2026-10-14 once its 1405 scan was scored the same way (96.5% whole book).
 # الشمرلي joined on 2026-10-14 with its calibrated band (0% -> 55% before any Shamarly training);
 # الأزهر is now the legacy (narrow, no prior, legacy geometry) example in the tests below.
-HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم', 'المدينة الجديد', 'الشمرلي'}
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم', 'المدينة الجديد', 'الشمرلي',
+                   'المدينة ١٤٢٧', 'آل البيت', 'التجويد دار المعرفة'}      # the newer multiprint test prints
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
