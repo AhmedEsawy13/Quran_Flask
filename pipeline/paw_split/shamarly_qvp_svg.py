@@ -96,6 +96,11 @@ _CLF = {}
 
 def _sign_prob(n: int, box_pt, sym: str) -> float:
     """The Shamarly waqf classifier's probability that the ink in box_pt (PDF points) is the sign `sym`."""
+    return float(_sign_probs(n, box_pt).get(sym, 0.0))
+
+
+def _sign_probs(n: int, box_pt) -> dict:
+    """The classifier's probability of every class (signs and, when the model has it, none) for the ink in box_pt."""
     import cv2
     sys.path.insert(0, str(ROOT))
     from pipeline.cv_waqf.candidates import Candidate, crop_candidate
@@ -116,7 +121,7 @@ def _sign_prob(n: int, box_pt, sym: str) -> float:
     crop = crop_candidate(_CLF['gray'], cand, size=CROP_SIZE)
     _label, _conf, probs = clf.predict_many_probs([crop])[0]
     names = clf.symbol_classes if len(probs) == len(clf.symbol_classes) else clf.classes
-    return float(dict(zip(names, probs)).get(sym, 0.0))
+    return {str(a): float(b) for a, b in zip(names, probs)}
 
 
 def _banner_name(n: int, top: float, bot: float, bx0: float, bx1: float):
@@ -498,27 +503,40 @@ def page(n: int) -> dict:
         p, g, gb = min((t for t in scored if round(t[0], 2) == top), key=lambda t: (t[2][1], -len(t[1])))
         return (p, g[0], g, gb, 5.0)
 
-    def tag(p, main, g, gb, sym, source):
+    owner_of_key = {v: k_ for k_, v in key_of_owner.items()}
+    colpath = WAQF / f'{n:03d}.column.json'
+    col = json.load(open(colpath, encoding='utf-8')) if colpath.exists() else {}
+
+    def column_key(wk, sym):
+        """The word the «الشمرلي» column gives this sign: the detector's own key can be a word off, and the
+        outline nearest the sign can belong to the neighbouring word (the sign sits between two words)."""
+        if wk in col or not col:
+            return wk
+        s_, a_, w_ = wk.split(':')
+        near = [k_ for k_, v in col.items() if v == sym and k_.rsplit(':', 1)[0] == f'{s_}:{a_}'
+                and abs(int(k_.rsplit(':', 1)[1]) - int(w_)) <= 2]
+        return near[0] if len(near) == 1 else wk
+
+    def tag(p, main, g, gb, sym, source, wk=None):
         if source == 'detector' and p >= 0.99:
             TEMPLATES.setdefault(sym, []).append(
                 _shape(_group_mask([RAW[o] for o in g], k, x0, [BOTTOM[line_of[o]] for o in g])))
         i = len(found)
         found.append((sym, source, gb))
+        home = owner_of_key.get(column_key(wk, sym)) if wk else None
         for o in g:
             sign_of[o] = i
-            OWNER[o] = OWNER[main]
+            OWNER[o] = home or OWNER[main]
         stats.setdefault('waqf_p', []).append(round(p, 2))
 
     misses = []
     for sb, sym, wk in signs:                      # detector marks
         p, main, g, gb, dist = look((sb[0] - 22, sb[1] - 14, sb[2] + 22, sb[3] + 1), sym)
         if main:
-            tag(p, main, g, gb, sym, 'detector')
+            tag(p, main, g, gb, sym, 'detector', wk)
             stats.setdefault('det_dist', []).append(round(dist, 3) if dist < 5 else None)
         else:
             misses.append(['detector', wk, sym, round(p, 2), round(dist, 3)])
-    colpath = WAQF / f'{n:03d}.column.json'
-    col = json.load(open(colpath, encoding='utf-8')) if colpath.exists() else {}
     stats['column_signs'] = len(col)
     ink_of_key: dict[str, list[str]] = {}
     for o, ow in OWNER.items():
@@ -545,11 +563,38 @@ def page(n: int) -> dict:
         p, main, g, gb, dist = look(win, sym)
         # without the detector, the shape must agree too: a harakah near a real sign can pass the classifier
         if main and dist < COLUMN_SHAPE_MAX:
-            tag(p, main, g, gb, sym, 'column')
+            tag(p, main, g, gb, sym, 'column', wk)
             stats['column_added'].append([wk, sym, round(p, 2), round(dist, 3)])
         else:
             misses.append(['column', wk, sym, round(p, 2), round(dist, 3)])
     stats['waqf_missed'] = misses
+    if os.environ.get('SIGN_AUDIT'):
+        # recall audit: every sign-sized group of outlines the page still has unclaimed, with the classifier's view
+        audit = {'tagged': [{'sym': sym, 'src': src, 'box': [round(v, 2) for v in gb]} for sym, src, gb in found],
+                 'unclaimed': []}
+        seen_boxes = set()
+        for o in pieces:
+            if o in sign_of:
+                continue
+            for g in groupings(o):
+                if g & sign_of.keys():
+                    continue
+                g = sorted(g)
+                gb = (min(BOX[q][0] for q in g), min(BOX[q][1] for q in g), max(BOX[q][2] for q in g), max(BOX[q][3] for q in g))
+                if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > 14 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
+                    continue
+                key = tuple(round(v, 1) for v in gb)
+                if key in seen_boxes:
+                    continue
+                seen_boxes.add(key)
+                pr = _sign_probs(n, gb)
+                sym, p = max(((a, b) for a, b in pr.items() if a != 'none'), key=lambda t: t[1])
+                audit['unclaimed'].append({'sym': sym, 'p': round(p, 3), 'none': round(pr.get('none', 0.0), 3),
+                                           'box': [round(v, 2) for v in gb], 'line': line_of[o], 'n': len(g),
+                                           'word': key_of_owner.get(OWNER.get(o, ''), '')})
+        adir = ROOT / 'artifacts' / 'shamarly-qvp' / 'audit'
+        adir.mkdir(parents=True, exist_ok=True)
+        (adir / f'{n:03d}.json').write_text(json.dumps(audit, ensure_ascii=False), encoding='utf-8')
 
     def sign_for(oid):
         return sign_of.get(oid)
