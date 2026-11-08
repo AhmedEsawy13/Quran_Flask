@@ -616,7 +616,34 @@ def _get_preferred_legacy_glyph_font_for_range(min_word_id, max_word_id):
         return None
 
 
-def _build_page_waqf_map(page_word_rows, mushaf_version):
+def _whole_verse_rows(word_map, surah, ayah):
+    """Every word row of one verse in reading order, from the word map's own ids; [] when the map cannot say.
+
+    A verse that runs onto the next page is only partly on any one page, but the waqf rows' position hints
+    (``word_index`` = within-verse word position) count from the verse's first word.
+    """
+    key_to_id = (word_map or {}).get('key_to_id')
+    id2tok = (word_map or {}).get('id2tok')
+    if not key_to_id or not id2tok:
+        return []
+    rows, position = [], 1
+    while True:
+        word_id = key_to_id.get(f'{surah}:{ayah}:{position}')
+        token = id2tok.get(word_id) if word_id is not None else None
+        if token is None:
+            return rows
+        rows.append({'word_index': word_id, **token})
+        position += 1
+
+
+def _build_page_waqf_map(page_word_rows, mushaf_version, word_map=None):
+    """{word id: [{symbols, version}]} for the words of one page.
+
+    Rows are matched against the WHOLE verse (``word_map`` supplies it) and kept only where they land on one of
+    the page's words. Matching against the page's slice of a verse that spans two pages made the hints point
+    into the wrong words and the text fallback land a sign on the first same-text word of the slice
+    (2:257: ص of the first «النور» printed on the second «النور», ق of the second «الظلمات» on the first).
+    """
     versions = mushaf_version if isinstance(mushaf_version, list) else ([mushaf_version] if mushaf_version else [])
     versions = [v for v in versions if v]
     if not versions or not page_word_rows:
@@ -638,14 +665,21 @@ def _build_page_waqf_map(page_word_rows, mushaf_version):
         if not mushaf_rows:
             continue
 
+        search_words, on_page = words, None
+        whole = _whole_verse_rows(word_map, surah_number, ayah_number) if word_map else []
+        if len(whole) > len(words):
+            search_words, on_page = whole, {w['word_index'] for w in words}
+
         search_start = 0
         for row in mushaf_rows:
-            matched_index = _find_mushaf_row_match_index(words, row, search_start)
+            matched_index = _find_mushaf_row_match_index(search_words, row, search_start)
             if matched_index is None:
                 continue
 
             search_start = matched_index + 1
-            word_index = words[matched_index]['word_index']
+            word_index = search_words[matched_index]['word_index']
+            if on_page is not None and word_index not in on_page:
+                continue                       # the other page's sign
             symbol = (row.get('symbols') or '').strip()
             if not symbol:
                 continue
@@ -827,7 +861,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                     **source,
                 })
 
-    waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version)
+    waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version, script_word_map)
 
     anchor_surah_number = None
     anchor_ayah_number = None
@@ -1627,7 +1661,7 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
     # Attach per-word waqf symbols for the selected mushaf version(s). The word
     # dicts are shared with output_lines, so backfilling updates them in place.
     if mushaf_version:
-        waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version)
+        waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version, effective_word_map)
         if waqf_by_word_index:
             for word in page_word_rows:
                 entries = waqf_by_word_index.get(word['word_index'])
@@ -2165,7 +2199,7 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
     versions = mushaf_version if isinstance(mushaf_version, list) else ([mushaf_version] if mushaf_version else [])
     if not versions:
         versions = ['الأزهر']
-    waqf_by_word_index = _build_page_waqf_map(page_word_rows, versions)
+    waqf_by_word_index = _build_page_waqf_map(page_word_rows, versions, script_word_map)
     if waqf_by_word_index:
         for word in page_word_rows:
             entries = waqf_by_word_index.get(word['word_index'])
