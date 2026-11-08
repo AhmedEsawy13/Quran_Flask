@@ -4,19 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    {% set page_title = 'أثَر · وقوف المساحة' %}
-    {% set page_description = 'مراجعة علامات الوقف التي قرأها النموذج من صفحات مصحف المساحة، وتُحفظ القرارات في السحابة.' %}
+    {% set page_title = 'أثَر · ' ~ title %}
+    {% set page_description = description %}
     <title>{{ page_title }}</title>
-    {{ athar_page_meta(page_title, page_description, path='/mushaf-editor/mesaha-waqf', noindex=true) }}
+    {{ athar_page_meta(page_title, page_description, path=path, noindex=true) }}
     {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/mushaf_audit.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/mesaha_waqf_review.css') }}">
 </head>
-<body class="athar-tool au-body">
+<body class="athar-tool au-body" data-family="{{ family }}">
     {{ athar_app_bar('au-main') }}
     <div class="bar">
         <div class="top">
-            <h1 class="au-title">وقوف المساحة</h1>
+            <h1 class="au-title">{{ title }}</h1>
             <label class="ed">المجموعة <select id="mw-set"></select></label>
             <span class="stat" id="mw-store"></span>
             <div class="prog"><i><u id="au-bar"></u></i><span id="au-count"></span></div>

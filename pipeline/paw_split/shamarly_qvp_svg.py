@@ -90,6 +90,7 @@ def _bbox_pt(raw, k, x0, bottom):
 
 
 SIGN_MIN_P = 0.3
+SIGN_MAX_H = 15.5        # tallest sign piece, pt: a ق with its two dots is 13.2 (13.0 dropped them, e.g. 2:74:32 on page 11)
 TC_MODEL = None
 _CLF = {}
 
@@ -444,7 +445,7 @@ def page(n: int) -> dict:
     # dots; with pieces under 0.5 pt away), so a sign is taken whole without swallowing the harakat beside it.
     def small(o):
         b = BOX[o]
-        return (b[3] - b[1]) <= 13.0 and (b[2] - b[0]) <= 22.0
+        return (b[3] - b[1]) <= SIGN_MAX_H and (b[2] - b[0]) <= 22.0
     pieces = [o for o in RAW if small(o) and o in OWNER]
     near: dict[str, list[str]] = {o: [] for o in pieces}
     for a_i, a in enumerate(pieces):
@@ -481,7 +482,7 @@ def page(n: int) -> dict:
             g = sorted(g)
             gb = (min(BOX[o][0] for o in g), min(BOX[o][1] for o in g), max(BOX[o][2] for o in g), max(BOX[o][3] for o in g))
             # a sign is 6-16 pt across; a lone dot or hole (~2 pt) is not one, however its window scores
-            if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > 14 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
+            if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > SIGN_MAX_H + 1 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
                 continue
             p = _sign_prob(n, gb, sym)
             if os.environ.get('SIGN_DEBUG'):
@@ -531,6 +532,13 @@ def page(n: int) -> dict:
 
     misses = []
     for sb, sym, wk in signs:                      # detector marks
+        if os.environ.get('SIGN_DEBUG'):
+            w_ = (sb[0] - 22, sb[1] - 14, sb[2] + 22, sb[3] + 1)
+            for o in RAW:
+                b_ = BOX[o]
+                if w_[0] <= (b_[0] + b_[2]) / 2 <= w_[2] and w_[1] <= (b_[1] + b_[3]) / 2 <= w_[3]:
+                    print('   ink', wk, sym, o, [round(v, 1) for v in b_], 'owned' if o in OWNER else 'UNOWNED',
+                          'small' if small(o) else 'big', file=sys.stderr)
         p, main, g, gb, dist = look((sb[0] - 22, sb[1] - 14, sb[2] + 22, sb[3] + 1), sym)
         if main:
             tag(p, main, g, gb, sym, 'detector', wk)
@@ -581,7 +589,7 @@ def page(n: int) -> dict:
                     continue
                 g = sorted(g)
                 gb = (min(BOX[q][0] for q in g), min(BOX[q][1] for q in g), max(BOX[q][2] for q in g), max(BOX[q][3] for q in g))
-                if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > 14 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
+                if (gb[2] - gb[0]) > 24 or (gb[3] - gb[1]) > SIGN_MAX_H + 1 or max(gb[2] - gb[0], gb[3] - gb[1]) < 4.0:
                     continue
                 key = tuple(round(v, 1) for v in gb)
                 if key in seen_boxes:

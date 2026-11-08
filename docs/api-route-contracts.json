@@ -2265,11 +2265,13 @@
       "success_keys": [
         "a_sample",
         "cards",
+        "groups",
         "note",
         "pages",
         "set",
         "sets",
-        "store"
+        "store",
+        "title"
       ]
     },
     {

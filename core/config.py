@@ -20,6 +20,8 @@ WAQF_DATABASE = os.path.join(_ROOT, 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
 # Mesaha waqf review cards (pipeline/paw_split/mesaha_waqf_review.py), tracked so the cloud app has them
 MESAHA_WAQF_CARDS_DIR = os.path.join(_ROOT, 'data', 'mesaha-waqf')
+# Shamarly signs the vector builder could not hide (pipeline/paw_split/shamarly_waqf_cards.py), tracked likewise
+SHAMARLY_WAQF_CARDS_DIR = os.path.join(_ROOT, 'data', 'shamarly-waqf')
 # Bahouth-derived verse topics + contiguous context spans for تثبيت.
 VERSE_TOPICS_DATABASE = os.path.join(_ROOT, 'data', 'verse_topics.db')
 # مصاحف being adjusted via /mushaf-editor.

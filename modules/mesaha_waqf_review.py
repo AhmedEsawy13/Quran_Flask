@@ -18,7 +18,7 @@ from flask import abort, jsonify, render_template, request, send_from_directory
 
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
-from core.config import MESAHA_WAQF_CARDS_DIR
+from core.config import MESAHA_WAQF_CARDS_DIR, SHAMARLY_WAQF_CARDS_DIR
 from core.db import connect as _sqlite_connect
 from modules import waqf_mark_review as wmr
 from modules.editor_auth import current_editor, require_editor
@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 DECISION_EDITION = 'المساحة · فحص'
 SIGNS = frozenset({'ص', 'ق', 'ج', 'م', 'لا', 'س', 'ع'})
 GROUPS = ('A', 'S', 'B', 'N', 'C')          # S = the random sample of A
-_SET_NAME = re.compile(r'^mesaha-waqf[\w-]*$')
-_CARD_NAME = re.compile(r'^\d{3}-\d+\.jpg$')
+_SET_NAME = re.compile(r'^(mesaha|shamarly)-waqf[\w-]*$')
+_CARD_NAME = re.compile(r'^[\w-]{1,48}\.jpg$')
 DEFAULT_SET = 'mesaha-waqf-all'      # every reviewed page; the pilot sets stay for reference
 
 
@@ -37,11 +37,25 @@ def _sets_root() -> Path:
     return Path(MESAHA_WAQF_CARDS_DIR)
 
 
-def available_sets() -> list[str]:
-    root = _sets_root()
+def _family(name: str) -> str:
+    return 'shamarly' if (name or '').startswith('shamarly') else 'mesaha'
+
+
+def _family_root(family: str) -> Path:
+    return Path(SHAMARLY_WAQF_CARDS_DIR) if family == 'shamarly' else _sets_root()
+
+
+def _set_dir(name: str) -> Path:
+    return _family_root(_family(name)) / name
+
+
+def available_sets(family: str = 'mesaha') -> list[str]:
+    """The card sets on this server: the Mesaha ones by default, or the Shamarly ones (family='shamarly')."""
+    root = _family_root(family)
     if not root.is_dir():
         return []
-    return sorted(p.name for p in root.iterdir() if _SET_NAME.match(p.name) and (p / 'data.json').is_file())
+    return sorted(p.name for p in root.iterdir()
+                  if _SET_NAME.match(p.name) and _family(p.name) == family and (p / 'data.json').is_file())
 
 
 def set_edition(data: dict) -> str:
@@ -73,7 +87,7 @@ def set_decisions(data: dict) -> dict[str, dict]:
 def _load_set(name: str) -> dict | None:
     if not _SET_NAME.match(name or ''):
         return None
-    path = _sets_root() / name / 'data.json'
+    path = _set_dir(name) / 'data.json'
     if not path.is_file():
         return None
     return json.loads(path.read_text(encoding='utf-8'))
@@ -154,18 +168,30 @@ def _body_set() -> tuple[dict, dict | None]:
 
 @editor_bp.route('/mushaf-editor/mesaha-waqf')
 def mesaha_waqf_review_page():
-    return render_template('mesaha_waqf_review.html')
+    return render_template('mesaha_waqf_review.html', family='mesaha', title='وقوف المساحة',
+                           path='/mushaf-editor/mesaha-waqf',
+                           description='مراجعة علامات الوقف التي قرأها النموذج من صفحات مصحف المساحة، وتُحفظ القرارات في السحابة.')
+
+
+@editor_bp.route('/mushaf-editor/shamarly-waqf')
+def shamarly_waqf_review_page():
+    return render_template('mesaha_waqf_review.html', family='shamarly', title='علامات الشمرلي الناقصة',
+                           path='/mushaf-editor/shamarly-waqf',
+                           description='علامات وقف في صفحات الشمرلي لم يجدها المُنشئ فلا تُخفى: حدّد المطبوع منها، وتُحفظ القرارات في السحابة.')
 
 
 @editor_bp.route('/api/mushaf-editor/mesaha-waqf', methods=['GET'])
 @require_editor
 def mesaha_waqf_cards():
-    sets = available_sets()
-    name = request.args.get('set') or (DEFAULT_SET if DEFAULT_SET in sets else (sets[0] if sets else ''))
+    requested = request.args.get('set') or ''
+    family = _family(requested) if requested else ('shamarly' if request.args.get('family') == 'shamarly' else 'mesaha')
+    sets = available_sets(family)
+    name = requested or (DEFAULT_SET if DEFAULT_SET in sets else (sets[0] if sets else ''))
     data = _load_set(name)
     if data is None:
+        what = 'الشمرلي' if family == 'shamarly' else 'المساحة'
         return jsonify({'error': 'no_set', 'sets': sets,
-                        'message': 'لا توجد بطاقات المساحة على هذا الخادم — تُبنى على الجهاز الذي فيه صور الصفحات.'}), 404
+                        'message': f'لا توجد بطاقات {what} على هذا الخادم — تُبنى على الجهاز الذي فيه صور الصفحات.'}), 404
     try:
         decisions = set_decisions(data)
     except sb.SupabaseEditorError as exc:
@@ -175,7 +201,8 @@ def mesaha_waqf_cards():
         c['decision'] = _decision_view(decisions.get(c['id']))
     return jsonify({'set': name, 'sets': sets, 'store': 'cloud' if _cloud() else 'local',
                     'pages': data.get('pages', []), 'a_sample': data.get('a_sample', []), 'cards': data['cards'],
-                    'note': data.get('note') or ''})
+                    'note': data.get('note') or '', 'title': data.get('title') or '',
+                    'groups': data.get('groups') or {}})
 
 
 @editor_bp.route('/api/mushaf-editor/mesaha-waqf/card', methods=['GET'])
@@ -184,7 +211,7 @@ def mesaha_waqf_card_image():
     name, f = request.args.get('set') or '', request.args.get('f') or ''
     if not _SET_NAME.match(name) or not _CARD_NAME.match(f):
         abort(404)
-    return send_from_directory(_sets_root() / name / 'cards', f, max_age=3600)
+    return send_from_directory(_set_dir(name) / 'cards', f, max_age=3600)
 
 
 @editor_bp.route('/api/mushaf-editor/mesaha-waqf/decision', methods=['POST', 'DELETE'])
@@ -218,8 +245,10 @@ def mesaha_waqf_accept():
     body, data = _body_set()
     if data is None:
         return jsonify({'error': 'unknown set'}), 404
+    if data.get('no_accept'):
+        return jsonify({'error': 'bulk accept is off for this set'}), 400
     group = str(body.get('group') or '')
-    if group not in GROUPS:
+    if group not in (data.get('groups') or {k: 1 for k in GROUPS}):
         return jsonify({'error': 'invalid group'}), 400
     try:
         decided = set_decisions(data)
