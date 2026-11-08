@@ -18,7 +18,7 @@ from flask import abort, jsonify, render_template, request, send_from_directory
 
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
-from core.config import MESAHA_WAQF_CARDS_DIR, SHAMARLY_WAQF_CARDS_DIR
+from core.config import MESAHA_WAQF_CARDS_DIR, MUSHAF_WAQF_DATABASE, SHAMARLY_WAQF_CARDS_DIR
 from core.db import connect as _sqlite_connect
 from modules import waqf_mark_review as wmr
 from modules.editor_auth import current_editor, require_editor
@@ -285,3 +285,80 @@ def mesaha_waqf_import():
         logger.error('mesaha waqf import failed: %s', exc)
         return jsonify({'error': 'cloud write failed'}), 503
     return jsonify({'ok': True, 'imported': len(rows), 'skipped': skipped})
+
+
+# --- applying the reviewed Shamarly cards to the local «الشمرلي» column ---
+
+def _apply_gate(data: dict | None) -> tuple[bool, str]:
+    """(allowed, why not). The column is a tracked SQLite file: only a writable local copy changes, and where a
+    cloud editor is configured only an admin may do it."""
+    if data is None or _family(data.get('set') or '') != 'shamarly':
+        return False, 'not a Shamarly card set'
+    if sb.is_configured():
+        user = current_editor()
+        if not user or user.get('role') != 'admin':
+            return False, 'admin required'
+    if not os.access(MUSHAF_WAQF_DATABASE, os.W_OK):
+        return False, 'the waqf database is read-only on this server — apply on the machine that holds it'
+    return True, ''
+
+
+def _shamarly_plan(name: str, data: dict) -> dict:
+    from pipeline import apply_shamarly_review as asr
+    return asr.build_plan(data, set_decisions(data), MUSHAF_WAQF_DATABASE)
+
+
+def _plan_view(plan: dict) -> dict:
+    return {'valid': plan['valid'], 'plan_digest': plan['content_digest'], 'summary': plan['summary'],
+            'validation': plan['validation'], 'changes': plan['changes']}
+
+
+@editor_bp.route('/api/mushaf-editor/shamarly-waqf/apply-plan', methods=['GET'])
+@require_editor
+def shamarly_waqf_apply_plan():
+    """What applying the reviewed (أ) cards would change in the column; writes nothing."""
+    name = request.args.get('set') or ''
+    data = _load_set(name)
+    if data is None or _family(name) != 'shamarly':
+        return jsonify({'error': 'unknown set'}), 404
+    data['set'] = name
+    allowed, why = _apply_gate(data)
+    try:
+        plan = _shamarly_plan(name, data)
+    except sb.SupabaseEditorError as exc:
+        logger.error('shamarly waqf plan failed: %s', exc)
+        return jsonify({'error': 'cloud unavailable'}), 503
+    return jsonify({'can_apply': allowed, 'reason': why, 'plan': _plan_view(plan)})
+
+
+@editor_bp.route('/api/mushaf-editor/shamarly-waqf/apply', methods=['POST'])
+@require_editor
+def shamarly_waqf_apply():
+    """POST {set, plan_digest}: apply the plan the reviewer saw, if nothing changed since."""
+    body = request.get_json(silent=True) or {}
+    name = str(body.get('set') or '')
+    data = _load_set(name)
+    if data is None or _family(name) != 'shamarly':
+        return jsonify({'error': 'unknown set'}), 404
+    data['set'] = name
+    allowed, why = _apply_gate(data)
+    if not allowed:
+        return jsonify({'error': why}), 403
+    from pipeline import apply_shamarly_review as asr
+    from pipeline.sync_published_waqf import SyncError
+    try:
+        plan = _shamarly_plan(name, data)
+        if plan['content_digest'] != body.get('plan_digest'):
+            return jsonify({'error': 'stale', 'message': 'القرارات أو العمود تغيّرت بعد المعاينة — أعد المعاينة.'}), 409
+        if not plan['valid']:
+            return jsonify({'error': 'invalid plan', 'validation': plan['validation']}), 400
+        if not plan['changes']:
+            return jsonify({'ok': True, 'applied': 0})
+        result = asr.apply(plan, MUSHAF_WAQF_DATABASE)
+    except sb.SupabaseEditorError as exc:
+        logger.error('shamarly waqf apply failed: %s', exc)
+        return jsonify({'error': 'cloud unavailable'}), 503
+    except SyncError as exc:
+        return jsonify({'error': 'apply refused', 'message': str(exc)}), 409
+    return jsonify({'ok': True, 'applied': result['changes_applied'], 'backup': result.get('backup'),
+                    'research_caches_stale': True})

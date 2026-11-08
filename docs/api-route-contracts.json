@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 138,
+  "route_count": 140,
   "routes": [
     {
       "auth": "editor",
@@ -2649,6 +2649,79 @@
       "source": "modules/editor.py",
       "success_cache": "no-store",
       "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        403,
+        404,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.shamarly_waqf_apply",
+      "error_keys": [
+        "error",
+        "login_required",
+        "message",
+        "validation"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/shamarly-waqf/apply",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "applied",
+        "backup",
+        "ok",
+        "research_caches_stale"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.shamarly_waqf_apply_plan",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/shamarly-waqf/apply-plan",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "can_apply",
+        "plan",
+        "reason"
+      ]
     },
     {
       "auth": "editor",

@@ -82,3 +82,82 @@ def test_both_pages_render(client, review):
     sha = client.get('/mushaf-editor/shamarly-waqf')
     assert mes.status_code == sha.status_code == 200
     assert 'data-family="shamarly"' in sha.get_data(as_text=True) and 'data-family="mesaha"' in mes.get_data(as_text=True)
+
+
+# --- applying the reviewed (أ) cards to the «الشمرلي» column ---
+
+WORDS = ['كتب', 'قال', 'ربك', 'يوم', 'قوم', 'حمد']
+
+
+@pytest.fixture
+def column(monkeypatch, review):
+    import sqlite3
+    from pipeline import apply_shamarly_review as asr
+    db = review / 'waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute('CREATE TABLE waqf ("السورة" INTEGER, "الآية" INTEGER, "الكلمة" TEXT, token_index INTEGER, '
+                 'word_index INTEGER, "الشمرلي" TEXT, UNIQUE("السورة","الآية",token_index))')
+    conn.executemany('INSERT INTO waqf VALUES (2, 74, ?, ?, ?, ?)', [('ربك', 3, 3, 'ج'), ('قوم', 5, 5, 'ص')])
+    conn.commit(); conn.close()
+    monkeypatch.setattr(mw, 'MUSHAF_WAQF_DATABASE', str(db))
+    monkeypatch.setattr(asr, 'WORD_PROVIDER', lambda s, a: [{'word_id': i, 'text': t} for i, t in enumerate(WORDS)])
+    cards = [_card('011-a3', 'A', 'ج', word=3, key='2:74:3'), _card('011-a5', 'A', 'ص', word=5, key='2:74:5'),
+             _card('011-a6', 'A', 'ق', word=6, key='2:74:6'), _card('011-a2', 'A', 'م', word=2, key='2:74:2'),
+             _card('011-b4', 'B', 'ج', word=4, key='2:74:4')]
+    for c, w in zip(cards, ['ربك', 'قوم', 'حمد', 'قال', 'يوم']):
+        c['text'] = w
+    data = json.loads((review / 'shamarly' / SET / 'data.json').read_text())
+    data['cards'] = cards
+    (review / 'shamarly' / SET / 'data.json').write_text(json.dumps(data))
+    return db
+
+
+def _apply(client, **body):
+    body.setdefault('set', SET)
+    return client.post('/api/mushaf-editor/shamarly-waqf/apply', data=json.dumps(body), content_type='application/json')
+
+
+def _decide(client, cid, mark):
+    assert _send(client, 'decision', id=cid, mark=mark).status_code == 200
+
+
+def _marks(db):
+    import sqlite3
+    return dict(sqlite3.connect(db).execute('SELECT token_index, "الشمرلي" FROM waqf').fetchall())
+
+
+def test_plan_lists_only_real_column_changes(client, column):
+    for cid, mark in (('011-a3', 'ج'), ('011-a5', ''), ('011-a6', 'ق'), ('011-b4', 'ص')):
+        _decide(client, cid, mark)
+    r = client.get(f'/api/mushaf-editor/shamarly-waqf/apply-plan?set={SET}').get_json()
+    assert r['can_apply'] and r['plan']['valid']
+    got = [(c['token_index'], c['old_symbol'], c['new_symbol']) for c in r['plan']['changes']]
+    assert got == [(4, 'ص', ''), (5, '', 'ق')]                 # token = word position - 1; ج was confirmed as is
+    s = r['plan']['summary']['الشمرلي']
+    assert (s['decided_a'], s['unchanged'], s['undecided_a'], s['b_verdicts']) == (3, 1, 1, 1)
+
+
+def test_apply_changes_the_column_once_and_refuses_a_stale_plan(client, column):
+    for cid, mark in (('011-a5', ''), ('011-a6', 'ق')):
+        _decide(client, cid, mark)
+    plan = client.get(f'/api/mushaf-editor/shamarly-waqf/apply-plan?set={SET}').get_json()['plan']
+    assert _apply(client, plan_digest='nope').status_code == 409
+    assert _marks(column) == {3: 'ج', 5: 'ص'}
+    ok = _apply(client, plan_digest=plan['plan_digest'])
+    assert ok.status_code == 200, ok.get_json()
+    assert ok.get_json()['applied'] == 2 and ok.get_json()['backup']
+    assert _marks(column)[3] == 'ج' and _marks(column)[5] is None and _marks(column)[6] == 'ق'
+    again = client.get(f'/api/mushaf-editor/shamarly-waqf/apply-plan?set={SET}').get_json()['plan']
+    assert again['changes'] == []
+
+
+def test_apply_needs_a_writable_column_and_an_admin_when_cloud(client, column, monkeypatch):
+    import os
+    monkeypatch.setattr(os, 'access', lambda *a, **k: False)
+    r = client.get(f'/api/mushaf-editor/shamarly-waqf/apply-plan?set={SET}').get_json()
+    assert r['can_apply'] is False and 'read-only' in r['reason']
+    assert _apply(client, plan_digest=r['plan']['plan_digest']).status_code == 403
+    monkeypatch.undo()
+    monkeypatch.setattr(mw.sb, 'is_configured', lambda: True)
+    monkeypatch.setattr(mw, 'current_editor', lambda: {'id': 'u1', 'name': 'r', 'role': 'editor'})
+    assert mw._apply_gate({'set': SET}) == (False, 'admin required')

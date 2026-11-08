@@ -57,9 +57,14 @@ def _iso_now() -> str:
     return _utc_now().isoformat()
 
 
+# Columns that live in SQLite only (no cloud copy) but are still changed through reviewed, digest-checked plans
+# (pipeline/apply_shamarly_review.py).
+LOCAL_REVIEWED_EDITIONS = frozenset({'الشمرلي'})
+
+
 def _quote_identifier(value: str) -> str:
-    # a fixed allow-list of registered cloud editions (column names cannot be SQL parameters)
-    if value not in CLOUD_EDITOR_EDITIONS:
+    # a fixed allow-list of registered editions (column names cannot be SQL parameters)
+    if value not in CLOUD_EDITOR_EDITIONS and value not in LOCAL_REVIEWED_EDITIONS:
         raise SyncError(f'unsupported edition: {value!r}')
     return '"' + value.replace('"', '""') + '"'
 

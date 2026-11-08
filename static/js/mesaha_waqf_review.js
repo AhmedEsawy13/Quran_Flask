@@ -110,6 +110,7 @@
     state.set = state.data.set;
     GROUPS = state.data.groups && Object.keys(state.data.groups).length ? state.data.groups : DEFAULT_GROUPS;
     $('#mw-import').closest('label').hidden = FAMILY !== 'mesaha';
+    $('#mw-apply').hidden = FAMILY !== 'shamarly';
     $('#mw-set').innerHTML = state.data.sets.map((s) => `<option ${s === state.set ? 'selected' : ''}>${esc(s)}</option>`).join('');
     $('#mw-store').textContent = state.data.store === 'cloud' ? 'تُحفظ في السحابة' : 'تُحفظ في القاعدة المحلية (لا سحابة على هذا الخادم)';
     if (!GROUPS[state.tab]) state.tab = GROUPS === DEFAULT_GROUPS ? 'B' : Object.keys(GROUPS)[0];
@@ -148,6 +149,34 @@
     if (ev.target.closest('[data-undo]')) { decide(card, '', true); return; }
     if (ev.target.tagName === 'IMG') { $('#lb img').src = ev.target.src; $('#lb').classList.add('on'); }
   });
+  // Shamarly only: preview, then apply, the reviewed (أ) cards to the local column.
+  async function previewApply() {
+    const box = $('#mw-plan');
+    box.hidden = false; box.textContent = 'جارٍ الحساب…';
+    try {
+      const r = await api(`/api/mushaf-editor/shamarly-waqf/apply-plan?set=${encodeURIComponent(state.set)}`);
+      const p = r.plan, sm = Object.values(p.summary)[0] || {};
+      const rows = p.changes.map((c) => `<tr><td>ص ${c.page}</td><td>${esc(c.surah)}:${esc(c.ayah)}:${c.token_index + 1}</td><td>${esc(c.word_text)}</td><td>${sym(c.old_symbol)} ← ${sym(c.new_symbol)}</td></tr>`).join('');
+      box.innerHTML = `<p>بطاقات (أ) المحسومة ${sm.decided_a || 0}، منها بلا تغيير ${sm.unchanged || 0}؛ غير المحسومة ${sm.undecided_a || 0}. `
+        + `قرارات (ب) (${sm.b_verdicts || 0}) لا تُطبَّق تلقائيًا.</p>`
+        + (p.valid ? '' : `<p class="note err">الخطة غير صالحة: ${esc((p.validation.errors || []).join(' · '))}</p>`)
+        + (rows ? `<table class="mw-changes"><tbody>${rows}</tbody></table>` : '<p class="note">لا تغيير على العمود.</p>')
+        + (p.valid && rows && r.can_apply ? `<button type="button" class="mw-accept" id="mw-apply-go" data-digest="${esc(p.plan_digest)}">تطبيق ${p.changes.length} تغييرًا على العمود</button>` : '')
+        + (rows && !r.can_apply ? `<p class="note err">لا يمكن التطبيق هنا: ${esc(r.reason)}</p>` : '');
+    } catch (e) { if (e.message !== 'login') box.textContent = `تعذّرت المعاينة: ${e.message}`; }
+  }
+  $('#mw-preview').addEventListener('click', previewApply);
+  $('#mw-plan').addEventListener('click', async (ev) => {
+    const go = ev.target.closest('#mw-apply-go');
+    if (!go || !confirm('تعديل عمود الشمرلي في قاعدة الوقف المحلية؟ تُحفظ نسخة احتياطية قبل ذلك.')) return;
+    go.disabled = true;
+    try {
+      const r = await api('/api/mushaf-editor/shamarly-waqf/apply', { method: 'POST', body: JSON.stringify({ set: state.set, plan_digest: go.dataset.digest }) });
+      toast(`طُبّق ${r.applied} تغييرًا. أعد توليد ذاكرة البحث: python3 pipeline/precompute_research.py`);
+      previewApply();
+    } catch (e) { go.disabled = false; if (e.message !== 'login') toast(`لم يُطبَّق: ${e.message}`); }
+  });
+
   $('#lb').addEventListener('click', () => $('#lb').classList.remove('on'));
   $('#au-tabs').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-g]');
