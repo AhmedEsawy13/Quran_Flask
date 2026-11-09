@@ -45,6 +45,55 @@ def bbox(d: str):
     return (min(xs), min(ys), max(xs), max(ys))
 
 
+def _subpaths(d: str):
+    out = []
+    for part in re.split(r'(?=M)', d):
+        n = [float(v) for v in NUM.findall(part)]
+        if len(n) >= 6:
+            pts = list(zip(n[0::2], n[1::2]))
+            area = sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1]
+                       for i in range(len(pts))) / 2
+            out.append({'d': part.strip(), 'pts': pts, 'area': area})
+    return out
+
+
+def _inside(pt, poly):
+    x, y, c = pt[0], pt[1], False
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            c = not c
+    return c
+
+
+def compounds(paths):
+    """Each outline with its own holes as one path, so a hole is only cut from its host.
+
+    The builder joins every outline of a word into one path (and can put a hole in another path than its host), so
+    the outlines of touching letters overlap and a hole can sit under a second outline: filled together they either
+    fill the counter (nonzero) or punch the overlaps out (even-odd). Outlines are nested by containment (smallest
+    outline whose control polygon holds the centroid); one wound against its parent is that parent's hole, unless the
+    parent is itself a hole (a digit inside the ornament's ring is ink again). The ornament's ring is wound the other
+    way round from the letters, so the winding sign alone says nothing.
+    """
+    subs = [sp for _a, d in paths for sp in _subpaths(d)]
+    for sp in subs:
+        sp['c'] = (sum(p[0] for p in sp['pts']) / len(sp['pts']), sum(p[1] for p in sp['pts']) / len(sp['pts']))
+    subs.sort(key=lambda sp: -abs(sp['area']))
+    done, hosts = [], []
+    for sp in subs:
+        parents = [q for q in done if abs(q['area']) > abs(sp['area']) and _inside(sp['c'], q['pts'])]
+        parent = min(parents, key=lambda q: abs(q['area'])) if parents else None
+        if parent is not None and parent['kind'] == 'host' and (sp['area'] > 0) != (parent['area'] > 0):
+            sp['kind'] = 'hole'
+            parent['holes'].append(sp['d'])
+        else:
+            sp['kind'], sp['holes'] = 'host', []
+            hosts.append(sp)
+        done.append(sp)
+    return [' '.join([h['d']] + h['holes']) for h in hosts], 0
+
+
 def build_library():
     words, marks = defaultdict(list), {}
     gaps, pitches = [], []
@@ -155,7 +204,8 @@ def render(page, lib, marks, gap0, pitch, signs, sign_pt):
                 missing.append(w['key'])
             else:
                 x1, base = it['box'][2], it['base']
-                paths = ''.join(f'<path d="{d}"/>' for _a, d in it['paths'])
+                ds, _loose = compounds(it['paths'])
+                paths = ''.join(f'<path d="{d}"/>' for d in ds)
                 body.append(f'<g transform="translate({cursor:.2f},{base_y:.2f}) scale({f:.4f}) translate({-x1:.2f},{-base:.2f})">{paths}</g>')
                 placed += 1
                 if w['sign'] and w['sign'] in signs and it['kind'] == 'word':
