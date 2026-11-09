@@ -14,6 +14,7 @@ uniformly. The Shamarly signs are left out and the chosen column's signs are dra
 from __future__ import annotations
 
 import json
+import os
 import re
 import statistics
 import sys
@@ -330,7 +331,7 @@ def space_line(items, width):
     n = len(items)
     bodies = [(i['bx'][1] - i['bx'][0]) if i['bx'] else i['width'] for i in items]
     if n < 2:
-        return [], 1.0, bodies
+        return [], 1.0, bodies, 0.0
     m, bound = [], []
     for a, b in zip(items, items[1:]):
         mean, low = pair_gap(a, b)
@@ -338,42 +339,237 @@ def space_line(items, width):
         bound.append(CLEAR - low)                           # smallest extent gap that keeps CLEAR in the tightest row
     total = sum(bodies)
     if total + sum(bound) > width:
-        return bound, (width - sum(bound)) / total, bodies
+        return bound, (width - sum(bound)) / total, bodies, 0.0
     fixed, free = {}, set(range(n - 1))
     while True:
         g = (width - total - sum(fixed.values()) + sum(m[i] for i in free)) / max(1, len(free))
         over = [i for i in free if g - m[i] < bound[i]]
         if not over:
             d = [fixed[i] if i in fixed else g - m[i] for i in range(n - 1)]
-            return d, 1.0, bodies
+            return d, 1.0, bodies, g
         for i in over:
             fixed[i] = bound[i]
             free.discard(i)
 
 
-def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a'):
+STRETCH_W = float(os.environ.get('MIX_STRETCH_W', 8.0))         # weight of a copy being wider than the text's natural (25th percentile) copy
+GAP_W = float(os.environ.get('MIX_GAP_W', 0.03))            # weight of the line's mean gap leaving GAP_GOAL
+GAP_GOAL = float(os.environ.get('MIX_GAP_GOAL', 8.0))          # pt between bodies the line should end up with
+MAX_COPIES = 8
+_CAND = {}
+
+
+def candidates(text, words):
+    """[(width, stretch penalty, record)] for a text: its copies that pass the count check (all when none does),
+    at most MAX_COPIES of them spread over the widths; a copy's penalty grows with how much wider it is than the text's
+    25th-percentile copy (a justified line stretches words, rarely squeezes them). No penalty with fewer than 3 copies."""
+    if text in _CAND:
+        return _CAND[text]
+    recs = words.get(text, [])
+    pool = [r for r in recs if r['ok']] or recs
+    out, seen = [], set()
+    for r in sorted(pool, key=lambda r: r['bx'][1] - r['bx'][0]):
+        w = round(r['bx'][1] - r['bx'][0])
+        if w not in seen:
+            seen.add(w)
+            out.append((w, r))
+    if len(out) > MAX_COPIES:
+        out = [out[round(i * (len(out) - 1) / (MAX_COPIES - 1))] for i in range(MAX_COPIES)]
+    ws = sorted(r['bx'][1] - r['bx'][0] for r in pool)
+    nat = ws[len(ws) // 4] if len(ws) >= 3 else None
+    _CAND[text] = [(w, STRETCH_W * max(0.0, ((r['bx'][1] - r['bx'][0]) / nat - 1)) ** 2 if nat else 0.0, r) for w, r in out]
+    return _CAND[text]
+
+
+def fit_line(texts, fixed, words, width):
+    """Pick one copy per word so the line fills its width with the least stretch and a mean gap near GAP_GOAL.
+
+    A knapsack over the sum of the words' widths (1 pt steps): the cheapest stretch penalty for every reachable total,
+    then the total whose gap (width - total) / (n - 1) costs least. ``fixed[i]`` is a width for items that have only one
+    choice (verse rings, missing words); None otherwise. Returns [record or None], and the chosen gap.
+    """
+    n = len(texts)
+    opts = []
+    for t, fx in zip(texts, fixed):
+        if fx is not None:
+            opts.append([(int(round(fx)), 0.0, None)])
+        else:
+            opts.append(candidates(t, words) or [(int(round(6.0 * max(2, len(t)))), 0.0, None)])
+    cap = int(width) - 3 * (n - 1)
+    INF = float('inf')
+    dp = [{} for _ in range(n + 1)]
+    dp[0][0] = (0.0, None)
+    for i in range(n):
+        for tot, (pen, _bp) in dp[i].items():
+            for k, (w, pn, _r) in enumerate(opts[i]):
+                t2 = tot + w
+                if t2 > cap:
+                    continue
+                if t2 not in dp[i + 1] or pen + pn < dp[i + 1][t2][0]:
+                    dp[i + 1][t2] = (pen + pn, (tot, k))
+    if not dp[n]:                                           # nothing fits: the narrowest copy of everything
+        pick_ = [min(o, key=lambda c: c[0]) for o in opts]
+        return [c[2] for c in pick_], 0.0
+    best, best_cost = None, INF
+    for tot, (pen, _bp) in dp[n].items():
+        g = (width - tot) / (n - 1) if n > 1 else GAP_GOAL
+        cost = pen + GAP_W * (g - GAP_GOAL) ** 2
+        if cost < best_cost:
+            best, best_cost = tot, cost
+    chosen, tot = [], best
+    for i in range(n, 0, -1):
+        prev, k = dp[i][tot][1]
+        chosen.append(opts[i - 1][k][2])
+        tot = prev
+    chosen.reverse()
+    return chosen, (width - best) / (n - 1) if n > 1 else 0.0
+
+
+KASHIDA_OVER = float(os.environ.get('MIX_KASHIDA_OVER', 9.5))     # a line looser than this (pt, optical) is tightened with kashida
+KASHIDA_MAX = 1.6                                                  # a flat run is lengthened by at most this factor
+ZONE_MIN, ZONE_THICK, ZONE_FLAT = 3.0, 8.0, 1.5
+
+
+def flat_zones(rec):
+    """x-runs (source coordinates) where the word's letters are only a thin flat stroke: the kashida a calligrapher
+    lengthens. Columns of 1 pt where the ink spans at most ZONE_THICK pt vertically and its top and bottom edges stay
+    within ZONE_FLAT pt of the run's median, in runs of at least ZONE_MIN pt. Marks and dots are not considered."""
+    if 'zones' in rec:
+        return rec['zones']
+    cols = {}
+    for _a, d in rec['paths']:
+        for sp in _subpaths(d):
+            xs, ys = [q[0] for q in sp['pts']], [q[1] for q in sp['pts']]
+            if sp['area'] <= 0 or _small((min(xs), min(ys), max(xs), max(ys))):
+                continue
+            pts = sp['pts']
+            for p, q in zip(pts, pts[1:] + pts[:1]):
+                n = max(1, int(((q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2) ** 0.5 / 0.5))
+                for k in range(n):
+                    x, y = p[0] + (q[0] - p[0]) * k / n, p[1] + (q[1] - p[1]) * k / n
+                    lo, hi = cols.get(int(x), (y, y))
+                    cols[int(x)] = (min(lo, y), max(hi, y))
+    zones, run = [], []
+
+    def close():
+        if len(run) >= ZONE_MIN:
+            tops, bots = sorted(c[1][0] for c in run), sorted(c[1][1] for c in run)
+            mt, mb = tops[len(tops) // 2], bots[len(bots) // 2]
+            if all(abs(c[1][0] - mt) <= ZONE_FLAT and abs(c[1][1] - mb) <= ZONE_FLAT for c in run):
+                zones.append((run[0][0], run[-1][0] + 1))
+    for x in sorted(cols):
+        lo, hi = cols[x]
+        if hi - lo <= ZONE_THICK and (not run or x == run[-1][0] + 1):
+            run.append((x, (lo, hi)))
+        else:
+            close()
+            run = [(x, (lo, hi))] if hi - lo <= ZONE_THICK else []
+    close()
+    rec['zones'] = zones
+    return zones
+
+
+def _map_x(d, fx, dx_small=None):
+    out, i = [], 0
+    for tok in re.finditer(r'[A-Za-z]|-?\d+\.?\d*', d):
+        t = tok.group(0)
+        if t.isalpha():
+            out.append(t)
+            i = 0
+        else:
+            v = float(t)
+            out.append(f'{fx(v) if i % 2 == 0 else v:.2f}' if dx_small is None else f'{v + dx_small:.2f}' if i % 2 == 0 else t)
+            i += 1
+    return ' '.join(out)
+
+
+def widen(rec, extra):
+    """The word with its flat runs lengthened by ``extra`` pt in all (shared in proportion to run length): big outlines are
+    warped piecewise, marks and dots keep their shape and move with the stretch under them. Returns a new record."""
+    zones = flat_zones(rec)
+    cap = sum(b - a for a, b in zones) * (KASHIDA_MAX - 1)
+    if not zones or extra <= 0:
+        return rec
+    extra = min(extra, cap)
+    total = sum(b - a for a, b in zones)
+    scale = 1 + extra / total
+
+    def fx(x):
+        out = x
+        for a, b in zones:
+            if x >= b:
+                out += (scale - 1) * (b - a)
+            elif x > a:
+                out += (scale - 1) * (x - a)
+        return out
+    paths = []
+    for attrs, d in rec['paths']:
+        parts = []
+        for sp in _subpaths(d):
+            xs, ys = [q[0] for q in sp['pts']], [q[1] for q in sp['pts']]
+            if _small((min(xs), min(ys), max(xs), max(ys))):
+                cx = (min(xs) + max(xs)) / 2
+                parts.append(_map_x(sp['d'], None, fx(cx) - cx))
+            else:
+                parts.append(_map_x(sp['d'], fx))
+        paths.append((attrs, ' '.join(parts)))
+    full, bx, _base = word_geometry(paths)
+    new = dict(rec)
+    new.update({'paths': paths, 'box': full, 'bx': bx})
+    new.pop('zones', None)
+    return new
+
+
+def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a', words=None, fit=True):
     layout = json.loads((MIX / f'layout-{page:03d}.json').read_text(encoding='utf-8'))
-    body, missing, shrink, gaps_all = [], [], [], []
+    body, missing, shrink, gaps_all, line_gap, stretched, counted, stretched_lines = [], [], [], [], [], 0, 0, []
     top = 40.0
     for row, line in enumerate(layout['lines']):
         base_y = top + row * pitch
+        ring = [bool(w['text']) and set(w['text']) <= set('٠١٢٣٤٥٦٧٨٩') for w in line['words']]
+        recs = [lib.get(w['text']) for w in line['words']]
+        if fit and words is not None:
+            def ring_width(w):
+                mk = marks.get(':'.join(w['key'].split(':')[:2]))
+                return (mk['bx'][1] - mk['bx'][0]) if mk else 22.0
+            fixed = [ring_width(w) if r else None for w, r in zip(line['words'], ring)]
+            chosen, _g = fit_line([w['text'] for w in line['words']], fixed, words, PAGE_W)
+            recs = [None if r else c for r, c in zip(ring, chosen)]
         items = []
-        for w in line['words']:
-            rec = lib.get(w['text'])
-            if w['text'] and set(w['text']) <= set('٠١٢٣٤٥٦٧٨٩'):
+        for w, r_, rec in zip(line['words'], ring, recs):
+            if r_:
                 mk = marks.get(':'.join(w['key'].split(':')[:2]))
                 items.append({'w': w, 'box': mk['box'], 'bx': mk['bx'], 'base': mk['baseline'], 'paths': mk['paths'], 'kind': 'mark'} if mk
                              else {'w': w, 'box': None, 'bx': None, 'kind': 'missing', 'width': 22.0})
             elif rec:
-                items.append({'w': w, 'box': rec['box'], 'bx': rec['bx'], 'base': rec['baseline'], 'paths': rec['paths'], 'kind': 'word'})
+                items.append({'w': w, 'box': rec['box'], 'bx': rec['bx'], 'base': rec['baseline'], 'paths': rec['paths'], 'kind': 'word', 'rec': rec})
             else:
                 items.append({'w': w, 'box': None, 'bx': None, 'kind': 'missing', 'width': 6.0 * max(2, len(w['text'] or w['layout_text']))})
         for it in items:
             if it['kind'] == 'word':
                 it['prof'] = profile(it['paths'], it['base'])
-        gaps, f, bodies = space_line(items, PAGE_W)
+        gaps, f, bodies, g_opt = space_line(items, PAGE_W)
+        if fit and g_opt > KASHIDA_OVER:                    # too loose: lengthen flat runs a little in every word that has one
+            need = (g_opt - KASHIDA_OVER) * (len(items) - 1)
+            caps = [(sum(b - a for a, b in flat_zones(it['rec'])) * (KASHIDA_MAX - 1)) if it['kind'] == 'word' else 0.0 for it in items]
+            take = min(need, sum(caps))
+            if take > 0:
+                for it, cap in zip(items, caps):
+                    if cap > 0:
+                        new = widen(it['rec'], take * cap / sum(caps))
+                        it.update({'paths': new['paths'], 'box': new['box'], 'bx': new['bx'], 'prof': profile(new['paths'], it['base'])})
+                gaps, f, bodies, g_opt = space_line(items, PAGE_W)
+                stretched_lines.append(take)
         shrink.append(f)
         gaps_all += gaps
+        if gaps:
+            line_gap.append(sum(gaps) / len(gaps))
+        for it in items:                                   # how stretched the words used are (vs the text's 25th-percentile copy)
+            if it['kind'] == 'word' and words is not None:
+                ws = sorted(r['bx'][1] - r['bx'][0] for r in (words.get(it['w']['text']) or []))
+                if len(ws) >= 3:
+                    counted += 1
+                    stretched += (it['bx'][1] - it['bx'][0]) > 1.3 * ws[len(ws) // 4]
         cursor = RIGHT
         for k, (it, bw) in enumerate(zip(items, bodies)):
             w = it['w']
@@ -414,7 +610,10 @@ def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a'):
     n_words = sum(len(l['words']) for l in layout['lines'])
     sp = statistics.pstdev(gaps_all) if len(gaps_all) > 1 else 0
     print(f'page {page}: {n_words} items, {len(missing)} without a Shamarly copy {missing[:6]}; body gap median {statistics.median(gaps_all):.1f} pt, '
-          f'std {sp:.1f}; lines shrunk {sum(1 for x in shrink if x < 1)}/{len(shrink)} min x{min(shrink):.2f}')
+          f'lines shrunk {sum(1 for x in shrink if x < 1)}/{len(shrink)}; mean gap per line {statistics.mean(line_gap):.1f} pt, '
+          f'std across lines {statistics.pstdev(line_gap):.1f} (range {min(line_gap):.1f}..{max(line_gap):.1f}); '
+          f'words >1.3x natural width: {stretched}/{counted} ({stretched / max(1, counted):.0%}); kashida on {len(stretched_lines)} lines, '
+          f'{statistics.mean(stretched_lines) if stretched_lines else 0:.0f} pt per line')
 
 
 def main():
@@ -427,7 +626,7 @@ def main():
     print('signs:', {k: (v['src'], round(v['h'], 1)) for k, v in signs.items()})
     color = '#b0301c' if '--red-signs' in sys.argv else '#1a1a1a'
     for p in pages:
-        render(p, lib, marks, gap0, pitch, signs, color)
+        render(p, lib, marks, gap0, pitch, signs, color, words, fit='--median' not in sys.argv)
 
 
 if __name__ == '__main__':
