@@ -94,9 +94,71 @@ def compounds(paths):
     return [' '.join([h['d']] + h['holes']) for h in hosts], 0
 
 
+def _small(b):
+    return (b[3] - b[1]) < 9.0 and (b[2] - b[0]) * (b[3] - b[1]) < 28.0
+
+
+def _lower_profile_level(pts):
+    """Median over x (1 pt columns) of the lowest point of one outline: the level of its long bottom run."""
+    cols = {}
+    for a, b in zip(pts, pts[1:] + pts[:1]):
+        n = max(1, int(((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5 / 0.5))
+        for k in range(n):
+            x, y = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
+            c = int(x)
+            if y > cols.get(c, -1e9):
+                cols[c] = y
+    return statistics.median(cols.values())
+
+
+def word_geometry(paths):
+    """(full ink box, body x-extent, baseline) of a word's outlines.
+
+    The baseline is the level of the bottom run of the widest outline (the connected body stroke): inside the original
+    lines that estimate is collinear within ~0.8 pt (median), where the bottom of the widest outline is 1.3 pt with a
+    heavy tail (a final ي or ر tail drags it 12 pt down), the median bottom 4.6 pt and the lowest point 3.5 pt, because
+    Shamarly's words ride up and down on the line. Never deeper than a descender can be below the ink's bottom edge.
+    The body extent leaves out the small marks and tails that overhang, so spaces are measured on the letters.
+    """
+    subs = [sp for _a, d in paths for sp in _subpaths(d)]
+    boxes = []
+    for sp in subs:
+        xs, ys = [q[0] for q in sp['pts']], [q[1] for q in sp['pts']]
+        boxes.append((min(xs), min(ys), max(xs), max(ys), sp['area'], sp))
+    full = (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+    big = [b for b in boxes if b[4] > 0 and not _small(b[:4])] or boxes
+    widest = max(big, key=lambda b: b[2] - b[0])
+    base = _lower_profile_level(widest[5]['pts'])
+    return full, (min(b[0] for b in big), max(b[2] for b in big)), min(base, full[3]) if base > full[3] - 17 else full[3] - 17
+
+
+def line_baselines(recs):
+    """Put every word of one source line on one baseline: a trimmed straight-line fit through the words' own estimates.
+
+    Single-word estimates still miss now and then (a short word whose widest outline is a tail, a word the calligrapher
+    stacked a few points high), so the line's fit decides where each word sits, at the word's own x.
+    """
+    if len(recs) < 4:
+        level = statistics.median(r['est'] for r in recs)
+        return lambda x: level
+    xs = [(r['bx'][0] + r['bx'][1]) / 2 for r in recs]
+    ys = [r['est'] for r in recs]
+    keep = list(range(len(recs)))
+    a_, b_ = statistics.median(ys), 0.0
+    for _ in range(3):
+        mx, my = statistics.fmean(xs[i] for i in keep), statistics.fmean(ys[i] for i in keep)
+        den = sum((xs[i] - mx) ** 2 for i in keep) or 1.0
+        b_ = sum((xs[i] - mx) * (ys[i] - my) for i in keep) / den
+        a_ = my - b_ * mx
+        res = sorted(abs(ys[i] - (a_ + b_ * xs[i])) for i in range(len(recs)))
+        cut = res[int(0.7 * (len(res) - 1))]
+        keep = [i for i in range(len(recs)) if abs(ys[i] - (a_ + b_ * xs[i])) <= max(cut, 0.5)] or keep
+    return lambda x: a_ + b_ * x
+
+
 def build_library():
     words, marks = defaultdict(list), {}
-    gaps, pitches = [], []
+    gaps, pitches, sign_sizes, orn = [], [], defaultdict(list), []
     for svg in sorted(SVG_DIR.glob('*.svg')):
         n = int(svg.stem)
         stats = json.loads((SVG_DIR / f'{n:03d}.json').read_text(encoding='utf-8'))
@@ -106,33 +168,40 @@ def build_library():
         per_line = defaultdict(list)
         for m in WORD.finditer(text):
             ln = max((l for pos, l in lines if pos < m.start()), default=0)
-            ps = [(a, d) for a, d in PATH.findall(m.group(3)) if 'data-mark-family="waqf"' not in a]
+            raw = PATH.findall(m.group(3))
+            for a, d in raw:                                       # the print's own sign sizes, per sign class
+                if 'data-mark-family="waqf"' in a:
+                    b = bbox(d)
+                    sign_sizes[re.search(r'data-mark="([^"]*)"', a).group(1)].append((b[2] - b[0], b[3] - b[1]))
+            ps = [(a, d) for a, d in raw if 'data-mark-family="waqf"' not in a]
             if not ps or m.group(1) in empty:
                 continue
-            bodies = [bbox(d) for a, d in ps if 'data-kind="body"' in a]
-            allb = [bbox(d) for a, d in ps]
-            box = (min(b[0] for b in allb), min(b[1] for b in allb), max(b[2] for b in allb), max(b[3] for b in allb))
-            rec = {'key': m.group(1), 'text': unescape(m.group(2)), 'page': n, 'line': ln, 'box': box,
-                   'bottom': max(b[3] for b in bodies) if bodies else box[3],
-                   'paths': [(a, d) for a, d in ps], 'ok': m.group(1) not in off}
+            full, bx, est = word_geometry(ps)
+            rec = {'key': m.group(1), 'text': unescape(m.group(2)), 'page': n, 'line': ln, 'box': full, 'bx': bx,
+                   'est': est, 'paths': ps, 'ok': m.group(1) not in off}
             per_line[(n, ln)].append(rec)
             words[rec['text']].append(rec)
+        fits = {}
+        for (pg, ln), recs in per_line.items():
+            fits[ln] = line_baselines(recs)
+            for r in recs:
+                r['baseline'] = fits[ln]((r['bx'][0] + r['bx'][1]) / 2)
+            recs.sort(key=lambda r: -r['bx'][1])
+            gaps += [a['bx'][0] - b['bx'][1] for a, b in zip(recs, recs[1:])]
         for mk in MARK.finditer(text):
             ps = PATH.findall(mk.group(2))
             if ps:
                 ln = max((l for pos, l in lines if pos < mk.start()), default=0)
-                marks.setdefault(mk.group(1), {'paths': ps, 'box': bbox(' '.join(d for _a, d in ps)), 'page': n, 'line': ln})
-        for (pg, ln), recs in per_line.items():
-            base = statistics.median(r['bottom'] for r in recs)
-            for r in recs:
-                r['baseline'] = base
-            recs.sort(key=lambda r: -r['box'][2])
-            gaps += [a['box'][0] - b['box'][2] for a, b in zip(recs, recs[1:])]
-        bases = sorted(statistics.median(r['bottom'] for r in recs) for (pg, _l), recs in per_line.items() if pg == n)
+                box = bbox(' '.join(d for _a, d in ps))
+                marks.setdefault(mk.group(1), {'paths': ps, 'box': box, 'bx': (box[0], box[2]), 'page': n, 'line': ln})
+                if ln in fits:                                     # where a ring sits against its line's baseline
+                    orn.append(fits[ln]((box[0] + box[2]) / 2) - (box[1] + box[3]) / 2)
+        bases = sorted(statistics.median(r['baseline'] for r in recs) for (pg, _l), recs in per_line.items() if pg == n)
         pitches += [b - a for a, b in zip(bases, bases[1:]) if 25 < b - a < 70]
-    for m in marks.values():                               # line baseline of an ayah mark: its own bottom edge region
-        m['baseline'] = m['box'][3] - 6
-    return words, marks, statistics.median(g for g in gaps if -5 < g < 30), statistics.median(pitches)
+    ring_lift = statistics.median(orn)
+    for m in marks.values():                                       # a ring's "baseline": its centre sits ring_lift above it
+        m['baseline'] = (m['box'][1] + m['box'][3]) / 2 + ring_lift
+    return words, marks, statistics.median(g for g in gaps if -5 < g < 30), statistics.median(pitches), sign_sizes
 
 
 def pick(words):
@@ -140,10 +209,62 @@ def pick(words):
     chosen = {}
     for text, recs in words.items():
         pool = [r for r in recs if r['ok']] or recs
-        med = statistics.median(r['box'][2] - r['box'][0] for r in pool)
-        chosen[text] = min(pool, key=lambda r: abs((r['box'][2] - r['box'][0]) - med))
+        med = statistics.median(r['bx'][1] - r['bx'][0] for r in pool)
+        chosen[text] = min(pool, key=lambda r: abs((r['bx'][1] - r['bx'][0]) - med))
         chosen[text]['copies'] = len(recs)
     return chosen
+
+
+WAQF_MARK = {'ج': 'waqf_jaiz_mustawi_al_tarafayn', 'ق': 'waqf_jaiz_waqf_awla', 'ص': 'waqf_jaiz_wasl_awla',
+             'م': 'waqf_lazim', 'ع': 'waqf_al_muanaqah', 'س': 'saktah', 'لا': ''}
+QATAR_SVG = ROOT / 'artifacts' / 'qatar-qvp' / 'svg'
+
+
+def sign_library(sign_sizes):
+    """{sign: {'d': outline moved to (0,0), 'w', 'h'}} drawn at the size this print gives that sign.
+
+    The outlines are the chosen print's own where we have them (Qatar's traced pages: ج ص ق); the others come from the
+    Uthmani Hafs font. Either way the height is the median Shamarly height of that sign, so a sign is as big as the
+    print's own, not as big as a font's em.
+    """
+    def local(d):
+        n = [float(v) for v in NUM.findall(d)]
+        x0, y0 = min(n[0::2]), min(n[1::2])
+        return re.sub(r'-?\d+\.?\d*', lambda m: m.group(0), d), (x0, y0, max(n[0::2]) - x0, max(n[1::2]) - y0)
+
+    def move(d, x0, y0):
+        out, i = [], 0
+        for tok in re.finditer(r'[A-Za-z]|-?\d+\.?\d*', d):
+            t = tok.group(0)
+            if t.isalpha():
+                out.append(t)
+                i = 0
+            else:
+                out.append(f'{float(t) - (x0 if i % 2 == 0 else y0):.2f}')
+                i += 1
+        return ' '.join(out)
+
+    lib, per_mark = {}, defaultdict(list)
+    for svg in sorted(QATAR_SVG.glob('*.svg')):
+        for m in re.finditer(r'<path data-kind="mark" data-mark="([^"]*)" data-mark-family="waqf" d="([^"]+)"', svg.read_text(encoding='utf-8')):
+            if m.group(1):
+                _d, (x0, y0, w, h) = local(m.group(2))
+                if w > 1 and h > 1:
+                    per_mark[m.group(1)].append((w * h, m.group(2), (x0, y0, w, h)))
+    for sym, mark in WAQF_MARK.items():
+        want = statistics.median(h for _w, h in sign_sizes[mark]) if sign_sizes.get(mark) else 9.0
+        if per_mark.get(mark):
+            _a, d, (x0, y0, w, h) = sorted(per_mark[mark])[len(per_mark[mark]) // 2]    # the median-size traced sign
+            k = want / h
+            lib[sym] = {'d': move(d, x0, y0), 'w': w * k, 'h': want, 'k': k, 'src': 'qatar'}
+    glyphs = sign_paths()
+    for sym, (d, (bx0, by0, bx1, by1)) in glyphs.items():
+        if sym in lib or sym not in WAQF_MARK:
+            continue
+        want = statistics.median(h for _w, h in sign_sizes[WAQF_MARK[sym]]) if sign_sizes.get(WAQF_MARK[sym]) else 9.0
+        k = want / (by1 - by0)
+        lib[sym] = {'d': d, 'w': (bx1 - bx0) * k, 'h': want, 'k': k, 'src': 'font', 'font': (bx0, by0, bx1, by1)}
+    return lib
 
 
 def sign_paths():
@@ -167,78 +288,146 @@ def sign_paths():
     return out
 
 
-def render(page, lib, marks, gap0, pitch, signs, sign_pt):
+BAND = (-22, 5)         # rows (pt relative to the word's baseline) the optical gap is measured over
+CLEAR = 1.0             # the tightest row between two words keeps at least this much white
+
+
+def profile(paths, base):
+    """{row: (leftmost x, rightmost x)} of a word's ink in 1 pt rows around its baseline (marks above the band ignored)."""
+    rows = {}
+    for sp in (sp for _a, d in paths for sp in _subpaths(d)):
+        pts = sp['pts']
+        for p, q in zip(pts, pts[1:] + pts[:1]):
+            n = max(1, int(((q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2) ** 0.5 / 0.5))
+            for k in range(n):
+                x, y = p[0] + (q[0] - p[0]) * k / n, p[1] + (q[1] - p[1]) * k / n
+                r = int(y - base // 1) if False else int((y - base) // 1)
+                if BAND[0] <= r <= BAND[1]:
+                    lo, hi = rows.get(r, (x, x))
+                    rows[r] = (min(lo, x), max(hi, x))
+    return rows
+
+
+def pair_gap(a, b):
+    """For a (right) and b (left): (mean, min) over shared rows of the white between a's left edge and b's right edge,
+    measured from the two bodies' extents, so extent gap d gives optical gap d + mean."""
+    if not (a.get('prof') and b.get('prof')):
+        return 0.0, 0.0
+    ra, rb = a['prof'], b['prof']
+    vals = [(ra[r][0] - a['bx'][0]) + (b['bx'][1] - rb[r][1]) for r in ra if r in rb]
+    if len(vals) < 3:
+        return 0.0, 0.0
+    return sum(vals) / len(vals), min(vals)
+
+
+def space_line(items, width):
+    """Extent gaps d_i between neighbouring items (reading order, right to left), and the line's shrink factor.
+
+    The white between two words is measured as an area (the mean over the rows both words have ink in of the distance
+    between their facing edges), not between their extreme points, and that optical gap is the same for every pair on
+    the line; a pair whose tightest row would drop below CLEAR keeps CLEAR there and the others share the rest.
+    """
+    n = len(items)
+    bodies = [(i['bx'][1] - i['bx'][0]) if i['bx'] else i['width'] for i in items]
+    if n < 2:
+        return [], 1.0, bodies
+    m, bound = [], []
+    for a, b in zip(items, items[1:]):
+        mean, low = pair_gap(a, b)
+        m.append(mean)
+        bound.append(CLEAR - low)                           # smallest extent gap that keeps CLEAR in the tightest row
+    total = sum(bodies)
+    if total + sum(bound) > width:
+        return bound, (width - sum(bound)) / total, bodies
+    fixed, free = {}, set(range(n - 1))
+    while True:
+        g = (width - total - sum(fixed.values()) + sum(m[i] for i in free)) / max(1, len(free))
+        over = [i for i in free if g - m[i] < bound[i]]
+        if not over:
+            d = [fixed[i] if i in fixed else g - m[i] for i in range(n - 1)]
+            return d, 1.0, bodies
+        for i in over:
+            fixed[i] = bound[i]
+            free.discard(i)
+
+
+def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a'):
     layout = json.loads((MIX / f'layout-{page:03d}.json').read_text(encoding='utf-8'))
-    body, missing, shrink, gaps, placed = [], [], [], [], 0
+    body, missing, shrink, gaps_all = [], [], [], []
     top = 40.0
     for row, line in enumerate(layout['lines']):
         base_y = top + row * pitch
         items = []
         for w in line['words']:
             rec = lib.get(w['text'])
-            if w['text'] and w['text'].strip().isdigit() or (w['text'] and set(w['text']) <= set('٠١٢٣٤٥٦٧٨٩')):
-                ak = ':'.join(w['key'].split(':')[:2])
-                mk = marks.get(ak)
-                items.append({'w': w, 'box': mk['box'], 'base': mk['baseline'], 'paths': mk['paths'], 'kind': 'mark'} if mk
-                             else {'w': w, 'box': None, 'kind': 'missing', 'width': 22.0})
+            if w['text'] and set(w['text']) <= set('٠١٢٣٤٥٦٧٨٩'):
+                mk = marks.get(':'.join(w['key'].split(':')[:2]))
+                items.append({'w': w, 'box': mk['box'], 'bx': mk['bx'], 'base': mk['baseline'], 'paths': mk['paths'], 'kind': 'mark'} if mk
+                             else {'w': w, 'box': None, 'bx': None, 'kind': 'missing', 'width': 22.0})
             elif rec:
-                items.append({'w': w, 'box': rec['box'], 'base': rec['baseline'], 'paths': rec['paths'], 'kind': 'word'})
+                items.append({'w': w, 'box': rec['box'], 'bx': rec['bx'], 'base': rec['baseline'], 'paths': rec['paths'], 'kind': 'word'})
             else:
-                items.append({'w': w, 'box': None, 'kind': 'missing', 'width': 6.0 * max(2, len(w['text'] or w['layout_text']))})
-        widths = [(i['box'][2] - i['box'][0]) if i['box'] else i['width'] for i in items]
-        n = len(items)
-        total = sum(widths)
-        f = 1.0
-        gap = (PAGE_W - total) / (n - 1) if n > 1 else 0
-        if gap < MIN_GAP:
-            f = (PAGE_W - MIN_GAP * (n - 1)) / total
-            gap = MIN_GAP
+                items.append({'w': w, 'box': None, 'bx': None, 'kind': 'missing', 'width': 6.0 * max(2, len(w['text'] or w['layout_text']))})
+        for it in items:
+            if it['kind'] == 'word':
+                it['prof'] = profile(it['paths'], it['base'])
+        gaps, f, bodies = space_line(items, PAGE_W)
         shrink.append(f)
-        gaps.append(gap)
+        gaps_all += gaps
         cursor = RIGHT
-        for it, wd in zip(items, widths):
+        for k, (it, bw) in enumerate(zip(items, bodies)):
             w = it['w']
             if it['kind'] == 'missing':
-                body.append(f'<rect x="{cursor - wd * f:.1f}" y="{base_y - 22:.1f}" width="{wd * f:.1f}" height="26" '
+                body.append(f'<rect x="{cursor - bw * f:.1f}" y="{base_y - 22:.1f}" width="{bw * f:.1f}" height="26" '
                             f'fill="#f3c6c6" stroke="#c0392b" stroke-width="0.6"/>')
                 missing.append(w['key'])
             else:
-                x1, base = it['box'][2], it['base']
+                x1, base = it['bx'][1], it['base']
                 ds, _loose = compounds(it['paths'])
-                paths = ''.join(f'<path d="{d}"/>' for d in ds)
-                body.append(f'<g transform="translate({cursor:.2f},{base_y:.2f}) scale({f:.4f}) translate({-x1:.2f},{-base:.2f})">{paths}</g>')
-                placed += 1
-                if w['sign'] and w['sign'] in signs and it['kind'] == 'word':
-                    d, (bx0, by0, bx1, by1) = signs[w['sign']]
-                    s = sign_pt / max(b[3] - b[1] for b in (v[1] for v in signs.values()))      # tallest sign = sign_pt pt
-                    cx = cursor - wd * f / 2
-                    top_y = base_y - (base - it['box'][1]) * f - 3                              # sign's bottom 3 pt over the ink
-                    body.append(f'<g transform="translate({cx - s * (bx0 + bx1) / 2:.2f},{top_y + s * by0:.2f}) scale({s:.5f},{-s:.5f})" '
-                                f'fill="#b0301c"><path d="{d}"/></g>')
-            cursor -= wd * f + gap
+                body.append(f'<g transform="translate({cursor:.2f},{base_y:.2f}) scale({f:.4f}) translate({-x1:.2f},{-base:.2f})">'
+                            + ''.join(f'<path d="{d}"/>' for d in ds) + '</g>')
+                sg = signs.get(w['sign']) if it['kind'] == 'word' else None
+                if sg:
+                    # above the last letters (the left end of the word), just over the ink that is really there
+                    sx = it['bx'][0] + min(max(0.18 * (it['bx'][1] - it['bx'][0]), 6.0), 12.0)
+                    tops = [q[1] for _a, d in it['paths'] for sp in _subpaths(d) for q in sp['pts'] if sx - 7 <= q[0] <= sx + 7]
+                    top_src = min(tops) if tops else it['box'][1]
+                    cx = cursor - (x1 - sx) * f
+                    bottom = base_y + (top_src - base) * f - 2.0
+                    if sg['src'] == 'qatar':
+                        body.append(f'<g transform="translate({cx - sg["w"] / 2:.2f},{bottom - sg["h"]:.2f}) scale({sg["k"]:.4f})">'
+                                    f'<path d="{sg["d"]}" fill="{color}"/></g>')
+                    else:
+                        fx0, fy0, fx1, fy1 = sg['font']
+                        body.append(f'<g transform="translate({cx - sg["k"] * (fx0 + fx1) / 2:.2f},{bottom + sg["k"] * fy0:.2f}) '
+                                    f'scale({sg["k"]:.5f},{-sg["k"]:.5f})"><path d="{sg["d"]}" fill="{color}"/></g>')
+            cursor -= bw * f + (gaps[k] * f if k < len(gaps) else 0)
     height = top + 15 * pitch + 20
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{RIGHT - PAGE_W - 20:.1f} 0 {PAGE_W + 40:.1f} {height:.1f}" '
            f'width="{(PAGE_W + 40) * 3:.0f}" height="{height * 3:.0f}"><rect x="0" y="0" width="1000" height="{height:.0f}" fill="#fbfaf6"/>'
-           f'<g fill="#1a1a1a">{"".join(body)}</g></svg>')
+           f'<g fill="{color}">{"".join(body)}</g></svg>')
     (MIX / f'mix-{page:03d}.svg').write_text(svg, encoding='utf-8')
     import fitz
     doc = fitz.open(stream=svg.encode(), filetype='svg')
     pix = doc[0].get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
     pix.save(str(MIX / f'mix-{page:03d}.png'))
     n_words = sum(len(l['words']) for l in layout['lines'])
-    print(f'page {page}: {n_words} items, {len(missing)} without a Shamarly copy {missing[:6]}; gap median {statistics.median(gaps):.1f} pt '
-          f'(Shamarly natural {gap0:.1f}); lines shrunk {sum(1 for x in shrink if x < 1)}/{len(shrink)} min x{min(shrink):.2f}')
+    sp = statistics.pstdev(gaps_all) if len(gaps_all) > 1 else 0
+    print(f'page {page}: {n_words} items, {len(missing)} without a Shamarly copy {missing[:6]}; body gap median {statistics.median(gaps_all):.1f} pt, '
+          f'std {sp:.1f}; lines shrunk {sum(1 for x in shrink if x < 1)}/{len(shrink)} min x{min(shrink):.2f}')
 
 
 def main():
-    pages = [int(p) for p in sys.argv[1:]] or [3, 100, 250]
-    words, marks, gap0, pitch = build_library()
+    pages = [int(p) for p in sys.argv[1:] if p.isdigit()] or [3, 100, 250]
+    words, marks, gap0, pitch, sign_sizes = build_library()
     lib = pick(words)
     print(f'library: {sum(len(v) for v in words.values())} word copies, {len(lib)} distinct texts, {len(marks)} ayah marks; '
-          f'natural gap {gap0:.1f} pt, line pitch {pitch:.1f} pt')
-    signs = sign_paths()
+          f'natural body gap {gap0:.1f} pt, line pitch {pitch:.1f} pt')
+    signs = sign_library(sign_sizes)
+    print('signs:', {k: (v['src'], round(v['h'], 1)) for k, v in signs.items()})
+    color = '#b0301c' if '--red-signs' in sys.argv else '#1a1a1a'
     for p in pages:
-        render(p, lib, marks, gap0, pitch, signs, sign_pt=24.0)
+        render(p, lib, marks, gap0, pitch, signs, color)
 
 
 if __name__ == '__main__':

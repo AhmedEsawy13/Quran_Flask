@@ -659,10 +659,12 @@ def page(n: int) -> dict:
                 if open_ayah:
                     out.append('</g>')
                     open_ayah = None
+                if not mine:                                   # a ring with no ink would be an empty group qvp-convert can't encode
+                    stats.setdefault('ringless', []).append(ak)
+                    continue
                 rid = f'ayah-mark-{n}-{ak.replace(":", "-")}'
                 out.append(f'<g class="ayah-mark" id="{rid}" data-ayah-key="{ak}">')
-                if mine:
-                    out.append('<path data-kind="ayah_mark_ornament" d="' + ' '.join(D(o) for o in mine) + '"/>')
+                out.append('<path data-kind="ayah_mark_ornament" d="' + ' '.join(D(o) for o in mine) + '"/>')
                 out.append('</g>')
                 frag[ak] = rid
                 stats['rings'] += 1
@@ -687,10 +689,40 @@ def page(n: int) -> dict:
                     if o in tj_of:
                         tjm.setdefault(tj_of[o], []).append(o)
                 body = [o for o in body if o not in tj_of]
-            if body:
-                out.append('<path data-kind="body" d="' + ' '.join(D(o) for o in body) + '"/>')
+            # A counter must be cut from its own letter only. All outlines of a word in one path overlap where letters
+            # touch, so a counter under a neighbour's outline fills in (nonzero) or the overlaps are punched out
+            # (even-odd): each body outline gets its own path with its own holes, and a hole goes with its host even
+            # when the host is a tajweed mark or sign (the pipeline's hole_of).
+            groups = {'body': body, 'waqf': waqf, 'tj': tjm}
+            where = {o: ('body', None) for o in body}
+            where.update({o: ('waqf', si) for si, os_ in waqf.items() for o in os_})
+            where.update({o: ('tj', cls) for cls, os_ in tjm.items() for o in os_})
+            for o in [o for o in where if (COMP.get(o) or {}).get('hole_of') in where]:
+                host = COMP[o]['hole_of']
+                if where[o] != where[host]:
+                    kind, key = where[o]
+                    (groups[kind][key] if key is not None else groups[kind]).remove(o)
+                    kind, key = where[host]
+                    (groups[kind][key] if key is not None else groups[kind]).append(o)
+                    where[o] = where[host]
+            held = {o for o in body if (COMP.get(o) or {}).get('hole_of') in where and where[COMP[o]['hole_of']] == ('body', None)}
+            body_paths, slivers = [], []
+            for o in body:
+                if o in held:
+                    continue
+                bx = BOX[o]
+                if bx[2] - bx[0] < 0.1 or bx[3] - bx[1] < 0.1:         # a zero-width contour: qvp-convert cannot box it alone
+                    slivers.append(o)
+                    continue
+                body_paths.append([o] + [h for h in held if COMP[h]['hole_of'] == o])
+            if slivers:
+                (body_paths[0] if body_paths else body_paths.append([]) or body_paths[0]).extend(slivers)
+            for group in body_paths:
+                out.append('<path data-kind="body" d="' + ' '.join(D(x) for x in group) + '"/>')
                 stats['paths'] += 1
             for si, os_ in waqf.items():
+                if not os_:                                    # its outlines were holes that went to their hosts
+                    continue
                 out.append(f'<path data-kind="mark" data-mark="{WAQF_MARK.get(found[si][0], "")}" '
                            f'data-mark-family="waqf" d="' + ' '.join(D(o) for o in os_) + '"/>')
                 stats['paths'] += 1
@@ -699,6 +731,8 @@ def page(n: int) -> dict:
                 tj_letters[wkey] = [[round(a - VX0, 2), round(b - VX0, 2), c] for a, b, c in tj_letters_of[wi]]
                 stats['tajweed_letters'] = stats.get('tajweed_letters', 0) + len(tj_letters[wkey])
             for cls, os_ in tjm.items():                      # tajweed-coloured marks: their own paths, in this order
+                if not os_:                                    # a class whose only outlines were holes of other paths
+                    continue
                 out.append('<path data-kind="mark" data-mark="" data-mark-family="diacritic" d="'
                            + ' '.join(D(o) for o in os_) + '"/>')
                 tj_side.setdefault(wkey, []).append(cls)
