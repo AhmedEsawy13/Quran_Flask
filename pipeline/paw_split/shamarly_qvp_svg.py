@@ -323,6 +323,14 @@ def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, ke
         if wi in line_wis and (wi, j) in bounds:
             by_word.setdefault(wi, []).append((*bounds[(wi, j)], cls[0]))
     letters_out = {}
+    audit = []                                # every (word, letter, class, x-interval) this line paints (TJ_AUDIT_DIR)
+    for wi, items in by_word.items():
+        for (w2, j), cls in lcls.items():
+            if w2 == wi and (wi, j) in bounds:
+                chars = [c for c in keys[wi][1] if K.is_letter(c)]
+                audit.append({'key': keys[wi][0], 'j': j, 'letter': chars[j] if j < len(chars) else '', 'class': cls[0],
+                              'x': [round(bounds[(wi, j)][0], 2), round(bounds[(wi, j)][1], 2)], 'text': keys[wi][1], 'line': ln})
+    st['audit_line'] = audit
     for wi, items in by_word.items():
         merged = []
         for xa, xb, c in sorted(items):
@@ -634,6 +642,7 @@ def page(n: int) -> dict:
     # 3. the page
     tj_side: dict[str, list[str]] = {}
     tj_letters: dict[str, list] = {}
+    audit_rows: list = []
     for ln, ltype, sid in layout:
         if ltype == 'surah_name':
             # the banner sits between the neighbouring text lines; the viewer draws it (box), its lettering kept
@@ -674,6 +683,7 @@ def page(n: int) -> dict:
                     stats.setdefault('tj_bad_lines', []).append(ln)
                     tj_of, tj_letters_of = {}, {}
                 else:
+                    audit_rows.extend(_TJ.get('audit_line', []))
                     stats['tj_targets'] = stats.get('tj_targets', 0) + tt
                     stats['tj_hit'] = stats.get('tj_hit', 0) + th
             except Exception as exc:                          # a line without colours, not a failed page
@@ -816,6 +826,9 @@ def page(n: int) -> dict:
         svg = svg.replace(f'class="ayah-fragment" data-ayah-key="{ak}">',
                           f'class="ayah-fragment" data-ayah-key="{ak}" data-ayah-mark="{rid}">')
     OUT.mkdir(parents=True, exist_ok=True)
+    if os.environ.get('TJ_AUDIT_DIR'):
+        Path(os.environ['TJ_AUDIT_DIR']).mkdir(parents=True, exist_ok=True)
+        (Path(os.environ['TJ_AUDIT_DIR']) / f'{n:03d}.json').write_text(json.dumps(audit_rows, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.tajweed.json').write_text(json.dumps({'marks': tj_side, 'letters': tj_letters}, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.svg').write_text(svg, encoding='utf-8')
     stats['bytes'] = len(svg.encode())
