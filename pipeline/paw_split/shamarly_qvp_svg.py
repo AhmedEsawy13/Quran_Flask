@@ -380,11 +380,13 @@ def page(n: int) -> dict:
     from line_moves import line_outlines
     from line_ownership import line_editor_payload
 
-    db = sqlite3.connect(SHEMRLY / 'glyph_mappings.db', timeout=60)
+    # SHEMRLY_GLYPH_DB / SHEMRLY_OUTPUT_ROOT point a build at a scratch copy of the database and page folders (dry runs)
+    db = sqlite3.connect(os.environ.get('SHEMRLY_GLYPH_DB', SHEMRLY / 'glyph_mappings.db'), timeout=60)
     db.row_factory = sqlite3.Row
-    page_dir = page_directory(RUN, n, DEFAULT_OUTPUT_ROOT)
+    out_root = Path(os.environ['SHEMRLY_OUTPUT_ROOT']) if os.environ.get('SHEMRLY_OUTPUT_ROOT') else DEFAULT_OUTPUT_ROOT
+    page_dir = page_directory(RUN, n, out_root)
     report = load_page_report(page_dir)
-    review = load_page_review(db, RUN, n, DEFAULT_OUTPUT_ROOT)
+    review = load_page_review(db, RUN, n, out_root)
     sdb = sqlite3.connect(SHEMRLY / 'quran_script.db')
     keys = {i: (k, t) for i, k, t in sdb.execute('SELECT word_index, word_key, text FROM words')}
     layout = sqlite3.connect(SHEMRLY / 'mushaf_layout_inferred.db').execute(
@@ -458,6 +460,30 @@ def page(n: int) -> dict:
         host = c.get('hole_of')
         if host and host in OWNER and oid not in OWNER:
             OWNER[oid] = OWNER[host]
+    # Words that own no ink at all (their pieces are fused into a neighbour's outline): record the big outlines of the two
+    # neighbouring words (the one read before, to the right, and the one read after, to the left) with their paths, for the
+    # knife pilot (stats['empty_ctx']). The cell is only a rough guide to where the word sits.
+    stats['empty_ctx'] = []
+    kinds_ = {ln_: lt_ for ln_, lt_, _s in layout}
+    for ln_, payload in PAYLOAD.items():
+        if kinds_.get(ln_) != 'ayah':
+            continue
+        order = sorted(payload['words'], key=lambda w: -w['cell'][0])                 # reading order, right to left
+        have = {OWNER[o] for o in OWNER if line_of[o] == ln_ and not (COMP[o] or {}).get('hole_of')}
+        for i_, w_ in enumerate(order):
+            if w_['key'] in have:
+                continue
+            c0, c1 = sorted((w_['cell'][0] / k + x0, w_['cell'][1] / k + x0))
+            neigh = {}
+            for side, j_ in (('right', i_ - 1), ('left', i_ + 1)):
+                if 0 <= j_ < len(order):
+                    nk = order[j_]['key']
+                    outs = [{'oid': o, 'box': [round(v, 2) for v in BOX[o]], 'd': _d(RAW[o], PDF_TO_FONT, CONTENT_X0, BOTTOM[ln_])}
+                            for o in OWNER if line_of[o] == ln_ and OWNER[o] == nk and not (COMP[o] or {}).get('hole_of')
+                            and (BOX[o][2] - BOX[o][0]) * (BOX[o][3] - BOX[o][1]) >= 25]
+                    neigh[side] = {'word': nk, 'word_index': order[j_]['word_index'], 'outlines': outs}
+            stats['empty_ctx'].append({'word': w_['key'], 'word_index': w_['word_index'], 'line': ln_, 'cell': [round(c0, 2), round(c1, 2)],
+                                       'neighbours': neigh})
     key_of_owner = {}                        # owner key ('word:123') -> word_key
     for ln, payload in PAYLOAD.items():
         for w in payload['words']:

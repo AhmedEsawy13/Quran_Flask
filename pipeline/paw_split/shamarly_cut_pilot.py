@@ -33,7 +33,7 @@ SH = Path.home() / 'Development' / 'ShemrlyMushaf'
 sys.path[:0] = [str(SH), str(SH / 'output' / 'auto-knife')]
 ROOT = Path(__file__).resolve().parents[2]
 SC = 16
-ANGLES = (-60, -45, -30, -15, 0, 15, 30, 45, 60)       # degrees from vertical (y down)
+ANGLES = (-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75)       # degrees from vertical (y down); 90 = along the line
 MAX_CANDIDATES = 10
 
 
@@ -280,16 +280,16 @@ def build_shared(out: Path, svg_dir: Path, n: int) -> None:
     print(f'{len(pool)} shared big outlines -> sheets (pool of qualifying: see log)')
 
 
-def apply_choices(out: Path) -> None:
+def apply_choices(out: Path, suffix: str = '') -> None:
     """Cut each case where its agent chose, and draw the two pieces in two colours with the two words' texts (for a verifier)."""
-    info = json.loads((out / 'truth' / 'shared.json').read_text(encoding='utf-8'))
+    info = json.loads((out / 'truth' / f'shared{suffix}.json').read_text(encoding='utf-8'))
     picks = {}
-    for f in sorted((out / 'results').glob('cutter_*.jsonl')):
+    for f in sorted((out / 'results').glob(f'cutter{suffix}_*.jsonl')):
         for line in f.read_text(encoding='utf-8').splitlines():
             if line.strip():
                 r = json.loads(line)
                 picks[r['id']] = r
-    (out / 'after').mkdir(exist_ok=True)
+    (out / f'after{suffix}').mkdir(exist_ok=True)
     made = 0
     for cid, c in info.items():
         r = picks.get(cid)
@@ -312,18 +312,128 @@ def apply_choices(out: Path) -> None:
         if img.shape[1] > 1300:
             k = 1300 / img.shape[1]
             img = cv2.resize(img, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
-        Image.fromarray(img).save(out / 'after' / f'{cid}.png')
+        Image.fromarray(img).save(out / f'after{suffix}' / f'{cid}.png')
         made += 1
-    print(f'{made} cut pictures in {out / "after"}')
+    print(f'{made} cut pictures in {out / f"after{suffix}"}')
+
+
+def _skip_ornament(text: str) -> bool:
+    return text.strip() in ('', '\u06de')
+
+
+def build_empty(out: Path, svg_dir: Path) -> None:
+    """Stage 1 for the words with no ink: a picture of the line around each, its two neighbours' big outlines numbered, and the
+    cell where the word should be (a rough guide), so an agent can say which outline holds the empty word's ink."""
+    import glob
+    import re
+    words = dict(sqlite3.connect(ROOT / 'data' / 'quran_script.db').execute('SELECT word_index, text FROM words').fetchall())
+    for sub in ('identify', 'results', 'truth'):
+        (out / sub).mkdir(parents=True, exist_ok=True)
+    cases, info = [], {}
+    palette_r = [(30, 90, 220), (80, 150, 240), (20, 60, 150), (110, 170, 255), (60, 110, 190), (140, 190, 250)]
+    palette_l = [(225, 110, 20), (240, 160, 70), (170, 80, 10), (250, 190, 120), (200, 120, 40), (255, 210, 150)]
+    for f in sorted(glob.glob(str(svg_dir / '???.json'))):
+        page = int(Path(f).stem)
+        st = json.loads(Path(f).read_text(encoding='utf-8'))
+        svg = (svg_dir / f'{page:03d}.svg').read_text(encoding='utf-8')
+        allp = [q for m in re.finditer(r'<path [^>]*? d="([^"]+)"', svg) for q in _polys_of_d(m.group(1))]
+        for e in st.get('empty_ctx', []):
+            if _skip_ornament(words.get(e['word_index'], '')):
+                continue
+            cid = f'e{len(cases):02d}'
+            outs = []
+            for side in ('right', 'left'):
+                for o in e['neighbours'].get(side, {}).get('outlines', []):
+                    outs.append({**o, 'side': side, 'poly': max(_polys_of_d(o['d']), key=lambda p: p.area)})
+            if not outs:
+                continue
+            x0 = min(min(o['poly'].bounds[0] for o in outs), e['cell'][0]) - 8
+            x1 = max(max(o['poly'].bounds[2] for o in outs), e['cell'][1]) + 8
+            y0 = min(o['poly'].bounds[1] for o in outs) - 10
+            y1 = max(o['poly'].bounds[3] for o in outs) + 10
+            sc = 10
+            w, h = int((x1 - x0) * sc), int((y1 - y0) * sc)
+            img = np.full((h, w, 3), 255, np.uint8)
+            cv2.rectangle(img, (int((e['cell'][0] - x0) * sc), 0), (int((e['cell'][1] - x0) * sc), h - 1), (255, 245, 190), -1)
+            for q0 in allp:
+                b = q0.bounds
+                if b[2] > x0 and b[0] < x1 and b[3] > y0 and b[1] < y1 and q0.area < 4000:
+                    for q in (q0.geoms if q0.geom_type == 'MultiPolygon' else [q0]):
+                        if not q.is_empty:
+                            cv2.fillPoly(img, [np.array([[(x - x0) * sc, (y - y0) * sc] for x, y in q.exterior.coords], np.int32)], (200, 200, 200))
+            ri = li = 0
+            for n_, o in enumerate(outs, 1):
+                col = (palette_r[ri % 6], ri) if o['side'] == 'right' else (palette_l[li % 6], li)
+                ri += o['side'] == 'right'
+                li += o['side'] == 'left'
+                cv2.fillPoly(img, [np.array([[(x - x0) * sc, (y - y0) * sc] for x, y in o['poly'].exterior.coords], np.int32)], col[0])
+            for n_, o in enumerate(outs, 1):
+                cx, cy = o['poly'].representative_point().x, o['poly'].representative_point().y
+                cv2.putText(img, str(n_), (int((cx - x0) * sc) - 8, int((cy - y0) * sc) + 8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 4)
+                cv2.putText(img, str(n_), (int((cx - x0) * sc) - 8, int((cy - y0) * sc) + 8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
+            if img.shape[1] > 1500:
+                k = 1500 / img.shape[1]
+                img = cv2.resize(img, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+            Image.fromarray(img).save(out / 'identify' / f'{cid}.png')
+            nr, nl = e['neighbours'].get('right'), e['neighbours'].get('left')
+            cases.append({'id': cid, 'empty_word': words.get(e['word_index'], ''),
+                          'right_neighbour': words.get(nr['word_index'], '') if nr else None,
+                          'left_neighbour': words.get(nl['word_index'], '') if nl else None,
+                          'outlines': [{'number': n_, 'side': o['side'], 'width_pt': round(o['poly'].bounds[2] - o['poly'].bounds[0], 1),
+                                        'height_pt': round(o['poly'].bounds[3] - o['poly'].bounds[1], 1)} for n_, o in enumerate(outs, 1)]})
+            info[cid] = {'page': page, 'line': e['line'], 'empty_key': e['word'], 'empty_index': e['word_index'], 'cell': e['cell'],
+                         'right': nr['word'] if nr else None, 'left': nl['word'] if nl else None,
+                         'outlines': [{'oid': o['oid'], 'side': o['side'], 'd': o['d']} for o in outs]}
+    (out / 'identify' / 'cases.json').write_text(json.dumps(cases, ensure_ascii=False, indent=1), encoding='utf-8')
+    (out / 'truth' / 'empty.json').write_text(json.dumps(info, ensure_ascii=False), encoding='utf-8')
+    print(len(cases), 'empty-word cases ->', out / 'identify')
+
+
+def chords_empty(out: Path, svg_dir: Path, ids=None, suffix: str = '') -> None:
+    """Stage 2: for the outline each agent picked, the numbered candidate chords (same sheets as the pilot)."""
+    import re
+    info = json.loads((out / 'truth' / 'empty.json').read_text(encoding='utf-8'))
+    words = dict(sqlite3.connect(ROOT / 'data' / 'quran_script.db').execute('SELECT word_index, text FROM words').fetchall())
+    picks = {}
+    for f in sorted((out / 'results').glob('identify_*.jsonl')):
+        for line in f.read_text(encoding='utf-8').splitlines():
+            if line.strip():
+                r = json.loads(line)
+                picks[r['id']] = r
+    (out / f'sheets{suffix}').mkdir(exist_ok=True)
+    meta, chosen = [], {}
+    for cid, c in info.items():
+        r = picks.get(cid)
+        if not r or r['outline'] in ('none', None, 0) or (ids and cid not in ids):
+            continue
+        o = c['outlines'][int(r['outline']) - 1]
+        poly = max(_polys_of_d(o['d']), key=lambda p: p.area)
+        svg = (svg_dir / f'{c["page"]:03d}.svg').read_text(encoding='utf-8')
+        near = [q for m in re.finditer(r'<path [^>]*? d="([^"]+)"', svg) for q in _polys_of_d(m.group(1))
+                if q.bounds[2] > poly.bounds[0] - 8 and q.bounds[0] < poly.bounds[2] + 8 and q.bounds[3] > poly.bounds[1] - 8
+                and q.bounds[1] < poly.bounds[3] + 8 and not q.equals(poly) and q.area < 3000]
+        cands = candidates(poly)
+        Image.fromarray(render(poly, near, cands)).save(out / f'sheets{suffix}' / f'{cid}.png')
+        other = c['right'] if o['side'] == 'right' else c['left']
+        pair = sorted([int(c['empty_key'].split(':')[1]), int(other.split(':')[1])])
+        meta.append({'id': cid, 'right_word': words.get(pair[0], ''), 'left_word': words.get(pair[1], ''), 'words_between': 0, 'candidates': len(cands)})
+        chosen[cid] = {**c, 'oid': o['oid'], 'owner_side': o['side'], 'd': o['d'],
+                       'cands': [{'p0': list(k['p0']), 'p1': list(k['p1']), 'width': k['width'], 'angle': k['angle']} for k in cands]}
+    (out / f'sheets{suffix}' / 'cases.json').write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding='utf-8')
+    (out / 'truth' / f'shared{suffix}.json').write_text(json.dumps(chosen, ensure_ascii=False), encoding='utf-8')
+    print(len(meta), 'cases with a chosen outline -> chord sheets')
 
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['build', 'score', 'build-shared', 'apply'])
+    ap.add_argument('cmd', choices=['build', 'score', 'build-shared', 'apply', 'build-empty', 'chords-empty'])
     ap.add_argument('--out', required=True, type=Path)
     ap.add_argument('--seed', type=int, default=20261111)
     ap.add_argument('--svg-dir', type=Path, default=None)
     ap.add_argument('--n', type=int, default=24)
+    ap.add_argument('--ids', default=None)
+    ap.add_argument('--suffix', default='')
     a = ap.parse_args()
     {'build': lambda: build(a.out, a.seed), 'score': lambda: score(a.out), 'build-shared': lambda: build_shared(a.out, a.svg_dir, a.n),
-     'apply': lambda: apply_choices(a.out)}[a.cmd]()
+     'apply': lambda: apply_choices(a.out, a.suffix), 'build-empty': lambda: build_empty(a.out, a.svg_dir),
+     'chords-empty': lambda: chords_empty(a.out, a.svg_dir, set(a.ids.split(',')) if a.ids else None, a.suffix)}[a.cmd]()
