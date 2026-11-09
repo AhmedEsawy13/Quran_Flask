@@ -429,6 +429,7 @@ def page(n: int) -> dict:
                 continue
             if len(ks) > 1:
                 stats['shared'] += 1
+                stats.setdefault('shared_outlines', []).append({'oid': oid, 'owners': list(ks), 'line': ln})
             OWNER[oid] = ks[0]
         for oid, c in comp.items():          # a hole goes with the outline it sits in
             host = c.get('hole_of')
@@ -831,6 +832,9 @@ def page(n: int) -> dict:
         (Path(os.environ['TJ_AUDIT_DIR']) / f'{n:03d}.json').write_text(json.dumps(audit_rows, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.tajweed.json').write_text(json.dumps({'marks': tj_side, 'letters': tj_letters}, ensure_ascii=False), encoding='utf-8')
     (OUT / f'{n:03d}.svg').write_text(svg, encoding='utf-8')
+    for so in stats.get('shared_outlines', []):                  # the joined outlines, for the knife pilot (shamarly_cut_pilot.py)
+        so['d'] = _d(RAW[so['oid']], PDF_TO_FONT, CONTENT_X0, BOTTOM[line_of[so['oid']]])
+        so['box'] = [round(v, 2) for v in BOX[so['oid']]]
     stats['bytes'] = len(svg.encode())
     (OUT / f'{n:03d}.json').write_text(json.dumps(stats, ensure_ascii=False), encoding='utf-8')
     return stats
