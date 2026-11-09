@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 import sys
 import collections
@@ -53,6 +54,7 @@ RUN = os.environ.get('SHEMRLY_RUN', 'batch-rest')
 OUT = Path(os.environ.get('SHAMARLY_SVG_OUT', ROOT / 'artifacts' / 'shamarly-qvp' / 'svg'))
 WAQF = ROOT / 'artifacts' / 'shamarly-qvp' / 'waqf'
 PDF = SHEMRLY / 'BOOK_27111_1.pdf'
+ADOPT_PT = 6.0          # an unowned outline joins the nearest word whose ink is at most this far
 DET_WIDTH = 1024.0       # the detector reads data/refs/shamarly_pdf/cache/pNNN_w1024.jpg (whole PDF page)
 WAQF_MARK = {'ج': 'waqf_jaiz_mustawi_al_tarafayn', 'ق': 'waqf_jaiz_waqf_awla', 'ص': 'waqf_jaiz_wasl_awla',
              'م': 'waqf_lazim', 'ع': 'waqf_al_muanaqah', 'س': 'saktah',
@@ -275,7 +277,7 @@ def line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, ke
     letters = TJ.letter_bounds
     x0 = min(BOX[o][0] for o in outs) - 3
     x1 = max(BOX[o][2] for o in outs) + 3
-    png = Path('/tmp') / 'shamarly_tj_line.png'
+    png = Path('/tmp') / f'shamarly_tj_line_{os.getpid()}.png'      # one per process: parallel builds shared one file and read each other's lines
     st['doc'][n - 1].get_pixmap(clip=pymupdf.Rect(x0, bottom - 46, x1, bottom + 2), matrix=pymupdf.Matrix(K.Z, K.Z),
                                 alpha=False).save(png)
     bounds = letters(png, x0, lw, K, TJ_OFFSET_PX)
@@ -425,6 +427,28 @@ def page(n: int) -> dict:
             if host and host in OWNER:
                 OWNER[oid] = OWNER[host]
     line_of = {oid: int(oid[1:].split(':')[0]) for oid in RAW}
+    # An outline nobody owns would be ink missing from the page (a lost dot or harakat): it goes to the nearest word of
+    # its line when one's ink is within ADOPT_PT, and is listed (adopted / unowned_left) so it can be looked at.
+    stats['adopted'], stats['unowned_left'] = [], []
+    for oid in [o for o in RAW if o not in OWNER]:
+        ln_ = line_of[oid]
+        near = []
+        for o2, key2 in OWNER.items():
+            if line_of[o2] == ln_ and o2 != oid:
+                bx_, by_ = BOX[oid], BOX[o2]
+                dx = max(bx_[0] - by_[2], by_[0] - bx_[2], 0.0)
+                dy = max(bx_[1] - by_[3], by_[1] - bx_[3], 0.0)
+                near.append((dx + 0.5 * dy, key2))
+        best = min(near, default=None)
+        if best and best[0] <= ADOPT_PT:
+            OWNER[oid] = best[1]
+            stats['adopted'].append([oid, best[1], [round(v, 1) for v in BOX[oid]]])
+        else:
+            stats['unowned_left'].append([oid, [round(v, 1) for v in BOX[oid]]])
+    for oid, c in COMP.items():              # holes follow a host that was just adopted
+        host = c.get('hole_of')
+        if host and host in OWNER and oid not in OWNER:
+            OWNER[oid] = OWNER[host]
     key_of_owner = {}                        # owner key ('word:123') -> word_key
     for ln, payload in PAYLOAD.items():
         for w in payload['words']:
@@ -643,8 +667,15 @@ def page(n: int) -> dict:
             try:
                 tj_of, tj_letters_of = line_tajweed(n, ln, words, keys, RAW, BOX, COMP, OWNER, sign_of, line_of, None, BOTTOM[ln])
                 tt, th = _TJ['cov']
-                stats['tj_targets'] = stats.get('tj_targets', 0) + tt
-                stats['tj_hit'] = stats.get('tj_hit', 0) + th
+                # letter positions that fall off the page (or are twice as wide as a letter) mean the line's letter
+                # finder lost its place: no colours on that line beats colours on the wrong letters
+                bad = any(a < VX0 - 3 or b > 526 or b - a > 60 for iv in tj_letters_of.values() for a, b, _c in iv)
+                if bad:
+                    stats.setdefault('tj_bad_lines', []).append(ln)
+                    tj_of, tj_letters_of = {}, {}
+                else:
+                    stats['tj_targets'] = stats.get('tj_targets', 0) + tt
+                    stats['tj_hit'] = stats.get('tj_hit', 0) + th
             except Exception as exc:                          # a line without colours, not a failed page
                 print('tajweed skip', n, ln, exc, file=sys.stderr)
         out.append(f'<g class="line" data-line="{ln}">')
@@ -715,6 +746,20 @@ def page(n: int) -> dict:
                     slivers.append(o)
                     continue
                 body_paths.append([o] + [h for h in held if COMP[h]['hole_of'] == o])
+            # an outline the pipeline did not flag as a hole but that is wound against the letter it sits in (area < 0) is
+            # filled in when it stands alone in its own path: it goes into the smallest body path whose outline surrounds it
+            def _signed_area(o):
+                nums = [float(v) for v in re.findall(r'-?\d+\.?\d*', D(o))]
+                pts = list(zip(nums[0::2], nums[1::2]))
+                return sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts))) / 2
+            for grp in [g for g in body_paths if len(g) == 1 and _signed_area(g[0]) < 0]:
+                cx, cy = (BOX[grp[0]][0] + BOX[grp[0]][2]) / 2, (BOX[grp[0]][1] + BOX[grp[0]][3]) / 2
+                hosts = [g for g in body_paths if g is not grp and BOX[g[0]][0] <= cx <= BOX[g[0]][2] and BOX[g[0]][1] <= cy <= BOX[g[0]][3]
+                         and _signed_area(g[0]) > 0]
+                if hosts:
+                    min(hosts, key=lambda g: (BOX[g[0]][2] - BOX[g[0]][0]) * (BOX[g[0]][3] - BOX[g[0]][1])).extend(grp)
+                    body_paths.remove(grp)
+                    stats['holes_merged'] = stats.get('holes_merged', 0) + 1
             if slivers:
                 (body_paths[0] if body_paths else body_paths.append([]) or body_paths[0]).extend(slivers)
             for group in body_paths:
@@ -760,7 +805,6 @@ def page(n: int) -> dict:
 
     ys0 = [float(l['bbox'][1]) for l in lines.values()]
     ys1 = [float(l['bbox'][3]) for l in lines.values()]
-    import re
     box_tops = [float(m.group(1)) for m in re.finditer(r'data-box="[\d.]+ ([\d.]+) ', '\n'.join(out))]
     vy0 = min(ys0 + box_tops) - 6
     vy1 = max(ys1) + 6

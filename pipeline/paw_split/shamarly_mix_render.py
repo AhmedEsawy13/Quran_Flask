@@ -356,6 +356,7 @@ STRETCH_W = float(os.environ.get('MIX_STRETCH_W', 8.0))         # weight of a co
 GAP_W = float(os.environ.get('MIX_GAP_W', 0.03))            # weight of the line's mean gap leaving GAP_GOAL
 GAP_GOAL = float(os.environ.get('MIX_GAP_GOAL', 8.0))          # pt between bodies the line should end up with
 MAX_COPIES = 8
+DEBUG = '--debug' in sys.argv
 _CAND = {}
 
 
@@ -524,6 +525,7 @@ def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a', words=None, fi
     layout = json.loads((MIX / f'layout-{page:03d}.json').read_text(encoding='utf-8'))
     body, missing, shrink, gaps_all, line_gap, stretched, counted, stretched_lines = [], [], [], [], [], 0, 0, []
     top = 40.0
+    rects, pending = {}, []
     for row, line in enumerate(layout['lines']):
         base_y = top + row * pitch
         ring = [bool(w['text']) and set(w['text']) <= set('٠١٢٣٤٥٦٧٨٩') for w in line['words']]
@@ -580,33 +582,65 @@ def render(page, lib, marks, gap0, pitch, signs, color='#1a1a1a', words=None, fi
             else:
                 x1, base = it['bx'][1], it['base']
                 ds, _loose = compounds(it['paths'])
+                if DEBUG:                                  # a hue per word, its small outlines in the opposite hue
+                    import colorsys
+                    hue = (k * 0.381966) % 1.0
+                    def col(hh, l):
+                        r, g, b = colorsys.hls_to_rgb(hh % 1.0, l, 0.85)
+                        return f'#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}'
+                    inner = ''.join(f'<path d="{d}" fill="{col(hue + 0.5, 0.42) if _small(bbox(d)) else col(hue, 0.30)}"/>' for d in ds)
+                else:
+                    inner = ''.join(f'<path d="{d}"/>' for d in ds)
                 body.append(f'<g transform="translate({cursor:.2f},{base_y:.2f}) scale({f:.4f}) translate({-x1:.2f},{-base:.2f})">'
-                            + ''.join(f'<path d="{d}"/>' for d in ds) + '</g>')
+                            + inner + '</g>')
+                for _a, d_ in it['paths']:                 # ink rectangles of this word as placed (for sign clearance)
+                    for sp in _subpaths(d_):
+                        xs_, ys_ = [q[0] for q in sp['pts']], [q[1] for q in sp['pts']]
+                        rects.setdefault(row, []).append((cursor + (min(xs_) - x1) * f, base_y + (min(ys_) - base) * f,
+                                                          cursor + (max(xs_) - x1) * f, base_y + (max(ys_) - base) * f, id(it)))
                 sg = signs.get(w['sign']) if it['kind'] == 'word' else None
                 if sg:
-                    # above the last letters (the left end of the word), just over the ink that is really there
-                    sx = it['bx'][0] + min(max(0.18 * (it['bx'][1] - it['bx'][0]), 6.0), 12.0)
-                    tops = [q[1] for _a, d in it['paths'] for sp in _subpaths(d) for q in sp['pts'] if sx - 7 <= q[0] <= sx + 7]
-                    top_src = min(tops) if tops else it['box'][1]
-                    cx = cursor - (x1 - sx) * f
-                    bottom = base_y + (top_src - base) * f - 2.0
-                    if sg['src'] == 'qatar':
-                        body.append(f'<g transform="translate({cx - sg["w"] / 2:.2f},{bottom - sg["h"]:.2f}) scale({sg["k"]:.4f})">'
-                                    f'<path d="{sg["d"]}" fill="{color}"/></g>')
-                    else:
-                        fx0, fy0, fx1, fy1 = sg['font']
-                        body.append(f'<g transform="translate({cx - sg["k"] * (fx0 + fx1) / 2:.2f},{bottom + sg["k"] * fy0:.2f}) '
-                                    f'scale({sg["k"]:.5f},{-sg["k"]:.5f})"><path d="{sg["d"]}" fill="{color}"/></g>')
+                    pending.append((row, it, cursor, f, base_y, sg))
             cursor -= bw * f + (gaps[k] * f if k < len(gaps) else 0)
+    for row, it, cursor, f, base_y, sg in pending:
+        # above the last letters (the left end of the word), over the ink that is really there; where that spot is under
+        # ink of the line above (or of a neighbour), the sign slides along the word's left end to the clearest spot
+        x1, base = it['bx'][1], it['base']
+        others = [r for rr in (row - 1, row) for r in rects.get(rr, []) if not (rr == row and r[4] == id(it))]
+        best = None
+        for off in (0, 4, -4, 8, -8, 12, 16):
+            sx = it['bx'][0] + min(max(0.18 * (it['bx'][1] - it['bx'][0]), 6.0), 12.0) + off
+            if not it['bx'][0] <= sx <= it['bx'][1]:
+                continue
+            half = sg['w'] / (2 * f) + 1.0                     # the sign's own width, so a tall mark beside it counts
+            tops = [q[1] for _a, d in it['paths'] for sp in _subpaths(d) for q in sp['pts'] if sx - half <= q[0] <= sx + half]
+            top_src = min(tops) if tops else it['box'][1]
+            cx = cursor - (x1 - sx) * f
+            bottom = base_y + (top_src - base) * f - 2.0
+            box = (cx - sg['w'] / 2 - 0.5, bottom - sg['h'] - 0.5, cx + sg['w'] / 2 + 0.5, bottom + 0.5)
+            hit = sum(max(0.0, min(box[2], r[2]) - max(box[0], r[0])) * max(0.0, min(box[3], r[3]) - max(box[1], r[1])) for r in others)
+            if best is None or hit < best[0]:
+                best = (hit, cx, bottom)
+            if hit == 0:
+                break
+        _hit, cx, bottom = best
+        if sg['src'] == 'qatar':
+            body.append(f'<g transform="translate({cx - sg["w"] / 2:.2f},{bottom - sg["h"]:.2f}) scale({sg["k"]:.4f})">'
+                        f'<path d="{sg["d"]}" fill="{color}"/></g>')
+        else:
+            fx0, fy0, fx1, fy1 = sg['font']
+            body.append(f'<g transform="translate({cx - sg["k"] * (fx0 + fx1) / 2:.2f},{bottom + sg["k"] * fy0:.2f}) '
+                        f'scale({sg["k"]:.5f},{-sg["k"]:.5f})"><path d="{sg["d"]}" fill="{color}"/></g>')
     height = top + 15 * pitch + 20
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{RIGHT - PAGE_W - 20:.1f} 0 {PAGE_W + 40:.1f} {height:.1f}" '
            f'width="{(PAGE_W + 40) * 3:.0f}" height="{height * 3:.0f}"><rect x="0" y="0" width="1000" height="{height:.0f}" fill="#fbfaf6"/>'
            f'<g fill="{color}">{"".join(body)}</g></svg>')
-    (MIX / f'mix-{page:03d}.svg').write_text(svg, encoding='utf-8')
+    tag = '-debug' if DEBUG else ''
+    (MIX / f'mix-{page:03d}{tag}.svg').write_text(svg, encoding='utf-8')
     import fitz
     doc = fitz.open(stream=svg.encode(), filetype='svg')
     pix = doc[0].get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
-    pix.save(str(MIX / f'mix-{page:03d}.png'))
+    pix.save(str(MIX / f'mix-{page:03d}{tag}.png'))
     n_words = sum(len(l['words']) for l in layout['lines'])
     sp = statistics.pstdev(gaps_all) if len(gaps_all) > 1 else 0
     print(f'page {page}: {n_words} items, {len(missing)} without a Shamarly copy {missing[:6]}; body gap median {statistics.median(gaps_all):.1f} pt, '
