@@ -493,23 +493,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.audioElement.addEventListener('durationchange', updateAudioSeekUI);
             elements.audioSeekSlider.addEventListener('input', () => {
                 isScrubbingAudio = true;
-                const duration = elements.audioElement.duration;
+                const win = audioWindow();
+                const duration = win ? win.end - win.start : elements.audioElement.duration;
                 if (isFinite(duration) && duration > 0 && elements.audioCurrentTimeLabel) {
                     const previewTime = (elements.audioSeekSlider.value / 1000) * duration;
                     elements.audioCurrentTimeLabel.textContent = formatAudioTime(previewTime);
                 }
             });
             elements.audioSeekSlider.addEventListener('change', () => {
-                const duration = elements.audioElement.duration;
-                if (isFinite(duration) && duration > 0) {
-                    elements.audioElement.currentTime = (elements.audioSeekSlider.value / 1000) * duration;
+                const win = audioWindow();
+                if (win && win.end > win.start) {
+                    // scrubbing stays inside the verse, so the verse's own stop/repeat boundary stays armed
+                    const target = win.start + (elements.audioSeekSlider.value / 1000) * (win.end - win.start);
+                    elements.audioElement.currentTime = Math.min(target, win.end - 0.05);
+                } else {
+                    const duration = elements.audioElement.duration;
+                    if (isFinite(duration) && duration > 0) {
+                        elements.audioElement.currentTime = (elements.audioSeekSlider.value / 1000) * duration;
+                    }
+                    if (!isRangeMode) clearAyahStopAt();
                 }
                 isScrubbingAudio = false;
-                // The seek bar spans the whole surah now — a manual scrub is
-                // the user explicitly taking control, so drop the current
-                // ayah's auto-stop/repeat boundary rather than yanking
-                // playback back to it on the next timeupdate tick.
-                if (!isRangeMode) clearAyahStopAt();
             });
         }
         if (elements.audioMuteButton) {
@@ -847,6 +851,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentAyahData = ayahData;
             elements.audioElement.currentTime = verse.start;
             if (!isRangeMode) setAyahStopAt(verse.end, handleAyahEndedNormal);
+            updateAudioSeekUI();
 
             // Use already cached quranTextData instead of making redundant API call.
             const _verseEntry = quranTextData?.[verseKey] || {};
@@ -3319,9 +3324,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `${toArabicDigits(m)}:${toArabicDigits(String(s).padStart(2, '0'))}`;
     }
 
+    // The seek bar and its time labels describe the VERSE being played, not the surah's whole audio file the verse
+    // is cut from: «0:06 / 0:41» for a verse, never «169:54 / 199:17». Window = the selected ayah (single-verse mode)
+    // or the ayah the playhead is inside (range mode); null falls back to the whole file.
+    function audioWindow() {
+        const audio = elements.audioElement;
+        const verses = currentSurahAudio && currentSurahAudio.verses;
+        if (!audio || !verses) return null;
+        const selected = verses.get(parseInt(elements.ayahSelect.value, 10));
+        if (selected && !isRangeMode) return selected;
+        const t = audio.currentTime;
+        for (const verse of verses.values()) {
+            if (t >= verse.start - 0.05 && t < verse.end + 0.05) return verse;
+        }
+        return selected || null;
+    }
+
     function updateAudioSeekUI() {
         const audio = elements.audioElement;
         if (!audio || !elements.audioSeekSlider) return;
+        const win = audioWindow();
+        if (win && win.end > win.start) {
+            const length = win.end - win.start;
+            const elapsed = Math.min(length, Math.max(0, audio.currentTime - win.start));
+            if (!isScrubbingAudio) elements.audioSeekSlider.value = String(Math.round((elapsed / length) * 1000));
+            if (elements.audioDurationLabel) elements.audioDurationLabel.textContent = formatAudioTime(length);
+            if (!isScrubbingAudio && elements.audioCurrentTimeLabel) elements.audioCurrentTimeLabel.textContent = formatAudioTime(elapsed);
+            return;
+        }
         const duration = audio.duration;
         if (isFinite(duration) && duration > 0) {
             if (!isScrubbingAudio) {
