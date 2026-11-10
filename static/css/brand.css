@@ -440,3 +440,10 @@ body.wq-sepia .athar-bar {
   .athar-bar .athar-brand .athar-logo { font-size: 1.2rem; }
   .athar-bar .athar-icon-btn { width: 28px; height: 28px; }
 }
+
+/* Touch targets: the bar's links and icon buttons reach 44px on phones/tablets */
+@media (max-width: 900px), (pointer: coarse) {
+  .athar-bar .athar-nav a { min-height: 44px; display: inline-flex; align-items: center; padding-inline: 12px; }
+  .athar-bar .athar-icon-btn { min-width: 44px; min-height: 44px; }
+  .athar-bar .athar-brand { min-height: 44px; display: inline-flex; align-items: center; }
+}

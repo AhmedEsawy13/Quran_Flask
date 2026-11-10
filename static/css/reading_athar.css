@@ -1634,3 +1634,28 @@ body.athar-reading .reader-settings-toggle { display: none; }
     body.athar-reading .reader-field-toggle[hidden] { display: none; }
     body.athar-reading .reader-field-toggle input { width: 18px; height: 18px; accent-color: var(--athar-accent, #2f5d4a); }
 }
+
+/* Vector words: pause signs readable and tight rows. The stack is positioned by shamarly-vector.js (placeWaqf); a word
+   without a sign needs no headroom, and rows sit on a shared bottom line. */
+body.athar-reading #quran-text { row-gap: 0.75em; }
+body.athar-reading .word-token[data-shamarly-vector] { padding-top: 0; }
+body.athar-reading .word-token[data-shamarly-vector]:has(> .waqf-stack) { padding-top: 0.85em; }
+body.athar-reading #quran-text:has([data-shamarly-vector]) { row-gap: 0.15em; }
+body.athar-reading .word-token[data-shamarly-vector] .waqf-symbol { font-size: 1.15em; font-weight: 700; }
+
+/* Touch targets: 44px on phones/tablets */
+@media (max-width: 900px), (pointer: coarse) {
+    body.athar-reading #controls .reader-field select,
+    body.athar-reading #controls .reader-primary.is-compact .reader-field select,
+    body.athar-reading #controls #repeat-select,
+    body.athar-reading #controls .reader-primary.is-compact #repeat-select { min-height: 44px; }
+    body.athar-reading #controls button,
+    body.athar-reading #controls .athar-button,
+    body.athar-reading #controls #play-pause-button.btn-play,
+    body.athar-reading #controls select { min-height: 44px !important; height: auto; }
+    body.athar-reading #controls .athar-icon-button,
+    body.athar-reading #controls .reader-voice,
+    body.athar-reading #controls .audio-mute-btn { min-width: 44px; min-height: 44px; }
+    body.athar-reading #controls .mushaf-pill { min-height: 40px; }
+    body.athar-reading #controls .athar-tab { min-height: 44px; }
+}

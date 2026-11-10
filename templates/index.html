@@ -74,12 +74,18 @@
                 </button>
                 <div class="reader-settings" id="reader-settings">
                 <label class="reader-field" for="quran-text-select"><span>رسم المصحف</span><select class="athar-select" id="quran-text-select" title="نوع الخط أو المصحف">
-                    <option value="shamarly">مصحف الشمرلي</option>
-                    <option value="qpc_hafs">مجمع الملك فهد (حفص)</option>
-                    <option value="amiri_quran">مصحف الأميرية</option>
-                    <option value="digital_khatt">مصحف المدينة</option>
-                    <option value="old_madina">مصحف المدينة القديم</option>
-                    <option value="indopak_nastaleeq_2">هندي / نستعليق</option>
+                    <optgroup label="طبعة مطبوعة — كما رُسمت">
+                        <option value="shamarly">مصحف الشمرلي</option>
+                        <option value="old_madina">مصحف المدينة القديم (١٤٠٥)</option>
+                    </optgroup>
+                    <optgroup label="خط رقمي">
+                        <option value="digital_khatt">مصحف المدينة</option>
+                        <option value="qpc_hafs">مجمع الملك فهد (حفص)</option>
+                        <option value="amiri_quran">مصحف الأميرية</option>
+                    </optgroup>
+                    <optgroup label="رسم هندي">
+                        <option value="indopak_nastaleeq_2">هندي / نستعليق</option>
+                    </optgroup>
                 </select></label>
                 <label class="reader-field reader-field-toggle" id="shamarly-vector-field" for="shamarly-vector-toggle" hidden title="الشمرلي من ملف المصحف نفسه (تجريبي)"><span>رسم الملف</span><input type="checkbox" id="shamarly-vector-toggle"></label>
                 <!-- kept hidden; shamarly page mode uses it via loadShamarlyQuranData -->

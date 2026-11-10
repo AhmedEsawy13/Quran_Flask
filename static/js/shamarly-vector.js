@@ -16,6 +16,7 @@
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const BAND = 1.5;          // band height in line pitches
     const PAD = 2;             // horizontal padding around a word, page units
+    const WAQF_TUCK = 0.85;   // em: the pause-sign glyph is drawn high above its box's baseline, so the box is lowered by this
     const KEY = 'quranApp_shamarlyVector';
     const pageCache = new Map();
     let pagesPending = null;
@@ -163,7 +164,35 @@
             token.dataset.shamarlyGlyph = '1';   // the font/khatt/tajweed passes leave glyph-drawn words alone
             token.style.fontFamily = '';
         });
+        // after layout: lift each word's pause sign just above that word's own ink and centre it over the last letter
+        requestAnimationFrame(() => tokens.forEach(placeWaqf));
         return true;
+    }
+
+    /**
+     * A vector word's waqf stack sits just above the word's tallest ink (marks included), over its last letter (the left
+     * end of an RTL word), instead of a fixed lift above the line. em units, so it scales with the verse font size.
+     */
+    function placeWaqf(token) {
+        const stack = token.querySelector(':scope > .waqf-stack');
+        const svg = token.querySelector('svg.sv-word:not(.sv-ayah-mark)');
+        if (!stack || !svg || !svg.firstElementChild) return;
+        const vb = svg.viewBox.baseVal;
+        const rect = svg.getBoundingClientRect();
+        const t = token.getBoundingClientRect();
+        if (!vb.width || !vb.height || !rect.width) return;
+        let ink;
+        try { ink = svg.getBBox(); } catch (error) { return; }
+        const em = parseFloat(getComputedStyle(token).fontSize) || 16;
+        const sx = rect.width / vb.width;
+        const sy = rect.height / vb.height;
+        const inkTop = rect.top + (ink.y - vb.y) * sy;
+        const inkLeft = rect.left + (ink.x - vb.x) * sx;
+        const inkWidth = ink.width * sx;
+        const lift = (t.bottom - inkTop) / em - WAQF_TUCK;
+        const centre = (inkLeft - t.left) + Math.min(0.5 * em, inkWidth / 2);
+        token.style.setProperty('--waqf-lift', `${lift.toFixed(3)}em`);
+        stack.style.left = `${(centre / em).toFixed(3)}em`;
     }
 
     /** The page's drawing store when «رسم الملف» is on and the page is built; null otherwise (never throws). */
