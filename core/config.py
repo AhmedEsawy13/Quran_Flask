@@ -15,6 +15,26 @@ from core.edition_capabilities import editions_with
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _BASE_DIR = _ROOT  # kept under the original name for callers that reference it
 
+
+def _env_or_dotenv(name: str) -> str:
+    """An environment variable, else its line in the git-ignored .env (FLASK_SKIP_DOTENV runs and `python app.py` do not load it)."""
+    value = os.environ.get(name, '').strip()
+    if value:
+        return value
+    try:
+        with open(os.path.join(_ROOT, '.env'), encoding='utf-8') as handle:
+            for line in handle:
+                key, sep, rest = line.strip().partition('=')
+                if sep and key.strip() == name:
+                    return rest.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return ''
+
+
+# Quran Lab TajweedFormer web key (qlk_v1_...): a public client key locked to its allowed origins; empty = tajweed check off.
+QURANLAB_KEY = _env_or_dotenv('QURANLAB_KEY')
+
 DATABASE = os.path.join(_ROOT, 'data', 'word_name.db')
 WAQF_DATABASE = os.path.join(_ROOT, 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')

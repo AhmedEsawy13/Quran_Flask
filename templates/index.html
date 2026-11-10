@@ -31,6 +31,18 @@
     <!-- أثَر shared brand identity (fonts + app-bar) -->
     {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/reading_athar.css') }}">
+    {% if quranlab_key %}
+    <!-- Quran Lab TajweedFormer (tajweed check): vendored SDK resolved through an import map; the web key is public by design -->
+    <meta name="quranlab-key" content="{{ quranlab_key }}">
+    <script type="importmap">{"imports": {
+        "@quran-lab/tajweedformer": "/static/vendor/tajweedformer-2.0.1/web/index.js",
+        "@quran-lab/tajweedformer/platform": "/static/vendor/tajweedformer-2.0.1/web/platform/index.js",
+        "@quran-lab/tajweedformer/consent": "/static/vendor/tajweedformer-2.0.1/web/consent/index.js",
+        "@quran-lab/tajweedformer/sharing": "/static/vendor/tajweedformer-2.0.1/web/sharing/index.js",
+        "@quran-lab/tajweedformer/tajweed": "/static/vendor/tajweedformer-2.0.1/web/tajweed/index.js",
+        "@quran-lab/tajweedformer/scorer": "/static/vendor/tajweedformer-2.0.1/web/scorer.js"
+    }}</script>
+    {% endif %}
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/tajweed_notes_format.js') }}"></script>
@@ -109,6 +121,11 @@
                         <button class="athar-icon-button" id="next-ayah" type="button" title="الآية التالية" aria-label="الآية التالية">
                             <i class="fas fa-forward-step" aria-hidden="true"></i>
                         </button>
+                        {% if quranlab_key %}
+                        <button id="tajweed-check-button" type="button" class="athar-button athar-button-secondary tj-button" title="اقرأ الآية ليتابع أثَر تجويدك كلمةً كلمة (يعمل على جهازك)">
+                            <i class="fas fa-microphone" aria-hidden="true"></i> <span>تلاوة</span>
+                        </button>
+                        {% endif %}
                     </div>
                     <div class="playback-seek" id="playback-seek">
                         <span id="audio-current-time" class="playback-time">٠:٠٠</span>
@@ -453,6 +470,14 @@
         </div>
 
         <div class="ayah-container reader-canvas athar-surface">
+            {% if quranlab_key %}
+            <div class="tj-panel" id="tajweed-check-panel" role="status" aria-live="polite" hidden>
+                <p class="tj-status" id="tajweed-check-status"></p>
+                <div class="tj-detail" id="tajweed-check-detail"></div>
+                <p class="tj-notice" id="tajweed-check-notice"></p>
+                <quranlab-sharing-settings></quranlab-sharing-settings>
+            </div>
+            {% endif %}
             <div id="quran-text"></div>
             <div class="reader-study-result" id="transliteration-container" style="display:none;"><h2>النطق الحرفي</h2><div id="transliteration"></div></div>
             <div class="reader-study-result" id="tafseer-container" style="display:none;"><h2>التفسير</h2><div id="tafseer-text"></div></div>
@@ -519,6 +544,7 @@
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
     <script defer src="{{ static_hash('js/shamarly-vector.js') }}"></script>
+    {% if quranlab_key %}<script type="module" src="{{ static_hash('js/tajweed-check.js') }}"></script>{% endif %}
     <script defer src="{{ static_hash('js/reader-settings.js') }}"></script>
     <script defer src="{{ static_hash('js/script.js') }}"></script>
 

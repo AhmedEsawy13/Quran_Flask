@@ -63,7 +63,8 @@ def after_request(response):
         "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com https://drive.usercontent.google.com https://huggingface.co https://*.huggingface.co https://video.twimg.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         # d1.islamhouse.com → Bahrain printed mushaf PDF fetched by pdf.js.
-        "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com https://d1.islamhouse.com https://*.islamhouse.com;"
+        # api.quranlab.ai / cdn.quranlab.ai → TajweedFormer (key, signed config, model files, telemetry, sharing).
+        "connect-src 'self' https://api.quranlab.ai https://*.quranlab.ai https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com https://d1.islamhouse.com https://*.islamhouse.com;"
     )
 
     # CDN / Cloudflare-friendly caching.

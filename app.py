@@ -19,6 +19,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core import http
+from core.config import QURANLAB_KEY
 from core.blueprints import breathing_bp, core_bp, editor_bp, memorize_bp, reading_bp
 from core.db import close_connection
 from modules import load_routes
@@ -96,6 +97,7 @@ def create_app(features=None):
             'public_base_url': public_base_url(),
             'public_absolute': public_absolute,
             'editor_enabled': 'editor' in flask_app.blueprints,
+            'quranlab_key': QURANLAB_KEY,
         }
 
     http.install(flask_app)
