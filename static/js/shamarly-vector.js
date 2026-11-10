@@ -22,7 +22,7 @@
     let host = null;
 
     function enabled() {
-        try { return localStorage.getItem(KEY) === '1'; } catch (error) { return false; }
+        try { return localStorage.getItem(KEY) !== '0'; } catch (error) { return true; }   // beta, but on until switched off
     }
 
     function setEnabled(on) {
@@ -166,5 +166,47 @@
         return true;
     }
 
-    window.ShamarlyVector = { render, enabled, setEnabled };
+    /** The page's drawing store when «رسم الملف» is on and the page is built; null otherwise (never throws). */
+    async function prepare(page) {
+        if (!enabled()) return null;
+        const available = await availablePages();
+        if (!available.has(Number(page))) return null;
+        try {
+            return await loadPage(Number(page));
+        } catch (error) {
+            console.warn('Shamarly vector page unavailable', error);
+            return null;
+        }
+    }
+
+    /** Pages built so far (a Set; empty until the first prepare/pages call finishes). */
+    function pages() { return availablePages(); }
+
+    /**
+     * Draw a whole page rendered by renderMushafLines: every `.mz-word[data-wk]` (data-wk = the SVG's word key) gets
+     * its vector drawing in place of the glyph text; waqf overlays already appended to the word stay. The verse-end
+     * ornament follows the last word of its verse on this page.
+     */
+    function paint(pageEl, store) {
+        const words = [...pageEl.querySelectorAll('.mz-word[data-wk]')];
+        const lastOfVerse = new Map();
+        words.forEach((el) => lastOfVerse.set(el.dataset.key, el));
+        words.forEach((el) => {
+            [...el.childNodes].forEach((node) => { if (node.nodeType === Node.TEXT_NODE) node.remove(); });
+            // the layout lists the verse number as the verse's last word (no ink under that key): it takes the ornament
+            const entry = store.words.get(el.dataset.wk);
+            const parts = entry ? [drawn(entry, store, true)] : [];
+            if (lastOfVerse.get(el.dataset.key) === el && store.marks.has(el.dataset.key)) {
+                const number = drawn(store.marks.get(el.dataset.key), store, false);
+                number.classList.add('sv-ayah-mark');
+                parts.push(number);
+            }
+            if (!parts.length) return;     // a word the vector page has no ink for stays blank
+            el.prepend(...parts);
+            el.dataset.vector = '1';
+        });
+        pageEl.classList.add('mz-vector');
+    }
+
+    window.ShamarlyVector = { render, enabled, setEnabled, prepare, paint, pages };
 })();

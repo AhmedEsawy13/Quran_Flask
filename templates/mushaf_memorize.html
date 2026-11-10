@@ -87,9 +87,10 @@
                         <option value="digital_khatt">المدينة ١٤٤١</option>
                         <option value="qpc_v2">المدينة ١٤٢١ — Digital Khatt (KFGQPC V2)</option>
                         <option value="qpc_v1">المدينة ١٤٠٥</option>
-                        <option value="shamarly">الشمرلي (صفحات مختارة)</option>
+                        <option value="shamarly">الشمرلي</option>
                     </select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
                 </div>
+                <label class="mz-chip-toggle" id="mz-vector-field" hidden title="الشمرلي كما رُسم في ملف المصحف، لصفحات أكثر من الخط"><input type="checkbox" id="mz-vector"><span class="mz-chip-dot"></span> رسم الملف · تجريبي</label>
                 <div class="mz-field">
                     <label id="mz-waqf-choice-label">علامات الوقف من مصحف</label>
                     <div id="mz-waqf-pills" class="mz-waqf-pills" role="radiogroup" aria-labelledby="mz-waqf-choice-label"></div>
@@ -221,6 +222,7 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
+    <script src="{{ static_hash('js/shamarly-vector.js') }}"></script>
     <script src="{{ static_hash('js/mushaf_memorize.js') }}"></script>
 </body>
 </html>

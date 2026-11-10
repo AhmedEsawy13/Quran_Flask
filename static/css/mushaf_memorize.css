@@ -857,3 +857,15 @@ body.mz-dark .mz-context-band {
 /* The guide keeps to one line: phones get only the essential first sentence. */
 .mz-range-guide { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 @media (max-width: 720px) { .mz-guide-more { display: none; } }
+
+
+/* الشمرلي «رسم الملف»: each .mz-word holds an inline <svg> cut from the vector PDF (static/js/shamarly-vector.js).
+   One line pitch = 1em of the page font size, so the fit-to-width sizer scales the drawing like text. */
+#mz-vector-field[hidden] { display: none !important; }
+.mz-page.mz-vector { --sv-line: 1em; }
+.mz-page.mz-vector .mz-word { line-height: 0; }
+.mz-page.mz-vector .mz-line-inner { line-height: 1; }
+.mz-page.mz-vector .mz-word svg.sv-word { fill: currentColor; }
+/* hide-text mode: blur the drawing like the glyph text's shadow; revealed words are sharp */
+.mz-page.mz-vector.mz-hide .mz-word svg.sv-word { fill: var(--mz-quran); filter: blur(0.14em); opacity: 0.5; }
+.mz-page.mz-vector.mz-hide .mz-word.mz-reveal svg.sv-word { filter: none; opacity: 1; }

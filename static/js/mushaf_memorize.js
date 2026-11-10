@@ -917,14 +917,26 @@
        with the actual .woff2 files shipped in static/fonts/. */
     let SHEMRLY_PAGES = [];
     let SHEMRLY_PAGE_SET = new Set();
+    let SHEMRLY_FONT_PAGES = [];
+    let SHEMRLY_VECTOR_PAGES = new Set();   // pages built from the vector PDF (رسم الملف)
+    const vectorStores = new Map();         // page -> drawing store, filled by renderSpread before renderCard
+    const vectorOn = () => Boolean(window.ShamarlyVector && window.ShamarlyVector.enabled());
+    /* The pages the Shamarly source can show: those with a font, plus the vector-built ones while «رسم الملف» is on. */
+    function rebuildShemrlyPages() {
+        const all = new Set(SHEMRLY_FONT_PAGES);
+        if (vectorOn()) SHEMRLY_VECTOR_PAGES.forEach(page => all.add(page));
+        SHEMRLY_PAGES = [...all].sort((a, b) => a - b);
+        SHEMRLY_PAGE_SET = all;
+    }
     async function loadShemrlyPages() {
         try {
             const data = await window.AtharApi.json('/api/shamarly/pages');
-            if (Array.isArray(data.pages) && data.pages.length) {
-                SHEMRLY_PAGES = data.pages;
-                SHEMRLY_PAGE_SET = new Set(SHEMRLY_PAGES);
-            }
+            if (Array.isArray(data.pages)) SHEMRLY_FONT_PAGES = data.pages;
         } catch (e) { /* keep empty; shamarly picker/switch just won't have pages */ }
+        try {
+            if (window.ShamarlyVector) SHEMRLY_VECTOR_PAGES = await window.ShamarlyVector.pages();
+        } catch (e) { /* no vector pages on this server */ }
+        rebuildShemrlyPages();
     }
     const _shemrlyFontPromises = new Map();
     function ensureShemrlyFont(fontName) {
@@ -971,7 +983,8 @@
         }
         // Shemrly renders only on pages we ship a font for; the API marks the rest
         // 'legacy-word-position' (glyphs we can't draw) — show a friendly note instead.
-        if (state.src === 'shamarly' && payload.glyph_mapping_mode !== 'shemrly-page-local') {
+        const vectorStore = state.src === 'shamarly' ? vectorStores.get(payload.page_number) : null;
+        if (state.src === 'shamarly' && !vectorStore && payload.glyph_mapping_mode !== 'shemrly-page-local') {
             pageEl.classList.remove('mz-has-page');
             pageEl.style.removeProperty('font-family');
             window.AtharPageChrome.renderEmptyState(pageEl, {
@@ -986,7 +999,8 @@
             return;
         }
         // Page-local Shemrly font: every word on this page draws with it.
-        if (state.src === 'shamarly' && payload.font_name) pageEl.style.fontFamily = `"${payload.font_name}", serif`;
+        pageEl.classList.remove('mz-vector');
+        if (state.src === 'shamarly' && payload.font_name && !vectorStore) pageEl.style.fontFamily = `"${payload.font_name}", serif`;
         else pageEl.style.removeProperty('font-family');
 
         pageEl.classList.add('mz-has-page');
@@ -1011,6 +1025,7 @@
             },
             decorateWord: (element, { word }) => {
                 element.dataset.text = element.textContent;
+                if (word.word_key) element.dataset.wk = word.word_key;   // the vector page's word key
                 if (state.src !== 'shamarly' || !waqfMarksOn()) return;
                 const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
                 const selectedWaqf = state.mushafVersions[0] || 'المدينة الجديد';
@@ -1023,6 +1038,8 @@
                 if ((line.words || []).length) element.dataset.justify = line.is_centered ? '0' : '1';
             },
         });
+
+        if (vectorStore) window.ShamarlyVector.paint(pageEl, vectorStore);
 
         // Shemrly's layout-DB page numbers don't match the 604-page Madina numbering,
         // so derive its juz from the page's first ayah instead of the page number.
@@ -1051,6 +1068,15 @@
         return [Math.max(PAGE_MIN, right), Math.min(PAGE_MAX, left)];
     }
 
+    /* Load the drawings of the pages about to render (Shamarly + «رسم الملف»); a page without one keeps its font. */
+    async function prepareVectorPages(payloads) {
+        vectorStores.clear();
+        if (state.src !== 'shamarly' || !vectorOn() || !window.ShamarlyVector) return;
+        await Promise.all(payloads.filter(Boolean).map(async (payload) => {
+            const store = await window.ShamarlyVector.prepare(payload.page_number);
+            if (store) vectorStores.set(payload.page_number, store);
+        }));
+    }
     const pageRequests = window.AtharMushaf.createRequestGate();
     /* A short slide in the reading direction when the page changes (CSS skips it under reduced motion). */
     function animateTurn(before, after) {
@@ -1069,7 +1095,8 @@
             if (state.layoutMode === 'single') {
                 // Single page: show the focus page itself in the right card; hide the left.
                 const fp = await fetchPageByNumber(focusPage);
-                if (state.src === 'shamarly' && fp) await ensureShemrlyFont(fp.font_name);
+                await prepareVectorPages([fp]);
+                if (state.src === 'shamarly' && fp && !vectorStores.has(fp.page_number)) await ensureShemrlyFont(fp.font_name);
                 if (!pageRequests.isCurrent(request)) return false;
                 const before = state.focusPage;
                 state.focusPage = focusPage;
@@ -1084,7 +1111,8 @@
                     canLoad(right) ? fetchPageByNumber(right) : Promise.resolve(null),
                     left !== right && left <= PAGE_MAX && canLoad(left) ? fetchPageByNumber(left) : Promise.resolve(null),
                 ]);
-                if (state.src === 'shamarly') await Promise.all([rp, lp].map(p => p && ensureShemrlyFont(p.font_name)));
+                await prepareVectorPages([rp, lp]);
+                if (state.src === 'shamarly') await Promise.all([rp, lp].map(p => p && !vectorStores.has(p.page_number) && ensureShemrlyFont(p.font_name)));
                 if (!pageRequests.isCurrent(request)) return false;
                 const before = state.focusPage;
                 state.focusPage = focusPage;
@@ -1830,6 +1858,12 @@
     // Tajweed colouring is letter-level; Shemrly draws whole-word glyphs, so it
     // can't be coloured. Turn it off and disable its toggles while Shemrly is on.
     function syncSrcCapabilities() {
+        const vectorField = $('mz-vector-field');
+        if (vectorField) {
+            vectorField.hidden = state.src !== 'shamarly' || !SHEMRLY_VECTOR_PAGES.size;
+            const box = $('mz-vector');
+            if (box) box.checked = vectorOn();
+        }
         const noTajweed = state.src === 'shamarly';
         if (noTajweed && state.tajweedOn) { state.tajweedOn = false; syncTajweedButton(); syncToolbar(); }
         [els.tajweed, els.tbTajweed].forEach(b => {
@@ -2709,6 +2743,18 @@
             if (state.focusPage) requestAnimationFrame(justifyLines);
         });
 
+        const vectorBox = $('mz-vector');
+        if (vectorBox) vectorBox.addEventListener('change', async () => {
+            window.ShamarlyVector.setEnabled(vectorBox.checked);
+            rebuildShemrlyPages();
+            closePopovers();
+            if (state.src !== 'shamarly' || !state.focusPage) return;
+            let target = state.focusPage;
+            const moved = !SHEMRLY_PAGE_SET.has(target);   // switching off: this page has no font, so move to the nearest one that has
+            if (moved) target = nearestShemrlyPage(target);
+            await renderSpread(target);
+            if (moved) setStatus('هذه الصفحة بدون خط الشمرلي — تم الانتقال لأقرب صفحة متاحة');
+        });
         els.src.addEventListener('change', async () => {
             stopReciteFollow(false);
             // Preserve the reading position by surah/ayah, not page number: Shemrly's
@@ -2927,6 +2973,7 @@
         syncSrcCapabilities();
         bindEvents();
         await loadShemrlyPages();
+        syncSrcCapabilities();      // the vector toggle shows only once the built-page list is known
         await loadWaqfPills();
         document.body.classList.toggle('mz-picking', !state.hideText);
         await loadReciters();
@@ -2934,6 +2981,10 @@
         document.body.classList.toggle('mz-split-on', els.splitLong.checked);
         try {
             await loadSurahs();
+            // The reader (/read) and this page both write quranApp_lastPosition, so it is the freshest place either
+            // one was at; mz_last_pos is only this page's own. Coming from the reader must open at the reader's verse.
+            const sharedPos = localStorage.getItem('quranApp_lastPosition');
+            if (/^\d+:\d+$/.test(sharedPos || '')) saveSetting('mz_last_pos', sharedPos);
             const savedPos = localStorage.getItem('mz_last_pos');
             if (savedPos) {
                 const savedSurah = parseInt(savedPos.split(':')[0], 10);
