@@ -352,9 +352,11 @@ body.ed-compare-print .ed-word.ed-diff .ed-waqf-mark { color: inherit; }
     display: block;
     /* above the word's last letter (the left end in RTL), out of the text flow */
     position: absolute;
-    top: -0.85em;      /* clear of the word's own diacritics, in the free band between lines */
+    /* anchored to the word's top edge (not a multiple of the mark's own size), so it lands in the free band
+       between lines at every font size and print */
+    bottom: calc(100% + 0.05em);
     left: -0.12em;
-    font-size: 1.35em;
+    font-size: 1.3em;
     line-height: 1;
     color: var(--ed-accent);
     pointer-events: none;
