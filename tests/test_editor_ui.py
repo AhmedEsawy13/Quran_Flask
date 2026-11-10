@@ -35,7 +35,7 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert "state.compareMode === 'madinah'" in script
     assert 'STUDIO_BY_EDITION' in script
     assert 'id="ed-edition-toggle" role="group" aria-label="نسخة المصحف"' in page
-    assert page.count('class="ed-edition-btn athar-tab"') == 3
+    assert page.count('class="ed-edition-btn athar-tab"') == 5
     for edition in ('قطر', 'الكويت', 'البحرين'):
         assert f'data-edition="{edition}"' in page
     assert 'id="ed-progress" role="progressbar"' in page

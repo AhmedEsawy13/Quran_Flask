@@ -84,6 +84,70 @@ def _ayah_word_list_for_editor(surah_number, ayah_number):
     return words
 
 
+_MESAHA_EDITIONS = ('المساحة', 'المساحة ١٣٧١')
+_MESAHA_MAX_PAGE = 827
+
+
+def _is_mesaha(edition) -> bool:
+    return edition in _MESAHA_EDITIONS
+
+
+def _max_page_for(edition) -> int:
+    return _MESAHA_MAX_PAGE if _is_mesaha(edition) else _MAX_MUSHAF_PAGE
+
+
+def _mesaha_ayah_tokens(surah, ayah):
+    """{Mesaha word id: cloud token_index} for one ayah.
+
+    The cloud keys every edition's marks by the Digital Khatt within-ayah token (zero-based). Mesaha's own word ids
+    live in the script database's namespace, so each content word is matched to the ayah's Digital Khatt tokens by
+    text, in order, the way pipeline/sync_published_waqf.py places the column's rows (ring tokens map to nothing).
+    """
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _project_word_map
+    from modules.layouts import _find_mushaf_row_match_index, _normalize_mushaf_word_token
+    wmap = _project_word_map(MESAHA)
+    dk_words = _ayah_word_list_for_editor(surah, ayah)
+    dk_first = dk_words[0]['word_id'] if dk_words else None
+    out = {}
+    start, content = 0, 0
+    n = 1
+    while True:
+        wid = wmap['key_to_id'].get(f'{surah}:{ayah}:{n}')
+        if wid is None:
+            break
+        n += 1
+        text = (wmap['id2tok'].get(wid) or {}).get('text') or ''
+        if not _normalize_mushaf_word_token(text) or text.startswith('\u06dd'):
+            continue
+        content += 1
+        idx = _find_mushaf_row_match_index(
+            dk_words, {'clean_token': text, 'word_index': content, 'token_index': None}, start)
+        if idx is None:
+            continue
+        start = idx + 1
+        out[wid] = dk_words[idx]['word_id'] - dk_first
+    return out
+
+
+def _resolve_mesaha_word(word_id):
+    """(surah, ayah, cloud token_index, text) for a Mesaha word id, or None (rings and unmatched words)."""
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _project_word_map
+    tok = _project_word_map(MESAHA)['id2tok'].get(word_id)
+    if not tok:
+        return None
+    surah, ayah = int(tok['surah']), int(tok['ayah'])
+    token = _mesaha_ayah_tokens(surah, ayah).get(word_id)
+    if token is None:
+        return None
+    return surah, ayah, token, tok['text']
+
+
+def _resolve_word_for(edition, layout_word_id):
+    return _resolve_mesaha_word(layout_word_id) if _is_mesaha(edition) else _resolve_word(layout_word_id)
+
+
 def _resolve_word(layout_word_id):
     """Resolve one QPC-layout ID; it is not a quran_script or waqf index."""
     wmap = _get_dk_layout_word_map()
@@ -197,13 +261,22 @@ def _overlay_cloud_marks_on_pages(pages: list[dict | None], edition: str) -> Non
     )
 
     wmap = _get_dk_layout_word_map()
+    mesaha = _is_mesaha(edition)
+    mesaha_tokens: dict[tuple[int, int], dict] = {}
     for _page, words in page_words:
         for w in words:
             surah, ayah = int(w['surah']), int(w['ayah'])
             first_id = wmap['first_id'].get((surah, ayah))
             if first_id is None:
                 continue
-            token_index = int(w['word_index']) - first_id
+            if mesaha:
+                if (surah, ayah) not in mesaha_tokens:
+                    mesaha_tokens[(surah, ayah)] = _mesaha_ayah_tokens(surah, ayah)
+                token_index = mesaha_tokens[(surah, ayah)].get(int(w['word_index']))
+                if token_index is None:
+                    continue
+            else:
+                token_index = int(w['word_index']) - first_id
             key = (surah, ayah, token_index)
             if key in drafts:
                 symbol = drafts[key]
@@ -237,7 +310,7 @@ def _get_or_set_word_waqf_sqlite(layout_word_id, edition, symbol):
     if edition not in EDITOR_EDITIONS:
         return None
 
-    resolved = _resolve_word(layout_word_id)
+    resolved = _resolve_word_for(edition, layout_word_id)
     if not resolved:
         return None
     surah_number, ayah_number, target_index, _text = resolved
@@ -306,7 +379,7 @@ def _get_or_set_word_waqf_sqlite(layout_word_id, edition, symbol):
 
 def _get_or_set_word_waqf_cloud(layout_word_id, edition, symbol, user: dict | None):
     """Read/write draft mark in Supabase. symbol=None → read only."""
-    resolved = _resolve_word(layout_word_id)
+    resolved = _resolve_word_for(edition, layout_word_id)
     if not resolved:
         return None
     surah, ayah, token_index, word_text = resolved
@@ -389,6 +462,32 @@ def _editor_layout_db(edition: str) -> str:
     return QATAR_LAYOUT_DATABASE
 
 
+def _mesaha_page_of_ayah(surah, ayah):
+    """First Mesaha page showing (surah, ayah), through the project's own word ids."""
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _layout_db, _project_word_map
+    first = _project_word_map(MESAHA)['key_to_id'].get(f'{surah}:{ayah}:1')
+    if first is None:
+        return None
+    conn = _sqlite_connect(_layout_db(MESAHA))
+    try:
+        row = conn.execute(
+            "SELECT page_number FROM pages WHERE first_word_id IS NOT NULL AND first_word_id <> '' "
+            'AND CAST(first_word_id AS INTEGER) <= ? AND CAST(last_word_id AS INTEGER) >= ? '
+            'ORDER BY page_number ASC LIMIT 1', (first, first)).fetchone()
+    finally:
+        conn.close()
+    return row[0] if row else None
+
+
+def _build_mesaha_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """A Mesaha page for the waqf editor: the Layout Studio project's page (its own word ids), with the
+    editor's peer marks attached. Both printings share the plates and so the layout."""
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _build_project_payload
+    return _build_project_payload(MESAHA, page_number, mushaf_version=mushaf_version)
+
+
 def _qatar_glyph_pages() -> dict:
     """{page: stats} of the traced Qatar pages present on this server (beta)."""
     from core.config import QATAR_GLYPH_SVG_DIR
@@ -434,7 +533,10 @@ def mushaf_editor_page_by_ayah(surah, ayah):
         return jsonify({'error': 'invalid edition'}), 400
     if not (1 <= surah <= 114) or ayah < 1:
         return jsonify({'error': 'invalid verse'}), 400
-    page_number = _layout_page_resolve(_editor_layout_db(edition), surah, ayah)
+    if _is_mesaha(edition):
+        page_number = _mesaha_page_of_ayah(surah, ayah)
+    else:
+        page_number = _layout_page_resolve(_editor_layout_db(edition), surah, ayah)
     if page_number is None:
         return jsonify({'error': 'unresolved', 'edition': edition, 'surah': surah, 'ayah': ayah}), 404
     return jsonify({
@@ -546,8 +648,10 @@ def get_mushaf_editor_spread(spread_number):
     edition = (request.args.get('edition') or '').strip()
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
-    if not (1 <= spread_number <= _MAX_MUSHAF_SPREAD):
-        return jsonify({'error': f'spread_number must be between 1 and {_MAX_MUSHAF_SPREAD}'}), 400
+    max_page = _max_page_for(edition)
+    max_spread = (max_page + 1) // 2
+    if not (1 <= spread_number <= max_spread):
+        return jsonify({'error': f'spread_number must be between 1 and {max_spread}'}), 400
     try:
         right_page = spread_number * 2 - 1
         left_page = right_page + 1
@@ -564,10 +668,12 @@ def get_mushaf_editor_spread(spread_number):
             build_page = _build_qatar_page_payload
         elif edition == 'البحرين':
             build_page = _build_bahrain_page_payload
+        elif _is_mesaha(edition):
+            build_page = _build_mesaha_page_payload
         else:
             build_page = _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
-        left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
+        left = build_page(left_page, mushaf_version=versions) if left_page <= max_page else None
         if edition == 'الكويت':
             for page in (right, left):
                 if page:
@@ -579,7 +685,8 @@ def get_mushaf_editor_spread(spread_number):
             'edition': edition,
             'right': right,
             'left': left,
-            'max_spread': _MAX_MUSHAF_SPREAD,
+            'max_spread': max_spread,
+            'max_page': max_page,
             'peer_versions': list(_EDITOR_PEER_VERSIONS),
             'cloud': sb.is_configured(),
         })
@@ -667,8 +774,8 @@ def mushaf_editor_progress():
                 page_number = int(body.get('page_number'))
             except (TypeError, ValueError):
                 return jsonify({'error': 'invalid page_number'}), 400
-            if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
-                return jsonify({'error': f'page_number must be between 1 and {_MAX_MUSHAF_PAGE}'}), 400
+            if not (1 <= page_number <= _max_page_for(edition)):
+                return jsonify({'error': f'page_number must be between 1 and {_max_page_for(edition)}'}), 400
             reviewed = bool(body.get('reviewed'))
             sb.upsert_progress(
                 edition=edition, page_number=page_number, reviewed=reviewed,
@@ -703,8 +810,8 @@ def mushaf_editor_progress():
             page_number = int(body.get('page_number'))
         except (TypeError, ValueError):
             return jsonify({'error': 'invalid page_number'}), 400
-        if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
-            return jsonify({'error': f'page_number must be between 1 and {_MAX_MUSHAF_PAGE}'}), 400
+        if not (1 <= page_number <= _max_page_for(edition)):
+            return jsonify({'error': f'page_number must be between 1 and {_max_page_for(edition)}'}), 400
         reviewed = 1 if body.get('reviewed') else 0
         cur.execute(
             'INSERT INTO mushaf_editor_progress (page_number, edition, reviewed, updated_at) '

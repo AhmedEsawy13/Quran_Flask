@@ -6,6 +6,7 @@
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Al Shamiya';   src: url('../fonts/alshamiya.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Digital Khatt'; src: url('../fonts/digitalkhatt.woff2')  format('woff2'); font-display: swap; }
+@font-face { font-family: 'AmiriQuran';  src: url('../fonts/amiri_quran.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'KATypical Naskh'; src: url('../fonts/KATypicalNaskhv2.0-Regular.woff2') format('woff2'); font-display: swap; }
 /* Digital Khatt COLR verse markers: darken the disc in dark mode. */
@@ -320,6 +321,10 @@ body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
 body.ed-font-bahrain .ed-word,
 body.ed-font-bahrain .ed-popup-title { font-family: 'Digital Khatt', serif; }
 body.ed-font-bahrain .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+/* المساحة — the Layout Studio project's pages (Amiri Quran script, like the studio). */
+body.ed-font-mesaha .ed-word,
+body.ed-font-mesaha .ed-popup-title { font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif; }
+body.ed-font-mesaha .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
 body.ed-dark.ed-font-bahrain .ed-line-inner { font-palette: --ed-dk-dark; }
 .ed-word:hover { background: var(--ed-accent-soft); }
 .ed-word:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; background: var(--ed-accent-soft); }

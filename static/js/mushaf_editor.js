@@ -24,8 +24,14 @@
     const { normalizeNonWarshWaqfText, stripEmbeddedWaqf } = window.AtharMushaf;
     const { toAr, clearPageChrome, renderPageChrome } = window.AtharPageChrome;
 
-    const MAX_SPREAD = 302;
-    const MAX_PAGE = 604;
+    // The Mesaha editions run to 827 pages; every other print is 604.
+    const MESAHA_EDITIONS = new Set(['المساحة', 'المساحة ١٣٧١']);
+    let MAX_PAGE = 604;
+    let MAX_SPREAD = 302;
+    function applyEditionLimits(edition) {
+        MAX_PAGE = MESAHA_EDITIONS.has(edition) ? 827 : 604;
+        MAX_SPREAD = Math.ceil(MAX_PAGE / 2);
+    }
 
     // Printed scans — Archive.org leaf images for قطر/الكويت; remote islamhouse
     // PDF (AtharPdfRef / pdf.js) for البحرين. Mushaf page N → PDF page N+5.
@@ -33,6 +39,8 @@
     const REF_SOURCES = {
         'الكويت': { type: 'archive', id: 'kweat--h4794794946945969', label: 'مرجع الكويت الحديث', leafOffset: 3 },
         'قطر': { type: 'archive', id: 'MushafQatar_20150445776437', label: 'مرجع مصحف قطر', leafOffset: 3 },
+        'المساحة': { type: 'archive', id: 'mushafElMesaha46796794669_201703', label: 'مرجع مصحف المساحة', leafOffset: -1 },
+        'المساحة ١٣٧١': { type: 'archive', id: 'mushafElMesaha46796794669_201703', label: 'مرجع مصحف المساحة', leafOffset: -1 },
         'البحرين': {
             type: 'pdf',
             label: 'مرجع مصحف البحرين',
@@ -70,11 +78,15 @@
         'البحرين': '/layout-studio/bahrain',
         'قطر': '/layout-studio/azhar',
         'الكويت': '/layout-studio/azhar',
+        'المساحة': '/layout-studio/mesaha',
+        'المساحة ١٣٧١': '/layout-studio/mesaha',
     };
     const EDITION_LABEL = {
         'قطر': 'مصحف قطر',
         'الكويت': 'الكويت الحديث',
         'البحرين': 'مصحف البحرين',
+        'المساحة': 'مصحف المساحة ١٣٤٢',
+        'المساحة ١٣٧١': 'مصحف المساحة ١٣٧١',
     };
     const EDITOR_EDITION_SET = new Set(Object.keys(EDITION_LABEL));
     const ACTION_AR = {
@@ -314,6 +326,9 @@
         document.body.classList.toggle('ed-font-qatar', state.edition === 'قطر');
         document.body.classList.toggle('ed-font-kuwait', state.edition === 'الكويت');
         document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين');
+        document.body.classList.toggle('ed-font-mesaha', MESAHA_EDITIONS.has(state.edition));
+        applyEditionLimits(state.edition);
+        if (state.page > MAX_PAGE) state.page = MAX_PAGE;
         document.body.classList.remove('ed-font-hafs');
         document.body.classList.toggle('ed-compare-print', state.compareMode === 'print');
         if (els.studioLink) {
@@ -321,6 +336,7 @@
             const label = EDITION_LABEL[state.edition] || state.edition;
             els.studioLink.textContent = state.edition === 'البحرين'
                 ? 'استوديو التخطيط (البحرين)'
+                : MESAHA_EDITIONS.has(state.edition) ? 'استوديو التخطيط (المساحة)'
                 : 'استوديو التخطيط';
             els.studioLink.title = `تخطيط ${label}`;
         }

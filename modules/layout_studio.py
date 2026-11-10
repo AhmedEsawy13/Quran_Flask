@@ -417,6 +417,7 @@ def _project_word_map(edition: LayoutEdition) -> dict:
 def _build_project_payload(
     edition: LayoutEdition,
     page_number: int,
+    mushaf_version=None,
 ):
     conn = _sqlite_connect(_layout_db(edition))
     try:
@@ -455,7 +456,7 @@ def _build_project_payload(
         source=f'layout_studio_{edition.id}',
         font_name_default=edition.font_name,
         include_advance=False,
-        mushaf_version=edition.mushaf_version,
+        mushaf_version=edition.mushaf_version if mushaf_version is None else mushaf_version,
         word_map=_project_word_map(edition),
     )
     payload['font_name'] = edition.font_name

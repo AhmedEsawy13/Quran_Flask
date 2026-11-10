@@ -17,9 +17,9 @@ from core.edition_capabilities import (
 from pipeline.check_supabase_readiness import _compare_edition_capabilities
 
 
-EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين'})
-# المساحة (1924) and المساحة ١٣٧١ (1952): cloud drafts, publish and public reading, but no editor pages yet
-CLOUD_ONLY = frozenset({'المساحة', 'المساحة ١٣٧١'})
+EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين', 'المساحة', 'المساحة ١٣٧١'})
+# every cloud edition is editable now (المساحة 1924 and ١٣٧١ run on the Layout Studio project's pages)
+CLOUD_ONLY = frozenset()
 
 
 def test_compatibility_sets_are_registry_projections():
@@ -94,7 +94,13 @@ def test_supabase_migrations_seed_registry_capabilities():
         assert 'create table if not exists public.editor_edition_capabilities' in sql
         assert 'check (not publish_enabled or cloud_draft_enabled)' in sql
         assert 'grant select on table public.editor_edition_capabilities to service_role' in sql
-        for edition in EXPECTED:
+        for edition in ('قطر', 'الكويت', 'البحرين'):
             assert f"('{edition}', true, true, true, true, now())" in sql
-        assert "('المساحة', false, true, true, true, now())" in sql
-        assert "('المساحة ١٣٧١', false, true, true, true, now())" in sql
+
+
+def test_mesaha_migration_enables_the_editor():
+    from pathlib import Path
+
+    sql = (Path(__file__).resolve().parents[1] / 'pipeline' / 'supabase_add_mesaha_edition.sql').read_text(encoding='utf-8')
+    for edition in ('المساحة', 'المساحة ١٣٧١'):
+        assert f"('{edition}', true, true, true, true, now())" in sql

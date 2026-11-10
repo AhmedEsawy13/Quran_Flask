@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 140,
+  "route_count": 141,
   "routes": [
     {
       "auth": "editor",
@@ -2757,6 +2757,7 @@
         "cloud",
         "edition",
         "left",
+        "max_page",
         "max_spread",
         "peer_versions",
         "right",
@@ -3213,6 +3214,34 @@
       "success_keys": [
         "pages"
       ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_qvp_svg",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/qvp-svg/<int:page_number>.svg",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
     },
     {
       "auth": "public",
