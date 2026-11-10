@@ -155,8 +155,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('Tippy.js not loaded, tooltips disabled:', error);
     }
 
-    // Voice recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    // Voice recognition — switched off for now: the mic button is gone from the reader (templates/index.html), so no
+    // recognizer is created and the microphone is never requested. Re-enable by restoring #start-voice-command.
+    if (document.getElementById('start-voice-command')
+        && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         try {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();

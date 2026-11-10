@@ -1628,7 +1628,7 @@ body.athar-reading .reader-settings-toggle { display: none; }
 @media (min-width: 901px) {
     /* mushaf · vector switch · reciter · mic: the switch gets its own (auto) column so the reciter keeps its width */
     body.athar-reading .ctrl-row-nav {
-        grid-template-columns: minmax(150px, 1.1fr) minmax(82px, 0.48fr) minmax(150px, 1fr) auto minmax(150px, 1fr) 42px;
+        grid-template-columns: minmax(150px, 1.1fr) minmax(82px, 0.48fr) minmax(150px, 1fr) auto minmax(150px, 1fr);
     }
     body.athar-reading .reader-field-toggle { align-self: end; min-height: 40px; display: flex; align-items: center; gap: 8px; }
     body.athar-reading .reader-field-toggle[hidden] { display: none; }
