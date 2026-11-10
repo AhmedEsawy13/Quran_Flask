@@ -64,13 +64,14 @@ def main() -> None:
     ap.add_argument('--out', type=Path, default=ROOT / 'artifacts' / 'shamarly-qvp' / 'real-errors')
     ap.add_argument('--folds', type=int, default=5)
     ap.add_argument('--split', default='test')
+    ap.add_argument('--results', default='results')
     ap.add_argument('--seed', type=int, default=20261112)
     a = ap.parse_args()
     if a.cmd == 'sheets':
         sheets(a.out)
         return
     if a.cmd == 'score':
-        score(a.out, a.split)
+        score(a.out, a.split, a.results)
         return
     pages = sorted(int(p.stem.split('-')[1]) for p in (LAB / 'stack').glob('page-*.json'))
     rows = {p: page_rows(p) for p in pages}
@@ -237,27 +238,29 @@ def sheets(out: Path, n_test=(90, 70, 80), n_clean_test=160, n_dev=(40, 40, 40),
         cv2.putText(header, iid, (4, 13), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
         cells.append((np.vstack([header, img]), {'id': iid, 'text': texts.get(it['word_index'], '')}))
         truth[iid] = {k: it[k] for k in ('page', 'word_index', 'wrong', 'kind', 'wrong_area', 'n_missing', 'n_extra', 'n_outlines', 'split')}
-    for s in range(0, len(cells), 6):
-        chunk = cells[s:s + 6]
-        width = max(c.shape[1] for c, _ in chunk)
-        canvas = np.full((sum(c.shape[0] + 6 for c, _ in chunk), width, 3), 255, np.uint8)
-        y = 0
-        for c, _ in chunk:
-            canvas[y:y + c.shape[0], :c.shape[1]] = c
-            y += c.shape[0] + 6
-        name = f'sheet_{s // 6:03d}'
-        Image.fromarray(canvas[:, :, ::-1]).save(out / 'sheets' / f'{name}.png')
-        (out / 'sheets' / f'{name}.json').write_text(json.dumps([m for _, m in chunk], ensure_ascii=False), encoding='utf-8')
+    for split in ('dev', 'test'):                                   # sheets never mix the two: judges for tuning only ever see dev
+        mine_cells = [(c, m) for c, m in cells if truth[m['id']]['split'] == split]
+        for s in range(0, len(mine_cells), 6):
+            chunk = mine_cells[s:s + 6]
+            width = max(c.shape[1] for c, _ in chunk)
+            canvas = np.full((sum(c.shape[0] + 6 for c, _ in chunk), width, 3), 255, np.uint8)
+            y = 0
+            for c, _ in chunk:
+                canvas[y:y + c.shape[0], :c.shape[1]] = c
+                y += c.shape[0] + 6
+            name = f'{split}_sheet_{s // 6:03d}'
+            Image.fromarray(canvas[:, :, ::-1]).save(out / 'sheets' / f'{name}.png')
+            (out / 'sheets' / f'{name}.json').write_text(json.dumps([m for _, m in chunk], ensure_ascii=False), encoding='utf-8')
     (out / 'truth' / 'truth.json').write_text(json.dumps({'seed': seed, 'test_pages': sorted(test_pages), 'items': truth}, ensure_ascii=False), encoding='utf-8')
     by = collections.Counter((t['split'], t['wrong']) for t in truth.values())
     print(f'{len(truth)} items on {len(cells) // 6 + 1} sheets;', dict(by))
 
 
-def score(out: Path, split: str) -> None:
+def score(out: Path, split: str, results: str = 'results') -> None:
     """Judge results (<out>/results/*.jsonl {id, verdict, note}) against the real errors: recall by kind and size, false alarms."""
     truth = json.loads((out / 'truth' / 'truth.json').read_text(encoding='utf-8'))['items']
     verdict = {}
-    for f in sorted((out / 'results').glob('*.jsonl')):
+    for f in sorted((out / results).glob('*.jsonl')):
         for line in f.read_text(encoding='utf-8').splitlines():
             if line.strip():
                 r = json.loads(line)
@@ -266,6 +269,14 @@ def score(out: Path, split: str) -> None:
     from shamarly_word_audit import clopper_pearson_upper
     flagged = lambda i: verdict[i] in ('MISSING', 'EXTRA', 'BOTH')
     items = {i: t for i, t in truth.items() if t['split'] == split and i in verdict}
+    label_wrong = set()                                    # errors of the KEY, found by looking (adjudicate/results_*.jsonl OURS_RIGHT)
+    for f in sorted((out / 'adjudicate').glob('results_*.jsonl')) if (out / 'adjudicate').exists() else []:
+        for line in f.read_text(encoding='utf-8').splitlines():
+            if line.strip() and json.loads(line)['verdict'] == 'OURS_RIGHT':
+                label_wrong.add(json.loads(line)['id'])
+    if label_wrong:
+        print(f'{len([i for i in label_wrong if i in items])} items the answer key got wrong (adjudicated by looking) are dropped from the errors')
+        items = {i: t for i, t in items.items() if i not in label_wrong}
     wrong = [i for i, t in items.items() if t['wrong']]
     clean = [i for i, t in items.items() if not t['wrong']]
     unsure = [i for i in items if verdict[i] == 'UNSURE']
@@ -284,7 +295,7 @@ def score(out: Path, split: str) -> None:
         if ids:
             print(f'  {name:26s} caught {sum(1 for i in ids if flagged(i))}/{len(ids)}')
     miss = [i for i in wrong if not flagged(i)]
-    (out / 'missed.json').write_text(json.dumps([{'id': i, **truth[i]} for i in miss], ensure_ascii=False, indent=1), encoding='utf-8')
+    (out / f'missed_{results}.json').write_text(json.dumps([{'id': i, **truth[i]} for i in miss], ensure_ascii=False, indent=1), encoding='utf-8')
 
 
 if __name__ == '__main__':
