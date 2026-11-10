@@ -40,7 +40,8 @@
         'الكويت': { type: 'archive', id: 'kweat--h4794794946945969', label: 'مرجع الكويت الحديث', leafOffset: 3 },
         'قطر': { type: 'archive', id: 'MushafQatar_20150445776437', label: 'مرجع مصحف قطر', leafOffset: 3 },
         'المساحة': { type: 'archive', id: 'mushafElMesaha46796794669_201703', label: 'مرجع مصحف المساحة', leafOffset: -1 },
-        'المساحة ١٣٧١': { type: 'archive', id: 'mushafElMesaha46796794669_201703', label: 'مرجع مصحف المساحة', leafOffset: -1 },
+        // the 1952 reprint's own scan (Jordanian Ministry of Education, archive.org MmSL7H): page N = leaf N-1
+        'المساحة ١٣٧١': { type: 'archive', id: 'MmSL7H', label: 'مرجع المساحة ١٣٧١ (طبعة ١٩٥٢)', leafOffset: -1 },
         'البحرين': {
             type: 'pdf',
             label: 'مرجع مصحف البحرين',
