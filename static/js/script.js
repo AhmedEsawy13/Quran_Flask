@@ -449,6 +449,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.addEventListener('click', (event) => {
             if (event.target === elements.modal) closeModal();
         });
+        const vectorToggle = document.getElementById('shamarly-vector-toggle');
+        if (vectorToggle && window.ShamarlyVector) {
+            vectorToggle.checked = window.ShamarlyVector.enabled();
+            vectorToggle.addEventListener('change', async () => {
+                window.ShamarlyVector.setEnabled(vectorToggle.checked);
+                await updateDisplayedText();
+            });
+        }
         elements.quranTextSelect.addEventListener('change', async () => {
             // Add loading indicator
             const originalText = elements.quranTextContainer.innerHTML;
@@ -922,6 +930,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // (confirmed same underlying qpc_hafs-equivalent text) — if they don't
         // line up for some reason, skip the enhancement rather than mismatch glyphs.
         if (!words.length || words.length !== wordEls.length) return;
+
+        // Beta «رسم الملف»: draw the words from the vector PDF instead of the page font.
+        if (window.ShamarlyVector && await window.ShamarlyVector.render(wordEls, surahNumber, ayahNumber, payload.pages)) return;
 
         // A verse can span two font-bearing pages; load every referenced page's
         // font before touching any DOM, so words don't flash plain-then-glyph.
@@ -3216,6 +3227,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         quranText.classList.add(font);
         // Track exact font name so CSS can apply per-font rules (e.g. #tajweed-text)
         document.body.dataset.quranFont = font;
+        const vectorField = document.getElementById('shamarly-vector-field');
+        if (vectorField) vectorField.hidden = font !== 'shamarly';
         // Track font family so CSS can apply per-font rules to guide-seg-words, diff chips, etc.
         if (font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2') {
             document.body.dataset.fontType = 'indopak';

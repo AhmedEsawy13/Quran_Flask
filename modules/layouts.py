@@ -996,6 +996,17 @@ def get_shamarly_qvp_page(page_number):
     return send_file(path, mimetype='application/octet-stream', max_age=0)
 
 
+@core_bp.route('/api/shamarly/qvp-svg/<int:page_number>.svg', methods=['GET'])
+def get_shamarly_qvp_svg(page_number):
+    """Beta: the page's structured SVG (line > ayah-fragment > word > path) the QVP was built from. The verse
+    view of the Flask reader cuts single words out of it; the QVP binary itself needs the full page decoder."""
+    from core.config import SHAMARLY_QVP_DIR
+    path = os.path.join(os.path.dirname(SHAMARLY_QVP_DIR), 'svg', f'{page_number:03d}.svg')
+    if not (1 <= page_number <= 999) or not os.path.isfile(path):
+        return jsonify({'error': 'not found'}), 404
+    return send_file(path, mimetype='image/svg+xml', max_age=0)
+
+
 @core_bp.route('/api/shamarly/qvp-tajweed/<int:page_number>.json', methods=['GET'])
 def get_shamarly_qvp_tajweed(page_number):
     """Beta: {"marks": {word key: [tajweed class per coloured mark path, in path order]},

@@ -77,6 +77,7 @@
                     <option value="old_madina">مصحف المدينة القديم</option>
                     <option value="indopak_nastaleeq_2">هندي / نستعليق</option>
                 </select></label>
+                <label class="reader-field reader-field-toggle" id="shamarly-vector-field" for="shamarly-vector-toggle" hidden title="الشمرلي من ملف المصحف نفسه (تجريبي)"><span>رسم الملف</span><input type="checkbox" id="shamarly-vector-toggle"></label>
                 <!-- kept hidden; shamarly page mode uses it via loadShamarlyQuranData -->
                 <select id="reading-view-select" style="display:none" aria-hidden="true"><option value="verse-normal">عرض آية</option></select>
                 <!-- populated from /api/memorization-reciters — same reciter catalog as تثبيت/مُكْث -->
@@ -506,6 +507,7 @@
 
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
+    <script defer src="{{ static_hash('js/shamarly-vector.js') }}"></script>
     <script defer src="{{ static_hash('js/script.js') }}"></script>
 
     {% if enable_vercel_analytics %}

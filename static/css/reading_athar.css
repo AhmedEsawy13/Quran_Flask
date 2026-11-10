@@ -1588,3 +1588,15 @@ body.athar-reading .word-meaning-tooltip {
     }
     body.athar-reading .word-token:hover { transform: none; }
 }
+
+
+/* الشمرلي «رسم الملف»: each word is an inline <svg> cut from the vector PDF (static/js/shamarly-vector.js) */
+body.athar-reading .word-token[data-shamarly-vector] { margin: 0 0.12em; }
+body.athar-reading .word-token[data-shamarly-vector] .word-base { line-height: 0; }
+body.athar-reading #quran-text { --sv-line: 1.35em; }
+.sv-word { display: inline-block; vertical-align: middle; overflow: visible; fill: currentColor;
+    /* the band is 1.5 line pitches tall so marks keep their room; take the extra back so rows stay one pitch apart */
+    margin-block: calc(-0.3 * var(--sv-line, 1.35em)); }
+.sv-word.sv-ayah-mark { margin-inline-start: 0.2em; }
+.reader-field-toggle { flex-direction: row; align-items: center; gap: 0.4rem; }
+.reader-field-toggle[hidden] { display: none; }
