@@ -349,17 +349,15 @@ body.ed-compare-print .ed-word.ed-diff .ed-waqf-mark { color: inherit; }
    (positive top) and keep line overflow:visible so Uthmanic glyph ink shows. */
 .ed-waqf-mark {
     font-family: 'Uthmanic Hafs', serif;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    top: 0.45em;
-    min-width: 0.72em;
-    font-size: 0.88em;
+    display: block;
+    /* above the word's last letter (the left end in RTL), out of the text flow */
+    position: absolute;
+    top: -0.55em;
+    left: -0.1em;
+    font-size: 1.2em;
     line-height: 1;
     color: var(--ed-accent);
-    margin-inline-start: 0.05em;
-    vertical-align: baseline;
+    pointer-events: none;
     z-index: 2;
     -webkit-text-stroke: 0.02em var(--ed-paper);
     paint-order: stroke fill;
