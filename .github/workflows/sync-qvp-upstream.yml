@@ -65,3 +65,14 @@ jobs:
           gh pr create \
             --title "Sync QVP pin from quran-engine release" \
             --body-file /tmp/qvp-sync.log
+
+      - name: Close the sync pull request when the pin already matches
+        if: steps.apply.outputs.changed != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --head chore/qvp-upstream-sync --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh pr close "$open" --delete-branch \
+              --comment "Closed automatically: main already pins the latest quran-engine release."
+          fi

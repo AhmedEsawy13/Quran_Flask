@@ -98,6 +98,19 @@ jobs:
         if: steps.plan.outputs.count != '0'
         run: python3 -m pytest -q
 
+      - name: Close the review pull request when nothing is left to sync
+        if: ${{ steps.plan.outputs.configured == 'true' && steps.plan.outputs.count == '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number="$(gh pr list \
+            --head automation/published-waqf-sync --base main --state open \
+            --json number --jq '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr close "$number" --delete-branch \
+              --comment "Closed automatically: main already matches the published Supabase marks."
+          fi
+
       - name: Open or update review pull request
         if: steps.plan.outputs.count != '0'
         env:
