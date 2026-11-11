@@ -31,6 +31,9 @@ EDITOR_EDITION_CAPABILITIES: tuple[EditorEditionCapability, ...] = (
     EditorEditionCapability('المساحة'),
     # The 1371 AH / 1952 printing of the same plates with its revised signs (pipeline/add_mesaha1371_waqf_column.py).
     EditorEditionCapability('المساحة ١٣٧١'),
+    # مصحف دولة الكويت بخط محمد سعد الحداد (1421/2000): its own 662-page layout read off the scan
+    # (pipeline/paw_split/haddad_*.py); signs from the same scan, reviewed in /mushaf-editor.
+    EditorEditionCapability('الكويت (الحداد)'),
 )
 
 _BY_EDITION = {

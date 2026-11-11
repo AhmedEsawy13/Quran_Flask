@@ -23,7 +23,7 @@ from core.errors import PersistenceError
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
     QPC_V2_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
-    BAHRAIN_LAYOUT_DATABASE,
+    BAHRAIN_LAYOUT_DATABASE, HADDAD_LAYOUT_DATABASE,
     AZHAR_LAYOUT_DATABASE, QURAN_SCRIPT_DATABASE,
     AZHAR_LAYOUT_MIN_PAGE, AZHAR_LAYOUT_MAX_PAGE,
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
@@ -1929,6 +1929,41 @@ def _build_bahrain_page_payload(page_number, focus_surah=None, focus_ayah=None, 
     payload['layout_name'] = (
         (info_row['name'] if info_row and info_row['name'] else None) or layout_name
     )
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
+    return payload
+
+
+def _build_haddad_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """«الكويت (الحداد)» from its own 662-page, 13-line layout (data/mushaf-kuwait-haddad-layout.db, read off
+    the scan; Digital Khatt word ids), rendered with Digital Khatt like البحرين."""
+    if not os.path.exists(HADDAD_LAYOUT_DATABASE):
+        return None
+    layout_conn = sqlite3.connect(HADDAD_LAYOUT_DATABASE)
+    try:
+        layout_conn.row_factory = sqlite3.Row
+        lc = layout_conn.cursor()
+        lc.execute(
+            'SELECT page_number, line_number, line_type, is_centered, '
+            'first_word_id, last_word_id, surah_number '
+            'FROM pages WHERE page_number = ? ORDER BY line_number ASC',
+            (page_number,)
+        )
+        lines = [dict(row) for row in lc.fetchall()]
+        lc.execute('SELECT font_name, number_of_pages, lines_per_page, name FROM info LIMIT 1')
+        info_row = lc.fetchone()
+    finally:
+        layout_conn.close()
+    if not lines:
+        return None
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source='mushaf_kuwait_haddad', font_name_default='Digital Khatt', include_advance=False,
+        mushaf_version=mushaf_version,
+    )
+    payload['font_name'] = 'Digital Khatt'
+    payload['layout_name'] = (info_row['name'] if info_row and info_row['name'] else None) or 'مصحف الكويت · الحداد'
     payload['mushaf_version'] = (
         mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
     )

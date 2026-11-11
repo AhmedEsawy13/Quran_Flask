@@ -17,7 +17,7 @@ from core.edition_capabilities import (
 from pipeline.check_supabase_readiness import _compare_edition_capabilities
 
 
-EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين', 'المساحة', 'المساحة ١٣٧١'})
+EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين', 'المساحة', 'المساحة ١٣٧١', 'الكويت (الحداد)'})
 # every cloud edition is editable now (المساحة 1924 and ١٣٧١ run on the Layout Studio project's pages)
 CLOUD_ONLY = frozenset()
 
@@ -104,3 +104,10 @@ def test_mesaha_migration_enables_the_editor():
     sql = (Path(__file__).resolve().parents[1] / 'pipeline' / 'supabase_add_mesaha_edition.sql').read_text(encoding='utf-8')
     for edition in ('المساحة', 'المساحة ١٣٧١'):
         assert f"('{edition}', true, true, true, true, now())" in sql
+
+
+def test_haddad_migration_enables_the_editor():
+    from pathlib import Path
+
+    sql = (Path(__file__).resolve().parents[1] / 'pipeline' / 'supabase_add_haddad_edition.sql').read_text(encoding='utf-8')
+    assert "('الكويت (الحداد)', true, true, true, true, now())" in sql

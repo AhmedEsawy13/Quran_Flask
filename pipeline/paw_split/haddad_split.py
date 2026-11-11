@@ -8,7 +8,8 @@ with black digits in the middle). The line breaks are inferred from the ink as i
 
     HADDAD_START=<stream index> python3 pipeline/paw_split/haddad_split.py 4
         -> artifacts/haddad-trace/paw-words-004.json (with 'next_start' for the following page)
-Run pages in order with haddad_batch.py.
+Run pages in order with haddad_batch.py. The scans are saved by leaf - 2, except leaves 386/388, which the
+archive has out of order: they are saved as p386.jpg/p384.jpg (haddad_pagenum.py reads the printed numbers).
 """
 import sys as _sys
 from pathlib import Path as _Path
@@ -24,12 +25,13 @@ import sys
 
 import cv2
 import numpy as np
+from scipy import ndimage
 
 PAGE = int(sys.argv[1]) if len(sys.argv) > 1 else 190
-SCAN = f'{ROOT}/artifacts/haddad/pages/p{PAGE:03d}.jpg'
+SCAN = os.environ.get('HADDAD_SCAN') or f'{ROOT}/artifacts/haddad/pages/p{PAGE:03d}.jpg'
 img = cv2.imread(SCAN)
 WORK_W = 2208                            # the HD scan is 2608 px wide (pitch ~152): work at 2208 so the pitch (~129) is Maktoum's
-SCALE = WORK_W / img.shape[1]
+SCALE = WORK_W / 2608                    # by the print's size, not the scan's width: some scans are cropped tighter (p232: 2094 px, same 1415-px frame)
 img = cv2.resize(img, None, fx=SCALE, fy=SCALE, interpolation=cv2.INTER_AREA)
 H, W = img.shape[:2]
 bgr = img.astype(int)
@@ -47,9 +49,12 @@ ink = (gray < 150) & ~COLOURED          # black rasm only
 # The frame is a band of dense green ornament round the text (the scan has a wide white margin, and the
 # running heads + page number sit outside the band): its inner edges = from the page centre outwards, the
 # first column/row where over 30% of the pixels are green.
-_FR = (G_ - R_) > 25
+_FR = (G_ - R_) > 15                      # p350's frame is a duller green (G - R peaks ~0.28 of a column at > 25)
 _colp = _FR[H // 4:3 * H // 4].mean(0)
 _rowp = _FR[:, W // 4:3 * W // 4].mean(1)
+# the ornament band has thin gaps under 30% (p140 stopped 50 px into it): bridge them
+_colp = ndimage.maximum_filter1d(_colp, 31)
+_rowp = ndimage.maximum_filter1d(_rowp, 9)     # rows: a banner can sit ~30 px under the top band (p606)
 cy0, cx0 = H // 2, W // 2
 def _edge(prof, c, step):
     k = c
@@ -57,8 +62,18 @@ def _edge(prof, c, step):
         k += step
     return k
 M = 14
-bx0, bx1 = _edge(_colp, cx0, -1) + M, _edge(_colp, cx0, 1) - M
-by0, by1 = _edge(_rowp, cy0, -1) + M, _edge(_rowp, cy0, 1) - M
+
+def _edge_in(prof, step):
+    # from the page edge inwards: through the white margin, then through the frame band (a surah banner is
+    # as green as the frame, so the rows are not searched from the centre outwards like the columns)
+    k = 0 if step > 0 else len(prof) - 1
+    while 0 <= k < len(prof) and prof[k] < 0.15:
+        k += step
+    while 0 <= k < len(prof) and prof[k] >= 0.15:
+        k += step
+    return k
+by0, by1 = _edge_in(_rowp, 1) - 4 + M, _edge_in(_rowp, -1) + 4 - M      # -4/+4: undo the 9-px bridge
+bx0, bx1 = _edge_in(_colp, 1) - 15 + M, _edge_in(_colp, -1) + 15 - M   # a banner's side borders are as green as the frame (p660)
 is_rule = np.zeros((H, W), bool)
 is_rule[:, :bx0 - M] = is_rule[:, bx1 + M:] = True
 is_rule[:by0 - M] = is_rule[by1 + M:] = True
@@ -95,16 +110,67 @@ _prof = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(25) / 25, mode
 _span = by1 - by0
 _best = max(((sum(_prof[int(y0 + i * pt)] for i in TEXT_SLOTS), y0, pt)
              for pt in np.arange(0.068 * _span, 0.082 * _span, 0.5)
-             for y0 in range(by0, int(by1 - (NL - 1) * pt), 2)
-             if int(y0 + (NL - 1) * pt) < by1))
+             for y0 in range(int(by0 + 0.3 * pt), int(by1 - (NL - 1) * pt), 2)    # the frame's inner rule peaks at
+             if int(y0 + (NL - 1) * pt) < by1 - 0.2 * pt))                       # its edge (p130 fitted to it)
 _, _y0, _pt = _best
 SLOT_CENTRES = [max(range(int(_y0 + i * _pt) - 14, int(_y0 + i * _pt) + 15), key=lambda y: _prof[y]) for i in range(NL)]
 PITCH = float(_pt)
+# Where the ink profile has exactly one clear peak per line, the peaks are the line centres (the comb sat
+# 40 px low on p448: tall letters pulled it); the comb stays the fallback.
+from scipy.signal import find_peaks as _fp0
+_pk0, _ = _fp0(np.where((np.arange(H) > by0 + 0.3 * _pt) & (np.arange(H) < by1 - 0.2 * _pt), _prof, 0),
+               distance=int(0.72 * _pt), prominence=0.08 * float(_prof[by0:by1].max()))
+# Most pages have 13 lines; some pack 14 at a tighter pitch (p534, الدخان): any 12-16 evenly spaced peaks.
+if 12 <= len(_pk0) <= 16 and np.ptp(np.diff(_pk0)) < 0.35 * float(np.median(np.diff(_pk0))):
+    SLOT_CENTRES = [int(y) for y in _pk0]
+    PITCH = float(np.median(np.diff(_pk0)))
+    NL = len(SLOT_CENTRES)
+    TEXT_SLOTS = list(range(NL)); LINE_NUMBERS = list(range(1, NL + 1))
+    line_tokens = [[] for _ in range(NL)]
+    rows = line_tokens
 HEADER_CENTRES = [c for k, c in enumerate(SLOT_CENTRES) if k not in TEXT_SLOTS]
 centres = [SLOT_CENTRES[k] for k in TEXT_SLOTS]
 bands = [(c - 0.36 * PITCH, c + 0.30 * PITCH) for c in centres]
 if os.environ.get('DBG'):
     print('frame', bx0, bx1, by0, by1, 'HxW', H, W, 'pitch', PITCH, 'centres', SLOT_CENTRES)
+
+# --- surah banners: a green-bordered box across the text width, ~1.6 line pitches tall ---------------------
+# Rows inside it are >= 25% faintly green (G - R > 10); text rows ~0% (p606, p660). A banner page packs its
+# lines tighter than the 13-row grid, so its line centres are the ink-profile peaks outside the banners; the
+# basmala under each banner (none for surah 9) is dropped once the page's surahs are known.
+_ban_rows = ((G_ - R_) > 10)[:, bx0:bx1].mean(1) > 0.25
+_ban_rows[:by0 + 10] = False; _ban_rows[by1 - 10:] = False
+BANNERS, _in = [], None
+for _y in range(H):
+    if _ban_rows[_y] and _in is None:
+        _in = _y
+    elif not _ban_rows[_y] and _in is not None:
+        if _y - _in > 0.6 * PITCH:
+            BANNERS.append((_in, _y))
+        _in = None
+if os.environ.get('DBG'):
+    _fr = ((G_ - R_) > 10)[:, bx0:bx1].mean(1)
+    print('banner rows', bx0, bx1, by0, by1, BANNERS if 'BANNERS' in dir() else '', round(PITCH, 1), ' '.join(f'{y}:{_fr[y]:.2f}' for y in range(by0, by0 + 300, 15)))
+HEADERS = []                                # (kind, y0, y1, surah) for the layout
+if BANNERS:
+    from scipy.signal import find_peaks as _fp
+    for _a, _b in BANNERS:
+        ink[max(0, int(_a - 0.25 * PITCH)):int(_b + 0.2 * PITCH)] = False   # its border ornament runs ~30 px past the green rows (p654)
+    _p2 = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(25) / 25, mode='same')
+    _p2[:by0] = 0; _p2[by1:] = 0
+    _pk, _ = _fp(_p2, distance=int(0.72 * PITCH), prominence=0.03 * float(_p2.max()))   # a surah's short last line (p654 «وَٱقْتَرِب ۩») is faint
+    _pk = [int(y) for y in _pk if not any(a - 0.3 * PITCH <= y <= b + 0.3 * PITCH for a, b in BANNERS)
+           and by0 + 0.3 * PITCH < y < by1 - 0.2 * PITCH]      # the frame's own inner rule makes a peak at its edge
+    _d = np.diff(_pk)
+    PITCH = float(np.median(_d[_d < 1.3 * np.median(_d)])) if len(_d) else PITCH
+    centres = [float(y) for y in _pk]
+    NL = len(centres)
+    TEXT_SLOTS = list(range(NL)); LINE_NUMBERS = list(range(1, NL + 1))
+    line_tokens = [[] for _ in range(NL)]
+    HEADER_CENTRES = [(a + b) / 2 for a, b in BANNERS]
+    bands = [(c - 0.36 * PITCH, c + 0.30 * PITCH) for c in centres]
+    if os.environ.get('DBG'):
+        print('banners', BANNERS, 'line centres', centres, 'pitch', PITCH)
 
 # --- black pieces (letter bodies) -------------------------------------------------------------------
 n, lab, st, cen = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
@@ -126,12 +192,15 @@ N_BLACK = n
 _T = np.load(f'{ROOT}/pipeline/paw_split/haddad_ring/ring_template.npy')
 _MK = np.load(f'{ROOT}/pipeline/paw_split/haddad_ring/ring_mask.npy')
 _I = cv2.dilate((gray < 170).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(np.float32)
-_I[:by0] = 0; _I[by1:] = 0; _I[:, :bx0] = 0; _I[:, bx1:] = 0
+_I[:by0] = 0; _I[by1:] = 0; _I[:, :bx0 - M + 2] = 0; _I[:, bx1 + M - 2:] = 0   # to the frame's inner rule: a line-end ring touches it (p660)
 _ko = _T.astype(np.float32); _ko /= _ko.sum()
 _km = ((_MK > 0) & (_T == 0)).astype(np.float32); _km /= _km.sum()
 _resp = (cv2.filter2D(_I, -1, _ko, anchor=(0, 0), borderType=cv2.BORDER_CONSTANT)
          - cv2.filter2D(_I, -1, _km, anchor=(0, 0), borderType=cv2.BORDER_CONSTANT))
-RING_TH = float(os.environ.get('RING_TH', '0.6'))
+RING_TH = float(os.environ.get('RING_TH', '0.52'))   # true rings 0.55-1.0 (p575 line ends), false <= 0.51
+for _a, _b in BANNERS:                       # the banner's ornaments are no verse rings
+    _resp[max(0, int(_a - _T.shape[0])):int(_b)] = 0
+
 rings, RING_SCORES, RING_SHORT = [], [], []
 _th, _tw = _T.shape
 while True:
@@ -160,6 +229,43 @@ N_FIXED = len(_toks)
 while _i < len(STREAM) and not STREAM[_i][1].strip().startswith('۝'):
     _toks.append((STREAM[_i][0], STREAM[_i][1].strip()))
     _i += 1
+# surahs that open on this page, in order -> one banner each; the basmala line under it is not text
+SURAH_STARTS = [STREAM[k][2] for k in range(START, START + N_FIXED) if STREAM[k][3] == 1 and (k == 0 or STREAM[k - 1][3] != 1)]
+# a surah may open right at the page top with its banner at the foot of the page before (p660: 107's
+# basmala heads the page), and a page may end on a banner whose surah starts overleaf (p659)
+_opens_top = bool(SURAH_STARTS) and STREAM[START][3] == 1 and (START == 0 or STREAM[START - 1][3] != 1)
+_ban_surahs = list(SURAH_STARTS)
+TOP_BASMALA = None
+if _opens_top and len(BANNERS) == len(SURAH_STARTS) - 1:
+    TOP_BASMALA = _ban_surahs.pop(0)
+if len(BANNERS) == len(_ban_surahs) + 1:
+    _ban_surahs.append(STREAM[START + N_FIXED][2] if START + N_FIXED < len(STREAM) else None)   # the surah of the verse after the last ring
+BANNER_MISMATCH = len(_ban_surahs) != len(BANNERS)
+if BANNERS or TOP_BASMALA:
+    _drop = set()
+    if TOP_BASMALA and TOP_BASMALA != 9 and centres:
+        _drop.add(0)
+        HEADERS.append(('basmallah', centres[0] - 0.36 * PITCH, centres[0] + 0.3 * PITCH, TOP_BASMALA))
+        HEADER_CENTRES.append(centres[0])
+    for (_a, _b), _su in zip(BANNERS, _ban_surahs):
+        HEADERS.append(('surah_name', _a, _b, _su))
+        if _su == 9:
+            continue
+        _below = [k for k, c in enumerate(centres) if _b < c < _b + 1.5 * PITCH]
+        if _below:
+            _drop.add(_below[0])
+            HEADERS.append(('basmallah', centres[_below[0]] - 0.36 * PITCH, centres[_below[0]] + 0.3 * PITCH, _su))
+            HEADER_CENTRES.append(centres[_below[0]])
+    _keep = [k for k in range(len(centres)) if k not in _drop]
+    _remap = {k: j for j, k in enumerate(_keep)}
+    for _r in rings:                         # rings were put on the nearest centre: renumber
+        _r['cy'] = float(centres[min(_keep, key=lambda k: abs(centres[k] - _r['cy']))])
+    centres = [centres[k] for k in _keep]
+    NL = len(centres)
+    TEXT_SLOTS = list(range(NL)); LINE_NUMBERS = list(range(1, NL + 1))
+    line_tokens = [[] for _ in range(NL)]
+    bands = [(c - 0.36 * PITCH, c + 0.30 * PITCH) for c in centres]
+    rows = line_tokens
 _per = max(1, len(_toks) // NL)
 for _k, _tk in enumerate(_toks):
     line_tokens[min(NL - 1, _k // _per)].append(_tk)
@@ -427,11 +533,16 @@ def infer_line_tokens():
                 for k in range(nq + 1):
                     if best[i, k] == INF:
                         continue
-                    for db, dg, pen in ((1, 1, 0.0), (2, 1, 0.6), (3, 1, 1.4), (1, 2, 0.9), (1, 0, 1.2)):
+                    # + rarer moves: three letter groups in one body (heavy touching), four bodies for one group,
+                    # and a group with no ink of its own (p448's 32:29 failed without them)
+                    for db, dg, pen in ((1, 1, 0.0), (2, 1, 0.6), (3, 1, 1.4), (1, 2, 0.9), (1, 0, 1.2),
+                                        (1, 3, 1.9), (4, 1, 2.2), (0, 1, 2.6)):
+                        if db == 0 and i == 0 and k == 0:
+                            continue
                         ni, nk = i + db, k + dg
                         if ni > m or nk > nq or len(set(lines_of[i:ni])) > 1:
                             continue
-                        line_start = i > 0 and lines_of[i] != lines_of[i - 1]
+                        line_start = 0 < i < m and lines_of[i] != lines_of[i - 1]
                         if line_start and dg and k > 0 and seq[k][0] == seq[k - 1][0]:
                             continue            # a word never runs over a line break
                         if line_start and not dg:
@@ -471,7 +582,7 @@ def infer_line_tokens():
             while (i, k) != (0, 0):
                 pi, pk, db, dg = back[(i, k)]
                 if dg:
-                    word_line[t0 + seq[pk][0]] = lines_of[pi]
+                    word_line[t0 + seq[pk][0]] = lines_of[min(pi, m - 1)]   # a no-ink group (db 0) may sit after the last body
                 i, k = pi, pk
             last = lines_of[0]
             for wpos in range(len(toks)):
@@ -719,6 +830,7 @@ checks = {
 }
 json.dump({'page': PAGE, 'start': START, 'next_start': NEXT_START, 'first_ayah': FIRST_AYAH, 'last_ayah': LAST_AYAH,
            'ends_in_verse': ENDS_IN_VERSE, 'inferred': _inferred is not None,
+           'headers': HEADERS, 'banner_mismatch': BANNER_MISMATCH, 'surah_starts': SURAH_STARTS,
            'bands': bands, 'line_numbers': LINE_NUMBERS, 'words': words_out, 'checks': checks},
           open(f'paw-words-{PAGE:03d}{SUFFIX}.json', 'w'), ensure_ascii=False, indent=1)
 

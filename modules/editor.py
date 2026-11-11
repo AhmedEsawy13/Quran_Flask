@@ -28,6 +28,8 @@ from core.config import (
     QPC_V1_LAYOUT_DATABASE,
     QPC_V2_LAYOUT_DATABASE,
     BAHRAIN_LAYOUT_DATABASE,
+    HADDAD_LAYOUT_DATABASE,
+    HADDAD_MAX_PAGE,
     BAHRAIN_REF_PDF,
     BAHRAIN_REF_CACHE,
     BAHRAIN_REF_PDF_OFFSET,
@@ -44,6 +46,7 @@ from modules.layouts import (
     _build_qatar_page_payload,
     _build_qpc_v1_page_payload,
     _build_bahrain_page_payload,
+    _build_haddad_page_payload,
     _get_dk_layout_word_map,
     _find_mushaf_row_match_index,
     _normalize_mushaf_word_token,
@@ -92,7 +95,12 @@ def _is_mesaha(edition) -> bool:
     return edition in _MESAHA_EDITIONS
 
 
+HADDAD_EDITION = 'الكويت (الحداد)'
+
+
 def _max_page_for(edition) -> int:
+    if edition == HADDAD_EDITION:
+        return HADDAD_MAX_PAGE
     return _MESAHA_MAX_PAGE if _is_mesaha(edition) else _MAX_MUSHAF_PAGE
 
 
@@ -452,6 +460,8 @@ def mushaf_editor_page():
 def _editor_layout_db(edition: str) -> str:
     if edition == 'الكويت':
         return QPC_V1_LAYOUT_DATABASE
+    if edition == HADDAD_EDITION:
+        return HADDAD_LAYOUT_DATABASE
     if edition == 'البحرين':
         layout_db = layout_persistence.working_db_path(BAHRAIN)
         if os.path.exists(layout_db):
@@ -670,6 +680,8 @@ def get_mushaf_editor_spread(spread_number):
             build_page = _build_bahrain_page_payload
         elif _is_mesaha(edition):
             build_page = _build_mesaha_page_payload
+        elif edition == HADDAD_EDITION:
+            build_page = _build_haddad_page_payload
         else:
             build_page = _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)

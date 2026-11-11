@@ -26,10 +26,16 @@
 
     // The Mesaha editions run to 827 pages; every other print is 604.
     const MESAHA_EDITIONS = new Set(['المساحة', 'المساحة ١٣٧١']);
+    // مصحف دولة الكويت بخط محمد سعد الحداد (1421): its own 662-page, 13-line layout
+    const HADDAD = 'الكويت (الحداد)';
+    // archive leaf = page + 2, except two leaves bound out of order (page 384 is leaf 388, page 386 leaf 386)
+    const HADDAD_LEAF_OF = { 384: 388, 386: 386 };
+    const haddadLeaf = page => HADDAD_LEAF_OF[page] || page + 2;
+    const HADDAD_LEAF = page => `https://archive.org/download/MOS7F_KW/page/n${haddadLeaf(page)}_w1024.jpg?file=MOS7F_KWH`;
     let MAX_PAGE = 604;
     let MAX_SPREAD = 302;
     function applyEditionLimits(edition) {
-        MAX_PAGE = MESAHA_EDITIONS.has(edition) ? 827 : 604;
+        MAX_PAGE = MESAHA_EDITIONS.has(edition) ? 827 : edition === HADDAD ? 662 : 604;
         MAX_SPREAD = Math.ceil(MAX_PAGE / 2);
     }
 
@@ -42,6 +48,11 @@
         'المساحة': { type: 'archive', id: 'mushafElMesaha46796794669_201703', label: 'مرجع مصحف المساحة', leafOffset: -1 },
         // the 1952 reprint's own scan (Jordanian Ministry of Education, archive.org MmSL7H): page N = leaf N-1
         'المساحة ١٣٧١': { type: 'archive', id: 'MmSL7H', label: 'مرجع المساحة ١٣٧١ (طبعة ١٩٥٢)', leafOffset: -1 },
+        'الكويت (الحداد)': {
+            type: 'local', label: 'مرجع الكويت (الحداد)',
+            image: HADDAD_LEAF,
+            open: page => `https://archive.org/details/MOS7F_KW/page/n${haddadLeaf(page)}`,
+        },
         'البحرين': {
             type: 'pdf',
             label: 'مرجع مصحف البحرين',
@@ -77,6 +88,7 @@
     };
     const STUDIO_BY_EDITION = {
         'البحرين': '/layout-studio/bahrain',
+        'الكويت (الحداد)': '/layout-studio',
         'قطر': '/layout-studio/azhar',
         'الكويت': '/layout-studio/azhar',
         'المساحة': '/layout-studio/mesaha',
@@ -86,6 +98,7 @@
         'قطر': 'مصحف قطر',
         'الكويت': 'الكويت الحديث',
         'البحرين': 'مصحف البحرين',
+        'الكويت (الحداد)': 'الكويت (الحداد)',
         'المساحة': 'مصحف المساحة ١٣٤٢',
         'المساحة ١٣٧١': 'مصحف المساحة ١٣٧١',
     };
@@ -326,7 +339,8 @@
         // قطر → KATypical Naskh; الكويت → Al Shamiya; البحرين → Digital Khatt (1421).
         document.body.classList.toggle('ed-font-qatar', state.edition === 'قطر');
         document.body.classList.toggle('ed-font-kuwait', state.edition === 'الكويت');
-        document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين');
+        // الحداد renders in Digital Khatt like البحرين
+        document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين' || state.edition === HADDAD);
         document.body.classList.toggle('ed-font-mesaha', MESAHA_EDITIONS.has(state.edition));
         applyEditionLimits(state.edition);
         if (state.page > MAX_PAGE) state.page = MAX_PAGE;
@@ -796,7 +810,7 @@
             if (state.edition === 'قطر') {
                 return window.AtharPageChrome.katypicalFeatureCandidates(100);
             }
-            if (state.edition === 'البحرين') {
+            if (state.edition === 'البحرين' || state.edition === HADDAD) {
                 return window.AtharPageChrome.digitalKhattFeatureCandidates(100);
             }
             return null;
@@ -806,17 +820,17 @@
             // KATypical only has binary jalt (big jump). Allow mild condense
             // so elongation still wins over word rivers when jalt overshoots.
             if (state.edition === 'قطر') return 0.88;
-            if (state.edition === 'البحرين') return 0.94;
+            if (state.edition === 'البحرين' || state.edition === HADDAD) return 0.94;
             return 1;
         },
         // Cap residual gaps so leftover slack prefers kashida/jalt over rivers,
         // but leave a little room — printed Naskh is not pure stretch either.
         maxWordSpacing: () => (
-            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين'
+            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين' || state.edition === HADDAD
                 ? 1.75 : Infinity
         ),
         preferExpansion: () => (
-            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين'
+            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين' || state.edition === HADDAD
         ),
         preferExpansionSlack: 3,
         // Avoid stringy whole-line stretch when jalt still leaves slack.

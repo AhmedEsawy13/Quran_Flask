@@ -51,6 +51,10 @@ SHAMARLY_QVP_DIR = os.environ.get('SHAMARLY_QVP_DIR', os.path.join(_ROOT, 'artif
 # Layout Studio working copy for مصحف البحرين. Seeded from QPC V2 but kept
 # separate so line edits/undo never mutate the shared Madinah 1421 source.
 BAHRAIN_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-bahrain-layout.db')
+# «الكويت (الحداد)»: مصحف دولة الكويت بخط محمد سعد الحداد (1421), 662 pages, 13 lines; built from the
+# scan by pipeline/paw_split/haddad_layout_db.py (Digital Khatt word ids)
+HADDAD_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-kuwait-haddad-layout.db')
+HADDAD_MAX_PAGE = 662
 # Printed مصحف البحرين scan (islamhouse PDF). Mushaf page N → PDF index N+4.
 BAHRAIN_REF_PDF = os.path.join(_ROOT, 'data', 'refs', 'ar-mushaf-albahrains.pdf')
 BAHRAIN_REF_CACHE = os.path.join(_ROOT, 'data', 'refs', 'bahrain_cache')

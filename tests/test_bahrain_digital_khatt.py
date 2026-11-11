@@ -47,7 +47,7 @@ def test_editor_ui_references_digital_khatt_for_bahrain():
     assert 'digitalkhatt.woff2' in css
     assert "font-family: 'Digital Khatt'" in css
     assert 'ed-font-bahrain' in css
-    assert "classList.toggle('ed-font-bahrain', state.edition === 'البحرين')" in js
+    assert "classList.toggle('ed-font-bahrain', state.edition === 'البحرين' || state.edition === HADDAD)" in js
     assert 'digitalKhattFeatureCandidates' in js
     assert 'data-edition="البحرين"' in html
     assert 'مصحف البحرين' in html
