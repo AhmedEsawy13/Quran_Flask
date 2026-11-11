@@ -24,11 +24,12 @@ sys.path.insert(0, str(PIPELINE))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
 import build_classical_waqf as classical  # noqa: E402
-from core.classical_review import is_hand_pinned  # noqa: E402
+from core.classical_review import REVIEW_GRADE_LABELS, is_hand_pinned  # noqa: E402
 
 CATALOG = PIPELINE / 'classical_books.json'
 DEFAULT_DB = ROOT / 'data' / 'classical_waqf.db'
-GRADES = {canonical for _, canonical in classical.GRADES}
+# Builder grades plus book-specific ones stored by hand (النحاس's جيد/بيان).
+GRADES = {canonical for _, canonical in classical.GRADES} | set(REVIEW_GRADE_LABELS)
 
 
 def digest(path: Path) -> str:

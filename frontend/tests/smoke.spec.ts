@@ -466,7 +466,8 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator('.reader-page[data-waqf-source="المدينة القديم"]')).not.toHaveCount(0);
   await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
-  await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
+  // The range lives on the «الموضع» button (its value is hidden below lg, so read the summary's label).
+  await expect(page.locator("summary").filter({hasText: "الموضع"})).toHaveAttribute("aria-label", "الموضع: البقرة · ٢٥٥–٢٥٧");
   await expect(page.getByLabel("التفصيل الموضوعي")).not.toBeChecked();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
   await page.locator("summary").filter({hasText: "القارئ والتكرار"}).click();
@@ -625,7 +626,8 @@ test("مختبر الوقف finds by mark, narrows by scope, and shows evidence 
   await page.goto("/waqf-lab?tab=ayahends");
   await expect(page.getByRole("button", {name: /وصلها القرّاء/})).toHaveAttribute("aria-pressed", "true", {timeout: 20_000});
   const joined = page.locator('a[href^="/waqf?surah=37&ayah=151"]');
-  await expect(joined).toContainText("وصلها ٦ من ١٥");
+  // The reciter count follows the synced QUL timestamps, so check the shape, not a fixed number.
+  await expect(joined).toContainText(/وصلها [٠-٩]+ من [٠-٩]+/);
   await expectNoHorizontalOverflow(page);
 });
 
