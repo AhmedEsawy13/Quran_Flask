@@ -312,15 +312,15 @@ body.ed-popup-open { overflow: hidden; }
 body.ed-font-qatar .ed-word,
 body.ed-font-qatar .ed-popup-title { font-family: 'KATypical Naskh', 'Uthmanic Hafs', serif; }
 /* Keep Hafs for waqf glyphs even on Qatar pages — marks are Uthmanic combining forms. */
-body.ed-font-qatar .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+body.ed-font-qatar .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; bottom: calc(100% - 0.4em); }
 /* الكويت الحديث — QPC v1 layout + DigitalKhatt Al-Shamiya (دار الشامية ١٩٧٨). */
 body.ed-font-kuwait .ed-word,
 body.ed-font-kuwait .ed-popup-title { font-family: 'Al Shamiya', 'Old Madina', serif; }
-body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; bottom: calc(50% + 0.4em); }
 /* البحرين — Madinah 1421 (QPC v2) layout + Digital Khatt font (same as تثبيت). */
 body.ed-font-bahrain .ed-word,
 body.ed-font-bahrain .ed-popup-title { font-family: 'Digital Khatt', serif; }
-body.ed-font-bahrain .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+body.ed-font-bahrain .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; bottom: calc(50% + 0.4em); }
 /* المساحة — the Layout Studio project's pages (Amiri Quran script, like the studio). */
 body.ed-font-mesaha .ed-word,
 body.ed-font-mesaha .ed-popup-title { font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif; }
@@ -354,7 +354,10 @@ body.ed-compare-print .ed-word.ed-diff .ed-waqf-mark { color: inherit; }
     position: absolute;
     /* anchored to the word's top edge (not a multiple of the mark's own size), so it lands in the free band
        between lines at every font size and print */
-    bottom: calc(50% + 0.45em);   /* from the word's middle: word boxes are much taller than the ink */
+    /* from the word's middle: in these fonts the word box is ~2.5em tall, far taller than the ink, so its top
+       edge reaches into the line above. Each print's font sits its ink differently in that box, so قطر (compact
+       KATypical box), الكويت and البحرين set their own lift above; this one is المساحة's (Amiri Quran) */
+    bottom: calc(50% - 0.55em);
     left: -0.15em;
     font-size: 1.2em;
     line-height: 1;
