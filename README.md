@@ -36,8 +36,11 @@ never re-implements Quran logic. What has moved and what has not:
   (النحاس), إيضاح الوقف (ابن الأنباري): parsed from OpenITI/Shamela, aligned to the
   exact recited word, each with its grade (تام/كاف/حسن/جائز/…), its علّة, and
   attribution when a book relays another scholar. Guarded by audits that run in CI.
-- **Nine mushaf editions' marks** — المدينة (الجديد/القديم), الأزهر, الشمرلي, ورش,
-  الهندي, قطر, الكويت, البحرين — comparable side by side.
+- **Thirteen mushaf editions' marks** — المدينة (الجديد، القديم، ١٤٢٧), الأزهر,
+  الشمرلي, ورش, الهندي, قطر, الكويت, البحرين, المساحة, المساحة ١٣٧١, مسقط —
+  comparable side by side (`data/mushaf_waqf.db`, one column per edition). Marks for
+  raster-only prints are read from the page scans by the CV / word-split pipelines
+  (`pipeline/cv_waqf/`, `pipeline/paw_split/`) and reviewed before they ship.
 - **Recitation checking** — an in-browser Zipformer phoneme model (onnxruntime-web)
   follows the learner, detects stops and flags tajweed slips.
 
@@ -62,6 +65,7 @@ data/ reciters/   the shipped datasets (SQLite + JSON), read-only at runtime
 templates/ static/  Flask-rendered pages, JS/CSS, per-page mushaf fonts
 frontend/         Next.js 16 public UI (Vercel)
 models/           ONNX waqf-glyph detectors used by the CV tooling
+artifacts/        local pipeline output (gitignored)
 docs/             operational and design docs — start at docs/README.md
 ```
 
@@ -86,7 +90,7 @@ docs/             operational and design docs — start at docs/README.md
 | `reading` | `reading` |
 | `memorize` | `memorize` |
 | `breathing` | `breathing` (مُكْث + تدريب), `waqf_research` (the `/api/waqf-research/*` family) |
-| `editor` *(off in production)* | `editor`, `editor_auth`, `layout_studio` (+ `layout_engine`, `layout_editions`, `azhar_layout` aliases), `waqf_mark_review`, `classical_review`, `tawjih_review`, `cv_waqf_ui`, `activity`, `font_lab`, `quran_integrity_review` |
+| `editor` *(off in production)* | `editor`, `editor_auth`, `layout_studio` (+ `layout_engine`, `layout_editions`, `azhar_layout` aliases), `waqf_mark_review`, `classical_review`, `tawjih_review`, `cv_waqf_ui`, `audit_review` (whole-book CV audit queue), `mesaha_waqf_review`, `activity`, `font_lab`, `quran_integrity_review`, `tools` (the `/tools` index of every internal tool) |
 
 ### Choosing what a process serves
 

@@ -66,6 +66,7 @@ The four active books are المكتفى (الداني), منار الهدى (ا
 | `align_azhar_*.py`, `repair_shamarly_*.py` | **one-time** reviewer-confirmed page fixes |
 | `repair_bahrain_word_alignment.py` | **one-time** (idempotent). Moved the Bahrain project into true QUL word ids after the 15/27/36 tokenization fix; keep for provenance |
 | `cv_waqf/` | OpenCV detection of printed waqf marks (`python3 -m pipeline.cv_waqf`; extras in `requirements/cv.txt`) |
+| `paw_split/` | Words as glyphs on raster prints (المساحة / ١٣٧١, قطر, الكويت الحداد, الشمرلي, واثق بالله, مكتوم): ink pieces → words, then the waqf signs read per word ([`paw_split/README.md`](paw_split/README.md)) |
 
 ## Text, translation and reciter datasets
 
@@ -92,3 +93,10 @@ Setup: [`docs/SUPABASE_EDITOR.md`](../docs/SUPABASE_EDITOR.md).
 - Import helpers from `core.*`; do **not** `import app`.
 - Read-only by default; anything destructive takes an explicit flag and writes a backup first.
 - Add a one-line module docstring — it is what this index is built from.
+
+## Review state (tracked inputs, not scripts to run)
+
+| Path | Contents |
+|---|---|
+| `review/` | Hand decisions the builders and audits read: `hand_pinned_seats.json` (quotes whose seat was checked by reading the book), coverage exceptions, per-book audit logs |
+| `classical_llm_cache/` | Frozen AI-extraction responses for منار الهدى, so rebuilds are deterministic ([`docs/CLASSICAL_LLM_PILOT.md`](../docs/CLASSICAL_LLM_PILOT.md)) |
