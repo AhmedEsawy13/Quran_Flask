@@ -89,6 +89,7 @@ def _ayah_word_list_for_editor(surah_number, ayah_number):
 
 _MESAHA_EDITIONS = ('المساحة', 'المساحة ١٣٧١')
 _MESAHA_MAX_PAGE = 827
+_ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
 
 
 def _is_mesaha(edition) -> bool:
@@ -126,15 +127,32 @@ def _mesaha_ayah_tokens(surah, ayah):
             break
         n += 1
         text = (wmap['id2tok'].get(wid) or {}).get('text') or ''
-        if not _normalize_mushaf_word_token(text) or text.startswith('\u06dd'):
+        if text.startswith('\u06dd'):
+            continue
+        # an ayah number glued to the last word (2:157 ٱلۡمُهۡتَدُونَ١٥٧) is not part of its spelling; a token
+        # that is only the number stays as it is and lands on the Digital Khatt ring
+        word_only = text.rstrip(_ARABIC_DIGITS)
+        if _normalize_mushaf_word_token(word_only):
+            text = word_only
+        norm = _normalize_mushaf_word_token(text)
+        if not norm:
             continue
         content += 1
         idx = _find_mushaf_row_match_index(
             dk_words, {'clean_token': text, 'word_index': content, 'token_index': None}, start)
+        end = idx
+        if idx is None and start < len(dk_words):
+            # Same word, spelled apart: a hamza on the line here and combining there (2:72 فَٱدَّٰرَٰءۡتُمۡ), or
+            # one Mesaha word over two Digital Khatt tokens (15:7 لَّوۡمَا, 27:20 مَالِيَ) — the sign sits on the last.
+            here = _normalize_mushaf_word_token(dk_words[start]['text'])
+            if here and here == norm.replace('\u0621', ''):
+                idx = end = start
+            elif start + 1 < len(dk_words) and here + _normalize_mushaf_word_token(dk_words[start + 1]['text']) == norm:
+                idx, end = start, start + 1
         if idx is None:
             continue
-        start = idx + 1
-        out[wid] = dk_words[idx]['word_id'] - dk_first
+        start = end + 1
+        out[wid] = dk_words[end]['word_id'] - dk_first
     return out
 
 
@@ -476,7 +494,13 @@ def _mesaha_page_of_ayah(surah, ayah):
     """First Mesaha page showing (surah, ayah), through the project's own word ids."""
     from modules.layout_editions import MESAHA
     from modules.layout_studio import _layout_db, _project_word_map
-    first = _project_word_map(MESAHA)['key_to_id'].get(f'{surah}:{ayah}:1')
+    return _mesaha_page_of_word(_project_word_map(MESAHA)['key_to_id'].get(f'{surah}:{ayah}:1'))
+
+
+def _mesaha_page_of_word(first):
+    """The Mesaha page whose lines hold this Mesaha word id."""
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _layout_db
     if first is None:
         return None
     conn = _sqlite_connect(_layout_db(MESAHA))
@@ -863,13 +887,23 @@ def editor_pending_changes():
 
     layout_db = _editor_layout_db(edition)
     wmap = _get_dk_layout_word_map()
+    mesaha = _is_mesaha(edition)
+    mesaha_words: dict[tuple[int, int], dict] = {}
     pages_acc: dict[int, dict] = {}
     for ch in changes:
         surah, ayah, ti = int(ch['surah']), int(ch['ayah']), int(ch['token_index'])
-        page_number = _layout_page_resolve(layout_db, surah, ayah)
+        if mesaha:
+            # Mesaha pages carry their own word ids: the cloud token back to the word, then its page
+            if (surah, ayah) not in mesaha_words:
+                mesaha_words[(surah, ayah)] = {
+                    token: wid for wid, token in _mesaha_ayah_tokens(surah, ayah).items()}
+            ch['word_id'] = mesaha_words[(surah, ayah)].get(ti)
+            page_number = _mesaha_page_of_word(ch['word_id']) or _mesaha_page_of_ayah(surah, ayah)
+        else:
+            page_number = _layout_page_resolve(layout_db, surah, ayah)
+            first_id = wmap['first_id'].get((surah, ayah))
+            ch['word_id'] = (first_id + ti) if first_id is not None else None
         ch['page_number'] = page_number
-        first_id = wmap['first_id'].get((surah, ayah))
-        ch['word_id'] = (first_id + ti) if first_id is not None else None
         if page_number is None:
             continue
         bucket = pages_acc.get(page_number)

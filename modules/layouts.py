@@ -262,6 +262,10 @@ def _normalize_mushaf_word_token(value):
     return ''.join(ch for ch in text if not ch.isspace())
 
 
+def _fold_yaa(text):
+    return (text or '').replace('\u0649', '\u064a')
+
+
 def _compact_mushaf_word_token(value):
     text = (value or '').strip()
     if not text:
@@ -403,6 +407,20 @@ def _find_mushaf_row_match_index(words, row, search_start=0):
             for idx in rng:
                 candidate = _normalize_mushaf_word_token(_get_word_match_text(words[idx]))
                 if candidate == target_norm:
+                    return idx
+
+    # Spelling variance between sources: Tanzil Uthmani (مصحف قطر pages) writes the final yaa undotted
+    # (نَفْسِى) where the waqf rows have it dotted (نَفۡسِيۖ). Only tried once the stricter passes found nothing.
+    target_loose = _fold_yaa(target_norm)
+    if target_loose:
+        if hinted_by_word_index is not None and 0 <= hinted_by_word_index < len(words):
+            hinted_loose = _fold_yaa(_normalize_mushaf_word_token(_get_word_match_text(words[hinted_by_word_index])))
+            if hinted_loose == target_loose:
+                return hinted_by_word_index
+        for rng in ranges:
+            for idx in rng:
+                candidate = _fold_yaa(_normalize_mushaf_word_token(_get_word_match_text(words[idx])))
+                if candidate == target_loose:
                     return idx
 
     # Last resort for cloud-only rows (token_index is 0-based layout offset).

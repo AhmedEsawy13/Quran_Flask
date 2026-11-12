@@ -6,6 +6,7 @@ Run with ShemrlyMushaf's venv (pymupdf, fontTools, its extract_pdf_pages):
     /Users/mac/Development/ShemrlyMushaf/.venv/bin/python pipeline/paw_split/shamarly_glyph_eval.py 204 212 ...
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -44,8 +45,11 @@ def dist(a, b):
     return float(shape_distance(na, aa, TemplateShape(nb, distance_transform_edt(~nb), ab)))
 
 
+SUFFIX = os.environ.get('PAW_SUFFIX', '')     # '.marks': after shamarly_mark_fix.py
+
+
 def word_masks(page):
-    d = json.load(open(WORK / f'paw-words-{page:03d}.json'))
+    d = json.load(open(WORK / f'paw-words-{page:03d}{SUFFIX}.json'))
     lab = np.load(WORK / f'labels-{page:03d}.npz')['lab']
     out = {}
     for w in d['words']:
@@ -88,7 +92,7 @@ def main(pages):
             if not g['token'].strip('٠١٢٣٤٥٦٧٨٩'):
                 continue          # verse numbers: the PAW split keeps them as rings
             rows.append(r)
-    json.dump(rows, open(WORK / 'glyph-eval.json', 'w'), ensure_ascii=False, indent=1)
+    json.dump(rows, open(WORK / f'glyph-eval{SUFFIX}.json', 'w'), ensure_ascii=False, indent=1)
     n = len(rows)
     pipe = sum(r['pipe_gt'] < GT_PASS for r in rows)
     paw = sum(r.get('paw_gt', 9) < GT_PASS for r in rows)

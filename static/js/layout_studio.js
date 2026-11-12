@@ -376,7 +376,11 @@
             const natural = inner.scrollWidth;
             if (avail > 0 && natural > avail + 0.5) {
                 inner.style.transform = `scaleX(${Math.max(0.5, avail / natural)})`;
-                inner.style.transformOrigin = 'right center';
+                // A centered row whose box is wider than the line (the basmallah row has no max-width)
+                // overflows both edges equally, so it must shrink about its middle; shrinking it from
+                // the right edge leaves it hanging past the page's right edge, where the page clips it.
+                inner.style.transformOrigin = inner.clientWidth > line.clientWidth + 0.5
+                    ? 'center center' : 'right center';
             }
         });
     }

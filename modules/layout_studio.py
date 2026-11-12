@@ -509,6 +509,11 @@ def _page_row_budget(
     equals the slot budget, as before.
     """
     slots = _page_line_budget(edition, profile, page_number)
+    if edition.closed_rule_for(page_number):
+        # A closed page's target already counts its rows (name + info + basmallah + ayah rows), so a
+        # two-slot basmallah must not take one off: Mesaha pages 2-3 hold 8 rows, and a budget of 7
+        # made undo/header moves merge two of their ayah rows.
+        return slots
     extra = {
         line_type: max(0, int(getattr(profile, field)) - 1)
         for line_type, field in _HEADER_EXTRA_FIELDS

@@ -621,6 +621,29 @@ def test_editor_ui_has_login_and_publish(client):
     assert 'اعتماد ونشر' in script
 
 
+def test_mesaha_pending_changes_use_mesaha_pages_and_word_ids(client, cloud):
+    """Mesaha pages carry their own word ids and page numbers (2:255 is page 53, not 42)."""
+    from modules import editor
+    from modules.layout_editions import MESAHA
+    from modules.layout_studio import _project_word_map
+    word_id = _project_word_map(MESAHA)['key_to_id']['2:255:1']
+    token = editor._mesaha_ayah_tokens(2, 255)[word_id]
+    _inv, username, _pwd = _seed_invite(cloud, name='Mesaha', role='editor', username='mesaha-1')
+    cloud.marks[('المساحة', 2, 255, token, 'draft')] = {
+        'edition': 'المساحة', 'surah': 2, 'ayah': 255, 'token_index': token,
+        'status': 'draft', 'symbol': 'ج', 'word_text': 'ٱللَّهُ',
+    }
+    _login(client, username)
+    expected_page = client.get(
+        '/api/mushaf-editor/page-by-ayah/2/255?edition=المساحة').get_json()['page_number']
+    r = client.get('/api/mushaf-editor/pending?edition=المساحة')
+    assert r.status_code == 200
+    change = next(c for c in r.get_json()['changes'] if (c['surah'], c['ayah']) == (2, 255))
+    assert change['word_id'] == word_id
+    assert change['page_number'] == expected_page
+    assert expected_page in [p['page_number'] for p in r.get_json()['pages']]
+
+
 def test_pending_api_includes_pages_summary(client, cloud):
     """Pending endpoint groups changes by mushaf page for draft navigation."""
     from modules.editor_auth import COOKIE_NAME

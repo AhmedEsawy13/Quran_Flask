@@ -34,9 +34,12 @@
     const HADDAD_LEAF = page => `https://archive.org/download/MOS7F_KW/page/n${haddadLeaf(page)}_w1024.jpg?file=MOS7F_KWH`;
     let MAX_PAGE = 604;
     let MAX_SPREAD = 302;
+    // المساحة and الحداد start on page 2 (الفاتحة); their page 1 is not part of the layout.
+    let MIN_PAGE = 1;
     function applyEditionLimits(edition) {
         MAX_PAGE = MESAHA_EDITIONS.has(edition) ? 827 : edition === HADDAD ? 662 : 604;
         MAX_SPREAD = Math.ceil(MAX_PAGE / 2);
+        MIN_PAGE = MESAHA_EDITIONS.has(edition) || edition === HADDAD ? 2 : 1;
     }
 
     // Printed scans — Archive.org leaf images for قطر/الكويت; remote islamhouse
@@ -239,7 +242,7 @@
 
     function clampPage(n) {
         if (!Number.isFinite(n)) return 1;
-        return Math.min(MAX_PAGE, Math.max(1, n));
+        return Math.min(MAX_PAGE, Math.max(MIN_PAGE, n));
     }
     function clampSpread(n) {
         if (!Number.isFinite(n)) return 1;
@@ -258,13 +261,15 @@
         return (saved && EDITOR_EDITION_SET.has(saved)) ? saved : 'قطر';
     }
     function initialPage() {
+        // the page range depends on the edition (المساحة runs to 827), so set it before clamping
+        applyEditionLimits(initialEdition());
         const qPage = parseInt(readQuery().get('page') || '', 10);
         if (Number.isFinite(qPage)) return clampPage(qPage);
         const savedPage = parseInt(localStorage.getItem('ed_page') || '', 10);
         if (Number.isFinite(savedPage)) return clampPage(savedPage);
         const savedSpread = parseInt(localStorage.getItem('ed_spread') || '', 10);
         if (Number.isFinite(savedSpread)) return clampPage(clampSpread(savedSpread) * 2 - 1);
-        return 1;
+        return MIN_PAGE;
     }
     function initialVerseHint() {
         const q = readQuery();
@@ -343,7 +348,12 @@
         document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين' || state.edition === HADDAD);
         document.body.classList.toggle('ed-font-mesaha', MESAHA_EDITIONS.has(state.edition));
         applyEditionLimits(state.edition);
-        if (state.page > MAX_PAGE) state.page = MAX_PAGE;
+        state.page = clampPage(state.page);
+        if (els.jumpInput) {
+            els.jumpInput.min = String(MIN_PAGE);
+            els.jumpInput.max = String(MAX_PAGE);
+        }
+        if (els.progress) els.progress.setAttribute('aria-valuemax', String(MAX_PAGE - MIN_PAGE + 1));
         document.body.classList.remove('ed-font-hafs');
         document.body.classList.toggle('ed-compare-print', state.compareMode === 'print');
         if (els.studioLink) {
@@ -954,7 +964,7 @@
     }
 
     function updateNavButtons() {
-        els.prev.disabled = state.page <= 1;
+        els.prev.disabled = state.page <= MIN_PAGE;
         els.next.disabled = state.page >= MAX_PAGE;
         updateDraftsNavButtons();
     }
@@ -1103,7 +1113,7 @@
         updateReviewedCheckbox();
     }
     function updateProgressLabel() {
-        els.progress.textContent = `${toAr(state.reviewedPages.size)} / ${toAr(MAX_PAGE)} مراجَعة`;
+        els.progress.textContent = `${toAr(state.reviewedPages.size)} / ${toAr(MAX_PAGE - MIN_PAGE + 1)} مراجَعة`;
         els.progress.setAttribute('aria-valuenow', String(state.reviewedPages.size));
     }
     function updateReviewedCheckbox() {
@@ -1144,7 +1154,7 @@
 
     /* ── Navigation ──────────────────────────────────────────────── */
     els.prev.addEventListener('click', () => {
-        if (state.page <= 1) return;
+        if (state.page <= MIN_PAGE) return;
         state.page--;
         persist(); closePopup(); loadPage();
     });
@@ -1158,9 +1168,9 @@
     els.jumpInput.addEventListener('input', () => els.jumpInput.removeAttribute('aria-invalid'));
     function jumpToPage() {
         const p = parseInt(els.jumpInput.value, 10);
-        if (!Number.isFinite(p) || p < 1 || p > MAX_PAGE) {
+        if (!Number.isFinite(p) || p < MIN_PAGE || p > MAX_PAGE) {
             els.jumpInput.setAttribute('aria-invalid', 'true');
-            setStatus('رقم صفحة غير صالح (١ - ٦٠٤)', true);
+            setStatus(`رقم صفحة غير صالح (${toAr(MIN_PAGE)} - ${toAr(MAX_PAGE)})`, true);
             return;
         }
         els.jumpInput.removeAttribute('aria-invalid');
