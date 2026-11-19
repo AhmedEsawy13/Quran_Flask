@@ -1,0 +1,40 @@
+/* Shamarly word-ownership review (modules/shamarly_owner_review.py); the cards reuse mushaf_audit.css. */
+.so-note{margin:0 0 14px}
+.card img{aspect-ratio:auto;height:auto;object-fit:contain}
+.card .ctx{font:16px var(--quran);color:var(--muted);margin:2px 0}
+.card .ctx b{color:var(--fg)}
+.picker button{font:inherit;font-size:14px;font-weight:700;padding:4px 10px}
+.picker button.right.on{border-color:#2c962c;color:#2c962c;background:#2c962c1a}
+.reasons{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.reasons[hidden]{display:none}
+.reasons label{font-size:13px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
+.reasons label:has(input:checked){border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.reasons input{display:none}
+.card textarea{width:100%;box-sizing:border-box;margin-top:6px;font:inherit;font-size:13px;min-height:2.4em;
+  border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--card);color:var(--fg);resize:vertical}
+.status .warn{color:#b35c00}
+.card .line-open{font:inherit;font-size:13px;margin-top:6px;border-radius:8px;padding:4px 10px;cursor:pointer;background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.status .moves{font-size:12px;color:var(--muted)}
+
+/* line editor */
+.le{position:fixed;inset:0;background:#0009;z-index:30;display:flex;align-items:center;justify-content:center;padding:12px}
+.le[hidden]{display:none}
+.le-box{background:var(--card,#fff);color:var(--fg);border-radius:12px;width:min(1100px,100%);max-height:100%;overflow:auto;padding:12px 14px;box-sizing:border-box}
+.le-head{display:flex;align-items:center;gap:10px}
+.le-head h2{font-size:17px;margin:0;flex:1}
+.le-head button{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--fg);cursor:pointer;min-width:34px;padding:2px 8px}
+.le-help{font-size:13px;margin:6px 0}
+.le-stage{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#fff;direction:ltr}
+.le-stage svg{display:block;height:auto;min-width:100%}
+.le-stage .hit{fill:transparent;cursor:pointer}
+.le-stage .sel{fill:none;stroke:#000;stroke-width:3;vector-effect:non-scaling-stroke}
+.le-stage .moved{fill:none;stroke:#d40;stroke-width:1.5;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.le-stage text{font:44px var(--quran,serif);text-anchor:middle}
+.le-words{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.le-words button{font:700 17px var(--quran,serif);border-radius:8px;padding:3px 10px;cursor:pointer;background:none;border:2px solid currentColor}
+.le-words button.me{box-shadow:0 0 0 2px var(--accent)}
+.le-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.le-acts button{font:inherit;font-size:13.5px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--fg);cursor:pointer;padding:5px 10px}
+.le-acts .le-save{margin-inline-start:auto;background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.le-acts .le-save:disabled{opacity:.5;cursor:default}
+.le-count{font-size:13px;color:var(--muted)}

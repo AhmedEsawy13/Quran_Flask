@@ -211,3 +211,43 @@ merge the PR. Validation failures create a failed run and no branch update.
 The separate `production-smoke.yml` workflow checks the deployed HTTP surface
 and Supabase schema daily. Configure the `PRODUCTION_BASE_URL` repository
 variable in addition to the two Supabase secrets.
+
+## 8. Shamarly word-ownership review («ملكية كلمات الشمرلي»)
+
+`/mushaf-editor/shamarly-owner` (`modules/shamarly_owner_review.py`) shows card sets exported by ShemrlyMushaf
+into `data/shamarly-owner/<set>/` (commit them so the cloud app has them):
+
+```bash
+cd ~/Development/ShemrlyMushaf && .venv/bin/python scripts/owner_review.py export --n 20 --name shamarly-owner-<name>
+```
+
+Each card is a doubtful word on its line (its ink red, then the rest faded). Reviewers choose right / wrong
+(+ reasons) / the word holds a mark of the previous or next word / not sure, plus a note. Decisions use the
+existing `waqf_mark_review_decisions` table under edition «الشمرلي · ملكية» (no migration): `word_id` = the
+book-global word index, `our_mark` = the line-ownership digest at export, `correct_mark` = JSON
+`{v, r, n, set}`. Without Supabase they go to the ignored `artifacts/review-store/shamarly_owner.db`.
+
+**Line editor.** Each card also carries its whole line (`lines/<id>.json`: outline shapes, word cells, owners).
+«محرر السطر» lets a reviewer select ink (a letter brings its counters and marks), give it to another word of the
+line, or send it to the line above / below, then save. The moves are kept in the same decision row
+(`correct_mark.m = {outline: word index | "up" | "down"}`), validated against the exported line (known outlines,
+no word left without ink, no move to a line without words). Saving a fix sets the verdict to «صحيح» (the corrected
+word) unless the reviewer chose another.
+
+ShemrlyMushaf pulls them back (dry run by default; reads `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` from the
+environment or this repo's `.env`):
+
+```bash
+.venv/bin/python scripts/owner_review.py sync                          # what would be recorded / applied
+.venv/bin/python scripts/owner_review.py sync --apply                  # verdicts without moves
+.venv/bin/python scripts/owner_review.py sync --apply --apply-moves    # also apply the line-editor moves
+```
+
+Moves go through Shemrly's own `assign_line_outlines` / `move_outlines_to_line`, only on lines unchanged since the
+export (stale lines are never touched), are recorded with `changed = 1` and before / after owners, and their
+pages are queued in `output/pdf/batch-rest/pending-rescore-pages.txt`. A second run reports them as already applied.
+Test on copies with `--db <copy> --output-root <copy of output/pdf>`.
+
+Note: `flask run` loads `.env` by itself (python-dotenv), so `env -u SUPABASE_URL … flask run` still talks to
+the production project. For a local test run `python -c "from app import app; app.run(...)"` with
+`FLASK_SKIP_DOTENV=1` and the Supabase variables unset.

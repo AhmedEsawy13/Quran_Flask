@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 141,
+  "route_count": 145,
   "routes": [
     {
       "auth": "editor",
@@ -2647,6 +2647,140 @@
         "json"
       ],
       "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.shamarly_owner_cards",
+      "error_keys": [
+        "error",
+        "login_required",
+        "message",
+        "sets"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/shamarly-owner",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/shamarly_owner_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cards",
+        "note",
+        "set",
+        "sets",
+        "store",
+        "title"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.shamarly_owner_card_image",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/shamarly-owner/card",
+      "response_kinds": [
+        "binary"
+      ],
+      "source": "modules/shamarly_owner_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.shamarly_owner_decision",
+      "error_keys": [
+        "error",
+        "login_required",
+        "message"
+      ],
+      "feature": "editor",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/shamarly-owner/decision",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/shamarly_owner_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "decision",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.shamarly_owner_line",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/shamarly-owner/line",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/shamarly_owner_review.py",
       "success_cache": "no-store",
       "success_keys": []
     },

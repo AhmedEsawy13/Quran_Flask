@@ -42,6 +42,11 @@ MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
 MESAHA_WAQF_CARDS_DIR = os.path.join(_ROOT, 'data', 'mesaha-waqf')
 # Shamarly signs the vector builder could not hide (pipeline/paw_split/shamarly_waqf_cards.py), tracked likewise
 SHAMARLY_WAQF_CARDS_DIR = os.path.join(_ROOT, 'data', 'shamarly-waqf')
+# Shamarly word-ownership cards exported by ShemrlyMushaf (scripts/owner_review.py export), tracked likewise
+SHAMARLY_OWNER_CARDS_DIR = os.path.join(_ROOT, 'data', 'shamarly-owner')
+# Local store for those decisions when Supabase is not configured (ignored; the cloud table is the real one)
+SHAMARLY_OWNER_LOCAL_STORE = os.environ.get('SHAMARLY_OWNER_LOCAL_STORE',
+                                            os.path.join(_ROOT, 'artifacts', 'review-store', 'shamarly_owner.db'))
 # Bahouth-derived verse topics + contiguous context spans for تثبيت.
 VERSE_TOPICS_DATABASE = os.path.join(_ROOT, 'data', 'verse_topics.db')
 # مصاحف being adjusted via /mushaf-editor.

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · ملكية كلمات الشمرلي' %}
+    {% set page_description = 'مراجعة الحبر الذي نسبه النموذج إلى كل كلمة مشكوك فيها في مصحف الشمرلي، وتُحفظ القرارات في السحابة.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/mushaf-editor/shamarly-owner', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/mushaf_audit.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/shamarly_owner_review.css') }}">
+</head>
+<body class="athar-tool au-body">
+    {{ athar_app_bar('au-main') }}
+    <div class="bar">
+        <div class="top">
+            <h1 class="au-title">ملكية كلمات الشمرلي</h1>
+            <label class="ed">المجموعة <select id="so-set"></select></label>
+            <span class="stat" id="so-store"></span>
+            <div class="prog"><i><u id="au-bar"></u></i><span id="au-count"></span></div>
+            <label class="tools"><input type="checkbox" id="au-hide"> إخفاء ما حُسم</label>
+        </div>
+    </div>
+    <main id="au-main" tabindex="-1">
+        <p class="note so-note" id="so-note">في كل بطاقة الكلمة في سطرها مرتين: أولًا حبرها بالأحمر، ثم حبرها وحده وما سواه باهت. هل الأحمر هو الكلمة كاملة، بلا نقص ولا زيادة؟</p>
+        <div class="grid" id="so-grid"><p class="note">جارٍ التحميل…</p></div>
+    </main>
+    <div id="le" class="le" hidden role="dialog" aria-modal="true" aria-labelledby="le-title">
+        <div class="le-box">
+            <div class="le-head">
+                <h2 id="le-title"></h2>
+                <span class="le-zoom"><button type="button" data-zoom="-1" aria-label="تصغير">−</button><button type="button" data-zoom="1" aria-label="تكبير">+</button></span>
+                <button type="button" class="le-close" data-close aria-label="إغلاق">✕</button>
+            </div>
+            <p class="note le-help">انقر حرفًا أو علامة لتحديدها (الحرف يأتي بعلاماته)، ثم اختر الكلمة التي هي لها. المحدَّد بإطار أسود.</p>
+            <div class="le-stage"><svg id="le-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+            <div class="le-words" id="le-words"></div>
+            <div class="le-acts">
+                <button type="button" data-give="up">للسطر الأعلى</button>
+                <button type="button" data-give="down">للسطر الأسفل</button>
+                <button type="button" data-clear>إلغاء التحديد</button>
+                <button type="button" data-undo-move>تراجع</button>
+                <button type="button" data-reset>كما صُدِّر</button>
+                <span class="le-count" id="le-count"></span>
+                <button type="button" class="le-save" data-save>حفظ النقلات</button>
+            </div>
+        </div>
+    </div>
+    <div id="lb"><img alt=""></div>
+    <div class="toast" id="au-toast" hidden></div>
+    <script src="{{ static_hash('js/shamarly_owner_review.js') }}"></script>
+</body>
+</html>

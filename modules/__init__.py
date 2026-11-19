@@ -20,6 +20,7 @@ ROUTE_MODULES = (
     'modules.editor',
     'modules.audit_review',
     'modules.mesaha_waqf_review',
+    'modules.shamarly_owner_review',
     'modules.tools',
     'modules.waqf_mark_review',
     'modules.quran_integrity_review',
