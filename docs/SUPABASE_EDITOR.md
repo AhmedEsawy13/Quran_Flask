@@ -218,8 +218,13 @@ variable in addition to the two Supabase secrets.
 into `data/shamarly-owner/<set>/` (commit them so the cloud app has them):
 
 ```bash
-cd ~/Development/ShemrlyMushaf && .venv/bin/python scripts/owner_review.py export --n 20 --name shamarly-owner-<name>
+cd ~/Development/ShemrlyMushaf && .venv/bin/python scripts/owner_review.py export --n 500 --name shamarly-owner-queue --no-images
 ```
+
+`shamarly-owner-queue` holds the first 500 «مشكوك» words in the «فحص المشكوك» queue order (words already judged in
+ShemrlyMushaf and words of other sets left out). The page is laid out like ShemrlyMushaf's «فحص المشكوك» (one word at a
+time, keys 1–8 / E / N / arrows) and draws both views from the exported outlines, so `--no-images` keeps the set small
+(~25 KB per word).
 
 Each card is a doubtful word on its line (its ink red, then the rest faded). Reviewers choose right / wrong
 (+ reasons) / the word holds a mark of the previous or next word / not sure, plus a note. Decisions use the

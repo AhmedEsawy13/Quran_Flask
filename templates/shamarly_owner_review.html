@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    {% set page_title = 'أثَر · ملكية كلمات الشمرلي' %}
-    {% set page_description = 'مراجعة الحبر الذي نسبه النموذج إلى كل كلمة مشكوك فيها في مصحف الشمرلي، وتُحفظ القرارات في السحابة.' %}
+    {% set page_title = 'أثَر · فحص المشكوك' %}
+    {% set page_description = 'مراجعة الحبر الذي نسبه النموذج إلى كل كلمة مشكوك فيها في مصحف الشمرلي، وإصلاحه في محرر السطر. تُحفظ القرارات في السحابة.' %}
     <title>{{ page_title }}</title>
     {{ athar_page_meta(page_title, page_description, path='/mushaf-editor/shamarly-owner', noindex=true) }}
     {{ athar_shell_head() }}
@@ -14,41 +14,87 @@
 </head>
 <body class="athar-tool au-body">
     {{ athar_app_bar('au-main') }}
-    <div class="bar">
-        <div class="top">
-            <h1 class="au-title">ملكية كلمات الشمرلي</h1>
-            <label class="ed">المجموعة <select id="so-set"></select></label>
-            <span class="stat" id="so-store"></span>
-            <div class="prog"><i><u id="au-bar"></u></i><span id="au-count"></span></div>
-            <label class="tools"><input type="checkbox" id="au-hide"> إخفاء ما حُسم</label>
-        </div>
-    </div>
-    <main id="au-main" tabindex="-1">
-        <p class="note so-note" id="so-note">في كل بطاقة الكلمة في سطرها مرتين: أولًا حبرها بالأحمر، ثم حبرها وحده وما سواه باهت. هل الأحمر هو الكلمة كاملة، بلا نقص ولا زيادة؟</p>
-        <div class="grid" id="so-grid"><p class="note">جارٍ التحميل…</p></div>
+    <main id="au-main" tabindex="-1" class="wc-shell">
+        <header class="wc-head">
+            <div>
+                <h1>فحص المشكوك <small>· مصحف الشمرلي</small></h1>
+                <div class="wc-sets" role="tablist" aria-label="المجموعة" id="wcSets"></div>
+                <p class="wc-sub">هل الحبر الأحمر للكلمة وحدها: كل حرف ونقطة وحركة، ولا شيء من جارتها؟ إن لم يكن فأصلحها ثم احكم «صحيحة»: يُحفظ الإصلاح مع الحكم.</p>
+            </div>
+            <div class="wc-stats" id="wcStats" aria-live="polite"></div>
+        </header>
+        <div class="wc-bar" id="wcBar" aria-hidden="true"></div>
+
+        <section class="wc-card" id="wcCard">
+            <div class="wc-why" id="wcWhy" hidden></div>
+            <div class="wc-meta">
+                <div class="wc-words" id="wcWords"></div>
+                <div class="wc-where" id="wcWhere">جارٍ التحميل…</div>
+            </div>
+
+            <figure class="wc-view">
+                <figcaption>في السطر · حبر الكلمة بالأحمر (بأشكال مساراتها نفسها)</figcaption>
+                <div class="wc-img" id="wcContext"></div>
+            </figure>
+            <figure class="wc-view">
+                <figcaption>حبر الكلمة وحده</figcaption>
+                <div class="wc-img" id="wcOwned"></div>
+            </figure>
+
+            <div class="wc-inline" id="wcDrawer" hidden>
+                <div class="wc-drawer-bar">
+                    <strong id="wcDrawerTitle">محرر السطر</strong>
+                    <span class="wc-drawer-hint">انقر حرفًا أو علامة (الحرف يأتي بعلاماته)، ثم الكلمة التي هي لها. احفظ: تُعاد رسم الكلمة فوق.</span>
+                    <span class="le-zoom"><button type="button" class="chip" data-zoom="-1" aria-label="تصغير">−</button><button type="button" class="chip" data-zoom="1" aria-label="تكبير">+</button></span>
+                    <button type="button" class="chip" id="wcDrawerClose">أغلق المحرر <kbd>Esc</kbd></button>
+                </div>
+                <div class="le-stage"><svg id="leSvg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+                <div class="le-words" id="leWords"></div>
+                <div class="le-acts">
+                    <button type="button" class="chip" data-give="right">للكلمة السابقة</button>
+                    <button type="button" class="chip" data-give="left">للكلمة التالية</button>
+                    <button type="button" class="chip" data-give="up">للسطر الأعلى</button>
+                    <button type="button" class="chip" data-give="down">للسطر الأسفل</button>
+                    <button type="button" class="chip" data-clear>إلغاء التحديد</button>
+                    <button type="button" class="chip" data-undo-move>تراجع</button>
+                    <button type="button" class="chip" data-reset>كما صُدِّر</button>
+                    <span class="le-count" id="leCount"></span>
+                    <button type="button" class="wc-fix" data-save>احفظ الإصلاح</button>
+                </div>
+            </div>
+
+            <div class="wc-actions">
+                <button type="button" class="wc-v right" data-v="right" id="wcRight">صحيحة <kbd>1</kbd></button>
+                <button type="button" class="wc-v wrong" data-v="wrong" id="wcWrong">خاطئة <kbd>2</kbd></button>
+                <button type="button" class="wc-v unsure" data-v="unsure" id="wcUnsure">لست متأكدًا <kbd>3</kbd></button>
+                <input id="wcNote" type="text" autocomplete="off" maxlength="500" placeholder="ملاحظة (اختياري): ما الخطأ؟ مثل: تملك فتحة الكلمة التالية">
+                <button type="button" class="wc-fix" id="wcFix">أصلح <kbd>E</kbd></button>
+                <span class="wc-changed" id="wcChanged" hidden>عُدّلت</span>
+            </div>
+            <div class="wc-reasons" id="wcReasons" hidden>
+                <span class="wc-reasons-label">لماذا خاطئة؟ (أكثر من سبب جائز)</span>
+                <button type="button" class="wc-r" data-r="missing_letter">ينقصها حرف <kbd>4</kbd></button>
+                <button type="button" class="wc-r" data-r="missing_mark">ينقصها علامة <kbd>5</kbd></button>
+                <button type="button" class="wc-r" data-r="extra_letter">زائد حرف من جارتها <kbd>6</kbd></button>
+                <button type="button" class="wc-r" data-r="extra_mark">زائد علامة من جارتها <kbd>7</kbd></button>
+                <button type="button" class="wc-r" data-r="waqf">علامة الوقف <kbd>8</kbd></button>
+                <span class="wc-reasons-hint">Enter للتالية</span>
+            </div>
+            <div class="wc-nav">
+                <button type="button" class="chip" id="wcPrev">→ السابقة</button>
+                <button type="button" class="chip" id="wcNextOpen">التالية بلا حكم <kbd>N</kbd></button>
+                <button type="button" class="chip" id="wcNext">التالية ←</button>
+                <span class="wc-status" id="wcStatus"></span>
+                <span class="wc-store" id="wcStore"></span>
+            </div>
+            <p class="wc-help">المفاتيح: E يفتح محرر السطر هنا تحت الكلمة (Esc يغلقه) · 1 صحيحة · 2 خاطئة (ثم 4–8 للسبب وEnter للتالية) · 3 لست متأكدًا · الأسهم للتنقل · N للتالية بلا حكم. «علامة» تعني حركة أو نقطة أو شدة أو همزة أو مدة. بعد الإصلاح يُحفظ الحكم «صحيحة» مع النقلات؛ غيّره إن لم تصر صحيحة. الدائرة الحمراء: فراغ داخل حرف يملكه غير صاحب الحرف.</p>
+        </section>
+
+        <details class="wc-all">
+            <summary>كل كلمات المجموعة</summary>
+            <div class="wc-grid" id="wcGrid"></div>
+        </details>
     </main>
-    <div id="le" class="le" hidden role="dialog" aria-modal="true" aria-labelledby="le-title">
-        <div class="le-box">
-            <div class="le-head">
-                <h2 id="le-title"></h2>
-                <span class="le-zoom"><button type="button" data-zoom="-1" aria-label="تصغير">−</button><button type="button" data-zoom="1" aria-label="تكبير">+</button></span>
-                <button type="button" class="le-close" data-close aria-label="إغلاق">✕</button>
-            </div>
-            <p class="note le-help">انقر حرفًا أو علامة لتحديدها (الحرف يأتي بعلاماته)، ثم اختر الكلمة التي هي لها. المحدَّد بإطار أسود.</p>
-            <div class="le-stage"><svg id="le-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
-            <div class="le-words" id="le-words"></div>
-            <div class="le-acts">
-                <button type="button" data-give="up">للسطر الأعلى</button>
-                <button type="button" data-give="down">للسطر الأسفل</button>
-                <button type="button" data-clear>إلغاء التحديد</button>
-                <button type="button" data-undo-move>تراجع</button>
-                <button type="button" data-reset>كما صُدِّر</button>
-                <span class="le-count" id="le-count"></span>
-                <button type="button" class="le-save" data-save>حفظ النقلات</button>
-            </div>
-        </div>
-    </div>
-    <div id="lb"><img alt=""></div>
     <div class="toast" id="au-toast" hidden></div>
     <script src="{{ static_hash('js/shamarly_owner_review.js') }}"></script>
 </body>

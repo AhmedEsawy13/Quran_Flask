@@ -51,11 +51,27 @@ def available_sets() -> list[str]:
     return sorted(p.name for p in root.iterdir() if _SET_NAME.match(p.name) and (p / 'data.json').is_file())
 
 
+_SETS: dict[str, tuple[float, dict]] = {}
+
+
 def _load_set(name: str) -> dict | None:
+    """A card set's data.json (kept in memory until the file changes: the 500-word set is ~1 MB)."""
     if not _SET_NAME.match(name or ''):
         return None
     path = _root() / name / 'data.json'
-    return json.loads(path.read_text(encoding='utf-8')) if path.is_file() else None
+    if not path.is_file():
+        return None
+    mtime = path.stat().st_mtime
+    hit = _SETS.get(str(path))
+    if hit is None or hit[0] != mtime:
+        hit = (mtime, json.loads(path.read_text(encoding='utf-8')))
+        _SETS[str(path)] = hit
+    return hit[1]
+
+
+def _newest(sets: list[str]) -> str:
+    """The set built last opens by default."""
+    return max(sets, key=lambda n: ((_load_set(n) or {}).get('built_at') or '', n)) if sets else ''
 
 
 # --- decision store -----------------------------------------------------------------------------------------
@@ -216,7 +232,7 @@ def shamarly_owner_review_page():
 @require_editor
 def shamarly_owner_cards():
     sets = available_sets()
-    name = request.args.get('set') or (sets[-1] if sets else '')
+    name = request.args.get('set') or _newest(sets)
     data = _load_set(name)
     if data is None:
         return jsonify({'error': 'no_set', 'sets': sets,
@@ -230,7 +246,8 @@ def shamarly_owner_cards():
     for c in data['cards']:
         cards.append({k: c.get(k) for k in ('id', 'page', 'line', 'word_index', 'text', 'prev', 'next', 'why')}
                      | {'has_line': (_root() / name / 'lines' / f"{c['id']}.json").is_file(), 'decision': _view(name, c, decisions.get((int(c['page']), int(c['word_index']))))})
-    return jsonify({'set': name, 'sets': sets, 'store': 'cloud' if sb.is_configured() else 'local',
+    titles = {n: (_load_set(n) or {}).get('title') or n for n in sets}
+    return jsonify({'set': name, 'sets': sets, 'titles': titles, 'store': 'cloud' if sb.is_configured() else 'local',
                     'title': data.get('title') or '', 'note': data.get('note') or '', 'cards': cards})
 
 
